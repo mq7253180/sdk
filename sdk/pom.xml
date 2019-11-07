@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>quincy-sdk</artifactId>
+	<name>SDK</name>
+	<url>https://github.com/mq7253180/sdk/tree/master/sdk</url>
+	<parent>
+		<groupId>com.maqiangcgq</groupId>
+		<artifactId>all</artifactId>
+		<version>1.0.3</version>
+	</parent>
+	<dependencies>
+		<dependency>
+		    <groupId>com.maqiangcgq</groupId>
+		    <artifactId>quincy-common</artifactId>
+		    <version>1.0.3</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.commons</groupId>
+		    <artifactId>commons-dbcp2</artifactId>
+		    <version>2.6.0</version>
+		</dependency>
+		<dependency>
+		    <groupId>com.github.pagehelper</groupId>
+		    <artifactId>pagehelper</artifactId>
+		    <version>5.1.9</version>
+		</dependency>
+		<dependency>
+			<!-- hibernate注解 -->
+		    <groupId>org.hibernate</groupId>
+		    <artifactId>hibernate-core</artifactId>
+		    <version>5.4.3.Final</version>
+		</dependency>
+        <dependency>
+        	<!-- org.springframework.data.jpa.domain.support.AuditingEntityListener -->
+		    <groupId>org.springframework.data</groupId>
+		    <artifactId>spring-data-jpa</artifactId>
+		    <version>2.1.8.RELEASE</version>
+		</dependency>
+		<dependency>
+		    <groupId>mysql</groupId>
+		    <artifactId>mysql-connector-java</artifactId>
+		    <version>8.0.16</version>
+		</dependency>
+		<dependency>
+			<!-- com.fasterxml.jackson.annotation.JsonIgnore -->
+		    <groupId>com.fasterxml.jackson.core</groupId>
+		    <artifactId>jackson-databind</artifactId>
+		    <version>2.9.8</version>
+		</dependency>
+		<dependency>
+			<!-- mybatis注解; Property 'sqlSessionFactory' or 'sqlSessionTemplate' are required -->
+		    <groupId>org.mybatis.spring.boot</groupId>
+		    <artifactId>mybatis-spring-boot-starter</artifactId>
+		    <version>2.0.1</version>
+		</dependency>
+    </dependencies>
+</project>
