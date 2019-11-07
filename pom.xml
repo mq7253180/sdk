@@ -33,10 +33,10 @@
 		</license>
 	</licenses>
 	<scm>
-        <connection>scm:git:git://github.com/mq7253180/sdk</connection>
-        <developerConnection>scm:git:git://github.com/mq7253180/sdk</developerConnection>
-        <url>https://github.com/mq7253180/sdk</url>
-    </scm>
+		<connection>scm:git:git://github.com/mq7253180/sdk</connection>
+		<developerConnection>scm:git:git://github.com/mq7253180/sdk</developerConnection>
+		<url>https://github.com/mq7253180/sdk</url>
+	</scm>
 	<developers>
 		<developer>
 			<name>Qiang Ma</name>
