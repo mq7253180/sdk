@@ -33,9 +33,9 @@
 		</license>
 	</licenses>
 	<scm>
-        <connection>scm:svn:http://svn.sonatype.org/spice/trunk/oss/oss-parenti-9</connection>
-        <developerConnection>scm:svn:https://svn.sonatype.org/spice/trunk/oss/oss-parent-9</developerConnection>
-        <url>http://svn.sonatype.org/spice/trunk/oss/oss-parent-9</url>
+        <connection>scm:git:git://github.com/mq7253180/sdk</connection>
+        <developerConnection>scm:git:git://github.com/mq7253180/sdk</developerConnection>
+        <url>https://github.com/mq7253180/sdk</url>
     </scm>
 	<developers>
 		<developer>
