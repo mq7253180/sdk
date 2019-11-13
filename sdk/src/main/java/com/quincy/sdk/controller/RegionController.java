@@ -1,4 +1,4 @@
-package com.quincy.auth.controller;
+package com.quincy.sdk.controller;
 
 import java.util.List;
 
@@ -10,38 +10,38 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.quincy.auth.entity.Country;
-import com.quincy.auth.service.ZoneService;
+import com.quincy.sdk.entity.Region;
+import com.quincy.sdk.service.RegionService;
 
 @Controller
-@RequestMapping(value = "/zone")
-public class ZoneController {
+@RequestMapping(value = "/region")
+public class RegionController {
 	@Autowired
-	private ZoneService zoneService;
+	private RegionService regionService;
 	@Value("${env}")
 	private String env;
 
-	@GetMapping(value = "/countries")
-	public ModelAndView countries() {
+	@GetMapping(value = "/all")
+	public ModelAndView list() {
 		/*log.info("this.getClass().getResource--------"+this.getClass().getResource("").getPath());
 		log.info("this.getClass().getResource/--------"+this.getClass().getResource("/").getPath());
 		log.info("Thread.currentThread().getContextClassLoader().getResource--------"+Thread.currentThread().getContextClassLoader().getResource("").getPath());
 		log.info("this.getClass().getClassLoader().getResource--------"+this.getClass().getClassLoader().getResource("").getPath());
 		if(Constants.ENV_DEV.equals(env))
 			log.info("ClassLoader.getSystemResource--------"+ClassLoader.getSystemResource("").getPath());*/
-		ModelAndView mv = new ModelAndView("/content/country");
-		mv.addObject("countries", zoneService.findCountries());
+		ModelAndView mv = new ModelAndView("/content/region");
+		mv.addObject("regions", regionService.findAll());
 		return mv;
 	}
 
-	@GetMapping(value = "/countries2")
+	@GetMapping(value = "/all2")
 	@ResponseBody
-	public List<Country> countries2() {
-		return zoneService.findCountries();
+	public List<Region> countries2() {
+		return regionService.findAll();
 	}
 
-	@GetMapping(value = "/countries3")
+	@GetMapping(value = "/all3")
 	public String countries3() {
-		return "redirect:/zone/countries2";
+		return "redirect:/region/all2";
 	}
 }

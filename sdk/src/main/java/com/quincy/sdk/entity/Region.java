@@ -1,4 +1,4 @@
-package com.quincy.auth.entity;
+package com.quincy.sdk.entity;
 
 import java.io.Serializable;
 
@@ -17,8 +17,8 @@ import lombok.Data;
 @DynamicInsert
 @DynamicUpdate
 @EntityListeners({AuditingEntityListener.class})
-@Entity(name = "b_country")
-public class Country implements Serializable {
+@Entity(name = "b_region")
+public class Region implements Serializable {
 	private static final long serialVersionUID = -7160794018694023343L;
 	@Id
 	@Column(name="id")
