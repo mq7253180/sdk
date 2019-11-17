@@ -89,7 +89,7 @@ public class CommonHelper {
 						return locale;
 				}
 			}
-			return locale = this.next==null?null:this.next.support(request);
+			return this.next==null?null:this.next.support(request);
 		}
 	}
 
