@@ -8,6 +8,7 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.PropertiesFactoryBean;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -17,6 +18,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
 import com.quincy.sdk.Constants;
+import com.quincy.sdk.helper.CommonHelper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -80,8 +82,14 @@ public class CommonApplicationContext {//implements TransactionManagementConfigu
 		}
 	}
 
+	@Value("#{'${locales}'.split(',')}")
+	private String[] supportedLocales;
+
 	@PostConstruct
 	public void init() {
-		log.warn("====================COMMON_INITED");
+		CommonHelper.SUPPORTED_LOCALES = supportedLocales;
+		for(String l:supportedLocales) {
+			log.warn("SUPPORTED_LOCALE--------------{}", l);
+		}
 	}
 }

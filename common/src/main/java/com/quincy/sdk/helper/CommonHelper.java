@@ -34,8 +34,8 @@ import com.quincy.sdk.Constants;
 
 public class CommonHelper {
 	private static I18NSupport i18nChainHead;
-	private static String[] MOBILE_USER_AGENT_FLAGS = {"iPhone", "iPad", "Android"};
-	public final static String[] SUPPORTED_LOCALES = {"zh_cn", "zh_tw", "en_us"};
+	private final static String[] MOBILE_USER_AGENT_FLAGS = {"iPhone", "iPad", "Android"};
+	public static String[] SUPPORTED_LOCALES;
 
 	public static String getLocale(HttpServletRequest request) {
 		String locale = i18nChainHead.support(request);
