@@ -106,18 +106,15 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 		protected abstract Object run(Jedis jedis, String token) throws Exception;
 
 		public Object start(HttpServletRequest request) throws Exception {
-			String token = CommonHelper.getValue(request, Constants.CLIENT_TOKEN);
+			String token = CommonHelper.trim(CommonHelper.getValue(request, Constants.CLIENT_TOKEN));
 			if(token!=null) {
-				token = token.trim();
-				if(token.length()>0) {
-					Jedis jedis = null;
-					try {
-						jedis = jedisPool.getResource();
-						return this.run(jedis, token);
-					} finally {
-						if(jedis!=null)
-							jedis.close();
-					}
+				Jedis jedis = null;
+				try {
+					jedis = jedisPool.getResource();
+					return this.run(jedis, token);
+				} finally {
+					if(jedis!=null)
+						jedis.close();
 				}
 			}
 			return null;
@@ -125,10 +122,8 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 	}
 
 	private String createOrGetToken(HttpServletRequest request) {
-		String token = CommonHelper.getValue(request, Constants.CLIENT_TOKEN);
-		if(token!=null) {
-			token = token.trim();
-		} else {
+		String token = CommonHelper.trim(CommonHelper.getValue(request, Constants.CLIENT_TOKEN));
+		if(token==null) {
 			token = UUID.randomUUID().toString().replaceAll("-", "");
 			Cookie cookie = new Cookie(Constants.CLIENT_TOKEN, token);
 			cookie.setDomain(domain);

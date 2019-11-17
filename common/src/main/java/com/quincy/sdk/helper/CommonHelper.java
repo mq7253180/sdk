@@ -35,37 +35,39 @@ import com.quincy.sdk.Constants;
 public class CommonHelper {
 	private static I18NSupport i18nChainHead;
 	private static String[] MOBILE_USER_AGENT_FLAGS = {"iPhone", "iPad", "Android"};
+	public final static String[] SUPPORTED_LOCALES = {"zh_cn", "zh_tw", "en_us"};
 
 	public static String getLocale(HttpServletRequest request) {
-		return i18nChainHead.support(request);
+		String locale = i18nChainHead.support(request);
+		return locale==null?getDefaultLocale(request):locale;
 	}
 
 	static {
 		I18NSupport headerSupport = new I18NSupport() {
 			@Override
 			protected String resolve(HttpServletRequest request) {
-				return CommonHelper.getValueFromHeader(request, Constants.KEY_LOCALE);
+				return request.getHeader(Constants.KEY_LOCALE);
 			}
 		};
 		I18NSupport cookieSupport = new I18NSupport() {
 			@Override
 			protected String resolve(HttpServletRequest request) {
-				return CommonHelper.getValueFromCookie(request, Constants.KEY_LOCALE);
+				return getValueFromCookie(request, Constants.KEY_LOCALE);
 			}
 		};
 		I18NSupport parameterSupport = new I18NSupport() {
 			@Override
 			protected String resolve(HttpServletRequest request) {
-				return CommonHelper.getValueFromParameter(request, Constants.KEY_LOCALE);
+				return request.getParameter(Constants.KEY_LOCALE);
 			}
 		};
-		I18NSupport defaultSupport = new I18NSupport() {
+		I18NSupport uriSupport = new I18NSupport() {
 			@Override
 			protected String resolve(HttpServletRequest request) {
-				return getDefaultLocale(request);
+				return getFirstAsUri(request);
 			}
 		};
-		headerSupport.setNext(headerSupport).setNext(parameterSupport).setNext(cookieSupport).setNext(defaultSupport);
+		headerSupport.setNext(headerSupport).setNext(parameterSupport).setNext(cookieSupport).setNext(uriSupport);
 		i18nChainHead = headerSupport;
 	}
 
@@ -79,17 +81,15 @@ public class CommonHelper {
 			return next;
 		}
 
-		public final String support(HttpServletRequest request) {
-			String locale = this.resolve(request);
+		public String support(HttpServletRequest request) {
+			String locale = trim(this.resolve(request));
 			if(locale!=null) {
-				locale = locale.trim();
-				if(locale.length()==0&&this.next!=null) {
-					locale = this.next.support(request);
+				for(String supportedLocale:SUPPORTED_LOCALES) {
+					if(supportedLocale.equalsIgnoreCase(locale))
+						return locale;
 				}
-			} else if(this.next!=null) {
-				locale = this.next.support(request);
 			}
-			return locale;
+			return locale = this.next==null?null:this.next.support(request);
 		}
 	}
 
@@ -101,9 +101,8 @@ public class CommonHelper {
 	public static String trim(String s) {
 		if(s!=null) {
 			String _s = s.trim();
-			if(_s.length()>0) {
+			if(_s.length()>0)
 				return _s;
-			}
 		}
 		return null;
 	}
@@ -149,68 +148,32 @@ public class CommonHelper {
 		}
 	}
 
-	public static String getValueFromHeader(HttpServletRequest request, String key) {
-		String value = request.getHeader(key);
-		if(value!=null) {
-			value = value.trim();
-			if(value.length()>0) {
-				return value;
-			}
-		}
-		return null;
-	}
-
-	public static String getValueFromParameter(HttpServletRequest request, String key) {
-		String value = request.getParameter(key);
-		if(value!=null) {
-			value = value.trim();
-			if(value.length()>0) {
-				return value;
-			}
-		}
-		return null;
-	}
-
 	public static String getValueFromCookie(HttpServletRequest request, String key) {
 		Cookie[] cookies = request.getCookies();
-		if(cookies!=null) {
+		if(cookies!=null&&cookies.length>0) {
 			for(Cookie cookie:cookies) {
-				String name = cookie.getName();
-				if(name!=null) {
-					name = name.trim();
-					if(key.equals(name)) {
-						String value = cookie.getValue();
-						if(value!=null) {
-							value = value.trim();
-							if(value.length()>0) {
-								return value;
-							}
-						}
-					}
-				}
+				if(cookie.getName().equals(key))
+					return cookie.getValue();
 			}
 		}
 		return null;
 	}
 
 	public static String getValue(HttpServletRequest request, String key) {
-		String value = getValueFromHeader(request, key);
-		if(value!=null) {
+		String value = request.getHeader(key);
+		if(value!=null)
 			return value;
-		}
-		value = getValueFromParameter(request, key);
-		if(value!=null) {
+		value = request.getParameter(key);
+		if(value!=null)
 			return value;
-		}
 		value = getValueFromCookie(request, key);
-		if(value!=null) {
+		if(value!=null)
 			return value;
-		}
 		return null;
 	}
 
 	public static String getApp(HttpServletRequest request) {
-		return getValue(request, Constants.CLIENT_APP);
+		return CommonHelper.trim(getValue(request, Constants.CLIENT_APP));
 	}
 
 	public static boolean isApp(HttpServletRequest request) {
