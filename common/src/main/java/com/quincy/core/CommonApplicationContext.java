@@ -34,7 +34,9 @@ public class CommonApplicationContext {//implements TransactionManagementConfigu
 			protected void run(List<Resource> resources) {
 				for(int i=0;i<resources.size();i++) {
 					Resource resource = resources.get(i);
-					String name = resource.getFilename().substring(0, resource.getFilename().indexOf("_"));
+					int indexOf = resource.getFilename().indexOf("_");
+					indexOf = indexOf<0?resource.getFilename().indexOf("."):indexOf;
+					String name = resource.getFilename().substring(0, indexOf);
 					map.put(name, "classpath:i18n/"+name);
 				}
 			}
