@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>com.maqiangcgq</groupId>
 		<artifactId>all</artifactId>
-		<version>1.0.5</version>
+		<version>1.0.6</version>
 	</parent>
 	<dependencies>
 		<dependency>
