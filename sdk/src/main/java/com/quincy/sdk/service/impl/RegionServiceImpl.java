@@ -12,10 +12,10 @@ import com.quincy.sdk.service.RegionService;
 @Service
 public class RegionServiceImpl implements RegionService {
 	@Autowired
-	private RegionRepository countryRepository;
+	private RegionRepository regionRepository;
 
 	@Override
 	public List<Region> findAll() {
-		return countryRepository.findAll();
+		return regionRepository.findAll();
 	}
 }
