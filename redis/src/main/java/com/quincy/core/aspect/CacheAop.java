@@ -42,42 +42,42 @@ public class CacheAop {
 		} else {
 			StringBuilder sb = new StringBuilder(100);
 			sb.append(PREFIX);
-    		sb.append(clazz.getName());
-    		sb.append(".");
-    		sb.append(methodSignature.getName());
-    		Class<?>[] clazzes = method.getParameterTypes();
-    		Object[] args = joinPoint.getArgs();
-    		if(args!=null&&args.length>0) {
-    			for(int i=0;i<args.length;i++) {
-    				Object arg = args[i];
-        			sb.append("_");
-        			sb.append(clazzes[i].getName());
-        			sb.append("#");
-        			sb.append(arg==null?"null":arg.toString().trim());
-        		}
-    		}
-    		key = sb.toString().getBytes();
+	    		sb.append(clazz.getName());
+	    		sb.append(".");
+	    		sb.append(methodSignature.getName());
+	    		Class<?>[] clazzes = method.getParameterTypes();
+	    		Object[] args = joinPoint.getArgs();
+	    		if(args!=null&&args.length>0) {
+	    			for(int i=0;i<args.length;i++) {
+	    				Object arg = args[i];
+	        			sb.append("_");
+	        			sb.append(clazzes[i].getName());
+	        			sb.append("#");
+	        			sb.append(arg==null?"null":arg.toString().trim());
+	        		}
+	    		}
+	    		key = sb.toString().getBytes();
 		}
-    	Jedis jedis = null;
-    	try {
-    		jedis = jedisPool.getResource();
-    		byte[] cache = jedis.get(key);
-    		if(cache==null||cache.length==0) {
-        		Object retVal = joinPoint.proceed();
-        		if(retVal!=null) {
-        			jedis.set(key, CommonHelper.serialize(retVal));
-            		int expire = annotation.expire();
-            		if(expire>0) {
-                		jedis.expire(key, expire);
-            		}
-        		}
-        		return retVal;
-    		} else {
-                return CommonHelper.unSerialize(cache);
-    		}
-    	} finally {
-    		if(jedis!=null)
-    			jedis.close();
-    	}
+	    	Jedis jedis = null;
+	    	try {
+	    		jedis = jedisPool.getResource();
+	    		byte[] cache = jedis.get(key);
+	    		if(cache==null||cache.length==0) {
+	        		Object retVal = joinPoint.proceed();
+	        		if(retVal!=null) {
+	        			jedis.set(key, CommonHelper.serialize(retVal));
+	            		int expire = annotation.expire();
+	            		if(expire>0) {
+	                		jedis.expire(key, expire);
+	            		}
+	        		}
+	        		return retVal;
+	    		} else {
+	                return CommonHelper.unSerialize(cache);
+	    		}
+	    	} finally {
+	    		if(jedis!=null)
+	    			jedis.close();
+	    	}
     }
 }
