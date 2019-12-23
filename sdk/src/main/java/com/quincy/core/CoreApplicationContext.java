@@ -83,7 +83,7 @@ public class CoreApplicationContext {//implements TransactionManagementConfigure
 		Map<Object, Object> targetDataSources = new HashMap<Object, Object>(2);
 		targetDataSources.put(DataSourceHolder.MASTER, masterDB);
 		targetDataSources.put(DataSourceHolder.SLAVE, slaveDB);
-		RoutingDataSource  db = new RoutingDataSource();
+		RoutingDataSource db = new RoutingDataSource();
 		db.setTargetDataSources(targetDataSources);
 		db.setDefaultTargetDataSource(masterDB);
 		return db;
