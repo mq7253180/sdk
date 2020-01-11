@@ -1,7 +1,6 @@
 package com.quincy.core.aspect;
 
 import java.lang.reflect.Method;
-import java.util.Properties;
 
 import javax.annotation.Resource;
 
@@ -11,11 +10,10 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import com.quincy.sdk.Constants;
 import com.quincy.sdk.annotation.Cache;
 import com.quincy.sdk.helper.CommonHelper;
 
@@ -26,6 +24,12 @@ import redis.clients.jedis.JedisPool;
 @Order(10)
 @Component
 public class CacheAop {
+	@Resource(name = "cacheKeyPrefix")
+	private String cacheKeyPrefix;
+	@Value("${cache.failover.delaySecs}")
+	private int failoverDelaySecs;
+	@Value("${cache.failover.retries}")
+	private int failoverRetries;
 	@Autowired
 	private JedisPool jedisPool;
 
@@ -39,9 +43,9 @@ public class CacheAop {
 		Method method = clazz.getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
 		Cache annotation = method.getAnnotation(Cache.class);
 		String keyStr = annotation.key().trim();
-		byte[] key = null;
+		String _key = null;
 		if(keyStr.length()>0) {
-			key = (cacheKeyPrefix+keyStr).getBytes();
+			_key = cacheKeyPrefix+keyStr;
 		} else {
 			StringBuilder sb = new StringBuilder(100);
 			sb.append(cacheKeyPrefix);
@@ -59,38 +63,40 @@ public class CacheAop {
 	        			sb.append(arg==null?"null":arg.toString().trim());
 	        		}
 	    		}
-	    		key = sb.toString().getBytes();
+	    		_key = sb.toString();
 		}
+		byte[] key = _key.getBytes();
 	    	Jedis jedis = null;
 	    	try {
 	    		jedis = jedisPool.getResource();
 	    		byte[] cache = jedis.get(key);
 	    		if(cache==null||cache.length==0) {
-	        		Object retVal = joinPoint.proceed();
-	        		if(retVal!=null) {
-	        			jedis.set(key, CommonHelper.serialize(retVal));
-	            		int expire = annotation.expire();
-	            		if(expire>0) {
-	                		jedis.expire(key, expire);
-	            		}
-	        		}
-	        		return retVal;
-	    		} else
-	    			return CommonHelper.unSerialize(cache);
+	    			byte[] nxKey = (_key+"_nx").getBytes();
+	    			long setNx = jedis.setnx(nxKey, nxKey);
+	    			if(setNx>0) {
+	    				jedis.expire(nxKey, failoverDelaySecs);
+	    				Object retVal = joinPoint.proceed();
+		        		if(retVal!=null) {
+		        			jedis.set(key, CommonHelper.serialize(retVal));
+		            		int expire = annotation.expire();
+		            		if(expire>0)
+		                		jedis.expire(key, expire);
+		        		}
+		        		return retVal;
+	    			} else {
+	    				for(int i=0;i<failoverRetries;i++) {
+	    					Thread.sleep(failoverDelaySecs*1000);
+	    					cache = jedis.get(key);
+		    				if(cache!=null&&cache.length>0)
+		    					break;
+	    				}
+	    			}
+	    		}
+	    		Object toReturn = (cache!=null&&cache.length>0)?CommonHelper.unSerialize(cache):null;
+	    		return toReturn;
 	    	} finally {
 	    		if(jedis!=null)
 	    			jedis.close();
 	    	}
     }
-   
-	@Resource(name = Constants.BEAN_NAME_PROPERTIES)
-	private Properties properties;
-
-	@Bean("cacheKeyPrefix")
-	public String cacheKeyPrefix() {
-		return properties.getProperty("spring.application.name")+".cache.";
-	}
-
-	@Resource(name = "cacheKeyPrefix")
-	private String cacheKeyPrefix;
 }

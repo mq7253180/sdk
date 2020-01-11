@@ -37,4 +37,9 @@ public class RedisApplicationContext {
 		JedisPool pool = new JedisPool(cfg, redisHost, redisPort, redisTimeout, redisPwd);
 		return pool;
 	}
+
+	@Bean("cacheKeyPrefix")
+	public String cacheKeyPrefix() {
+		return properties.getProperty("spring.application.name")+".cache.";
+	}
 }
