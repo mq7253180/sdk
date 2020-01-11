@@ -26,10 +26,12 @@ import redis.clients.jedis.JedisPool;
 public class CacheAop {
 	@Resource(name = "cacheKeyPrefix")
 	private String cacheKeyPrefix;
-	@Value("${cache.failover.delaySecs}")
+	@Value("${cache.failover.delay_secs}")
 	private int failoverDelaySecs;
 	@Value("${cache.failover.retries}")
 	private int failoverRetries;
+	@Value("${cache.failover.retry_failure.return_null}")
+	private boolean returnNull;
 	@Autowired
 	private JedisPool jedisPool;
 
@@ -75,20 +77,18 @@ public class CacheAop {
 	    			long setNx = jedis.setnx(nxKey, nxKey);
 	    			if(setNx>0) {
 	    				jedis.expire(nxKey, failoverDelaySecs);
-	    				Object retVal = joinPoint.proceed();
-		        		if(retVal!=null) {
-		        			jedis.set(key, CommonHelper.serialize(retVal));
-		            		int expire = annotation.expire();
-		            		if(expire>0)
-		                		jedis.expire(key, expire);
-		        		}
-		        		return retVal;
+	    				Object retVal = this.invokeAndCache(jedis, joinPoint, annotation, key);
+	    				return retVal;
 	    			} else {
 	    				for(int i=0;i<failoverRetries;i++) {
 	    					Thread.sleep(failoverDelaySecs*1000);
 	    					cache = jedis.get(key);
 		    				if(cache!=null&&cache.length>0)
 		    					break;
+	    				}
+	    				if((cache==null||cache.length==0)&&!returnNull) {
+	    					Object retVal = this.invokeAndCache(jedis, joinPoint, annotation, key);
+		    				return retVal;
 	    				}
 	    			}
 	    		}
@@ -98,5 +98,16 @@ public class CacheAop {
 	    		if(jedis!=null)
 	    			jedis.close();
 	    	}
+    }
+
+    private Object invokeAndCache(Jedis jedis, ProceedingJoinPoint joinPoint, Cache annotation, byte[] key) throws Throwable {
+    		Object retVal = joinPoint.proceed();
+    		if(retVal!=null) {
+			jedis.set(key, CommonHelper.serialize(retVal));
+			int expire = annotation.expire();
+			if(expire>0)
+				jedis.expire(key, expire);
+    		}
+    		return retVal;
     }
 }
