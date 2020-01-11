@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>quincy-zookeeper</artifactId>
+	<name>ZooKeeper</name>
+	<url>https://github.com/mq7253180/sdk/tree/master/zookeeper</url>
+	<parent>
+		<groupId>com.maqiangcgq</groupId>
+		<artifactId>all</artifactId>
+		<version>1.0.6</version>
+	</parent>
+	<dependencies>
+		<dependency>
+		    <groupId>com.maqiangcgq</groupId>
+		    <artifactId>quincy-common</artifactId>
+		    <version>1.0.6</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.zookeeper</groupId>
+		    <artifactId>zookeeper</artifactId>
+		    <version>3.4.8</version>
+		</dependency>
+    </dependencies>
+</project>
