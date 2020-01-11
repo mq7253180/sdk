@@ -12,7 +12,7 @@ import com.quincy.core.db.DataSourceHolder;
 import com.quincy.sdk.helper.AopHelper;
 
 @Aspect
-@Order(11)
+@Order(6)
 @Component
 public class ReadOnlyAop {
 	@Pointcut("@annotation(com.quincy.sdk.annotation.ReadOnly)")

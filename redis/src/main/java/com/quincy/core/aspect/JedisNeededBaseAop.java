@@ -10,8 +10,8 @@ import redis.clients.jedis.JedisPool;
 
 public abstract class JedisNeededBaseAop {
 	protected abstract void pointCut();
-	protected abstract void destroy(JoinPoint joinPoint, Jedis jedis, Object obj);
-	protected abstract Object handle(JoinPoint joinPoint, Jedis jedis) throws Throwable;
+	protected abstract Object before(JoinPoint joinPoint, Jedis jedis) throws Throwable;
+	protected abstract void after(JoinPoint joinPoint, Jedis jedis, Object obj);
 
 	@Autowired
 	private JedisPool jedisPool;
@@ -21,9 +21,9 @@ public abstract class JedisNeededBaseAop {
     		Jedis jedis = null;
     		try {
     			jedis = jedisPool.getResource();
-    			Object obj = this.handle(joinPoint, jedis);
+    			Object obj = this.before(joinPoint, jedis);
     			Object result = joinPoint.proceed();
-    			this.destroy(joinPoint, jedis, obj);
+    			this.after(joinPoint, jedis, obj);
     			return result;
     		} finally {
     			if(jedis!=null)

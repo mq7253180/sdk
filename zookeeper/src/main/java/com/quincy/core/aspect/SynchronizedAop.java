@@ -13,6 +13,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import com.quincy.core.zookeeper.OriginalZooKeeperFactory;
@@ -23,6 +24,7 @@ import com.quincy.sdk.zookeeper.Context;
 import lombok.Data;
 
 @Aspect
+@Order(2)
 @Component
 public class SynchronizedAop {
 	@Autowired
