@@ -129,6 +129,7 @@
 		<module>common</module>
 		<module>sdk</module>
 		<module>redis</module>
+		<module>zookeeper</module>
 		<module>sftp</module>
 		<module>auth</module>
 		<module>auth-session</module>

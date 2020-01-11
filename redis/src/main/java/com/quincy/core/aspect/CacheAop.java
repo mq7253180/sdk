@@ -1,6 +1,9 @@
 package com.quincy.core.aspect;
 
 import java.lang.reflect.Method;
+import java.util.Properties;
+
+import javax.annotation.Resource;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -8,6 +11,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +26,6 @@ import redis.clients.jedis.JedisPool;
 @Order(10)
 @Component
 public class CacheAop {
-	private final static String PREFIX = Constants.GLOBAL_CACHE_KEY_PREFIX+".cache.";
 	@Autowired
 	private JedisPool jedisPool;
 
@@ -38,10 +41,10 @@ public class CacheAop {
 		String keyStr = annotation.key().trim();
 		byte[] key = null;
 		if(keyStr.length()>0) {
-			key = (PREFIX+keyStr).getBytes();
+			key = (cacheKeyPrefix+keyStr).getBytes();
 		} else {
 			StringBuilder sb = new StringBuilder(100);
-			sb.append(PREFIX);
+			sb.append(cacheKeyPrefix);
 	    		sb.append(clazz.getName());
 	    		sb.append(".");
 	    		sb.append(methodSignature.getName());
@@ -72,12 +75,22 @@ public class CacheAop {
 	            		}
 	        		}
 	        		return retVal;
-	    		} else {
-	                return CommonHelper.unSerialize(cache);
-	    		}
+	    		} else
+	    			return CommonHelper.unSerialize(cache);
 	    	} finally {
 	    		if(jedis!=null)
 	    			jedis.close();
 	    	}
     }
+   
+	@Resource(name = Constants.BEAN_NAME_PROPERTIES)
+	private Properties properties;
+
+	@Bean("cacheKeyPrefix")
+	public String cacheKeyPrefix() {
+		return properties.getProperty("spring.application.name")+".cache.";
+	}
+
+	@Resource(name = "cacheKeyPrefix")
+	private String cacheKeyPrefix;
 }

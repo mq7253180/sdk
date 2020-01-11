@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+import javax.annotation.Resource;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -30,14 +31,17 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 	@Value("${domain}")
 	private String domain;
 	private final static String FLAG_VCODE = "vcode";
-	private final static String SESSION_KEY_PREFIX = Constants.GLOBAL_CACHE_KEY_PREFIX+".session.";
+	@Resource(name = "sessionKeyPrefix")
+	private String sessionKeyPrefix;
+	@Value("${spring.application.name}")
+	private String appName;
 
 	@Override
 	protected Object getUserObject(HttpServletRequest request) throws Exception {
 		return new Decoration() {
 			@Override
 			protected Object run(Jedis jedis, String token) throws Exception {
-				byte[] key = (SESSION_KEY_PREFIX+token).getBytes();
+				byte[] key = (sessionKeyPrefix+token).getBytes();
 				byte[] b = jedis.get(key);
 				if(b!=null&&b.length>0) {
 					int seconds = sessionExpire*60;
@@ -53,12 +57,12 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 		User user = callback.getUser();
 		user.setJsessionid(jsessionid);
 		DSession session = this.createSession(user);
-		byte[] key = (SESSION_KEY_PREFIX+jsessionid).getBytes();
+		byte[] key = (sessionKeyPrefix+jsessionid).getBytes();
 		Jedis jedis = null;
 		try {
 			jedis = jedisPool.getResource();
 			if(originalJsessionid!=null&&originalJsessionid.length()>0) {//同一user不同客户端登录互踢
-				byte[] originalKey = (SESSION_KEY_PREFIX+originalJsessionid).getBytes();
+				byte[] originalKey = (sessionKeyPrefix+originalJsessionid).getBytes();
 				byte[] b = jedis.get(originalKey);
 				if(b!=null&&b.length>0) {
 					DSession originalSession = (DSession)CommonHelper.unSerialize(b);
@@ -88,7 +92,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 		new Decoration() {
 			@Override
 			protected Object run(Jedis jedis, String token) throws Exception {
-				jedis.del((SESSION_KEY_PREFIX+token).getBytes());
+				jedis.del((sessionKeyPrefix+token).getBytes());
 				return null;
 			}
 		}.start(request);
@@ -137,7 +141,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 
 	private void setCachedStr(HttpServletRequest request, String flag, String content, int expire) {
 		String token = this.createOrGetToken(request);
-		String key = Constants.GLOBAL_CACHE_KEY_PREFIX+"."+flag+"."+token;
+		String key = appName+"."+flag+"."+token;
 		Jedis jedis = null;
 		try {
 			jedis = jedisPool.getResource();
@@ -154,7 +158,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 		Object retVal = new Decoration() {
 			@Override
 			protected Object run(Jedis jedis, String token) throws Exception {
-				String key = Constants.GLOBAL_CACHE_KEY_PREFIX+"."+flag+"."+token;
+				String key = appName+"."+flag+"."+token;
 				String vcode = jedis.get(key);
 				return vcode;
 			}
@@ -163,7 +167,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 	}
 
 	private void updateSession(User user, Jedis jedis) throws IOException {
-		byte[] key = (SESSION_KEY_PREFIX+user.getJsessionid()).getBytes();
+		byte[] key = (sessionKeyPrefix+user.getJsessionid()).getBytes();
 		byte[] b = jedis.get(key);
 		if(b!=null&&b.length>0) {
 			DSession session = this.createSession(user);

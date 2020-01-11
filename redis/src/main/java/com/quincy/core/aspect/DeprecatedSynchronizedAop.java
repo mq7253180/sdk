@@ -1,19 +1,19 @@
 package com.quincy.core.aspect;
 
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.Aspect;
+//import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.springframework.stereotype.Component;
+//import org.springframework.stereotype.Component;
 
-import com.quincy.sdk.annotation.Synchronized;
-import com.quincy.sdk.helper.AopHelper;
+//import com.quincy.sdk.annotation.Synchronized;
+//import com.quincy.sdk.helper.AopHelper;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPubSub;
 
-@Aspect
-@Component
-public class SynchronizedAop extends JedisNeededBaseAop {
+//@Aspect
+//@Component
+public class DeprecatedSynchronizedAop extends JedisNeededBaseAop {
 	private final static String SET_KEY = "SYNCHRONIZED";
 
 	@Pointcut("@annotation(com.quincy.sdk.annotation.Synchronized)")
@@ -21,15 +21,15 @@ public class SynchronizedAop extends JedisNeededBaseAop {
 
 	@Override
 	protected Object handle(JoinPoint joinPoint, Jedis jedis) throws NoSuchMethodException, SecurityException, InterruptedException {
-		Synchronized annotation = AopHelper.getAnnotation(joinPoint, Synchronized.class);
-		String key = annotation.value();
+//		Synchronized annotation = AopHelper.getAnnotation(joinPoint, Synchronized.class);
+//		String key = annotation.value();
+		String key = null;
 		String channels = SET_KEY+"_"+key;
 		while(true) {
-			if(jedis.sismember(SET_KEY, key)||jedis.sadd(SET_KEY, key)==0) {
+			if(jedis.sismember(SET_KEY, key)||jedis.sadd(SET_KEY, key)==0)
 				jedis.subscribe(new MyListener(), channels);
-			} else {//Successfully held the distributed lock.
+			else //Successfully held the distributed lock.
 				break;
-			}
 		}
 		return key;
 	}
@@ -46,5 +46,4 @@ public class SynchronizedAop extends JedisNeededBaseAop {
 			this.unsubscribe();
 		}
 	}
-
 }

@@ -139,9 +139,8 @@ public class CommonHelper {
 			String userAgent = request.getHeader("user-agent");
 			if(userAgent!=null) {
 				for(String flag:MOBILE_USER_AGENT_FLAGS) {
-					if(userAgent.contains(flag)) {
+					if(userAgent.contains(flag))
 						return Constants.CLIENT_TYPE_M;
-					}
 				}
 			}
 			return Constants.CLIENT_TYPE_P;
@@ -192,15 +191,14 @@ public class CommonHelper {
         int rc = 0;
         ByteArrayOutputStream out = null;
         try {
-        	out = new ByteArrayOutputStream();
-            while((rc = in.read(buff, 0, 100))>0) {
-            	out.write(buff, 0, rc);
-            }
+        		out = new ByteArrayOutputStream();
+            while((rc = in.read(buff, 0, 100))>0)
+            		out.write(buff, 0, rc);
             byte[] b = out.toByteArray();
             return b;
         } finally {
-        	if(out!=null)
-        		out.close();
+        		if(out!=null)
+        			out.close();
         }
     }
 
@@ -210,9 +208,8 @@ public class CommonHelper {
 			br = new BufferedReader(new InputStreamReader(new BufferedInputStream(in)));
 			StringBuilder result = new StringBuilder();
 			String line = null;
-			while((line = br.readLine())!=null) {
+			while((line = br.readLine())!=null)
 				result.append(line);
-			}
 			return result.toString();
 		} finally {
 			if(br!=null)
@@ -225,8 +222,8 @@ public class CommonHelper {
 		ObjectOutputStream oos = null;
 		try {
 			bos = new ByteArrayOutputStream();
-    		oos = new ObjectOutputStream(bos);
-    		oos.writeObject(obj);
+			oos = new ObjectOutputStream(bos);
+			oos.writeObject(obj);
             oos.flush();
             return bos.toByteArray();
 		} finally {
@@ -241,7 +238,7 @@ public class CommonHelper {
 		ByteArrayInputStream bis = null;
         ObjectInputStream ois = null;
         try {
-        	bis = new ByteArrayInputStream (byteArray);
+        		bis = new ByteArrayInputStream (byteArray);
 			ois = new ObjectInputStream(bis);
 			return ois.readObject();
 		} finally {
@@ -371,18 +368,18 @@ public class CommonHelper {
 		zipEntry.setUnixMode(755);
 		if(srcFile.isFile()) {
 			zipEntry.setSize(srcFile.length());
-            zipEntry.setTime(srcFile.lastModified());
+			zipEntry.setTime(srcFile.lastModified());
             InputStream in = null;
             try {
-            	 in = new BufferedInputStream(new FileInputStream(srcFile));
-                 byte[] b = new byte[in.available()];
-                 in.read(b);
-                 zipOut.putNextEntry(zipEntry);
-                 zipOut.write(b);
-    		} finally {
-    			if(in!=null)
-    				in.close();
-    		}
+            		in = new BufferedInputStream(new FileInputStream(srcFile));
+            		byte[] b = new byte[in.available()];
+            		in.read(b);
+            		zipOut.putNextEntry(zipEntry);
+            		zipOut.write(b);
+            } finally {
+            		if(in!=null)
+            			in.close();
+            }
 		} else {
 			File[] files = srcFile.listFiles();
 			for(File file:files)
@@ -394,11 +391,11 @@ public class CommonHelper {
         StringBuilder sb = new StringBuilder(arg.length()*5);
         char[] cArray = arg.toCharArray();
         for(char c:cArray) {
-        	if(c>=19968&&c<=171941) {//汉字范围 \u4e00-\u9fa5 (中文)
-        		sb.append("\\u");
-        		sb.append(Integer.toHexString(c));
-        	} else
-        		sb.append(c);
+        		if(c>=19968&&c<=171941) {//汉字范围 \u4e00-\u9fa5 (中文)
+        			sb.append("\\u");
+        			sb.append(Integer.toHexString(c));
+        		} else
+        			sb.append(c);
         }
         return sb.toString();
     }

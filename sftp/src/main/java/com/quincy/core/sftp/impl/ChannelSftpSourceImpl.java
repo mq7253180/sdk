@@ -1,7 +1,5 @@
 package com.quincy.core.sftp.impl;
 
-import java.util.NoSuchElementException;
-
 import org.apache.commons.pool2.ObjectPool;
 import org.apache.commons.pool2.SwallowedExceptionListener;
 import org.apache.commons.pool2.impl.AbandonedConfig;
@@ -32,7 +30,7 @@ public class ChannelSftpSourceImpl implements ChannelSftpSource {
 	}
 
 	@Override
-	public ChannelSftp get() throws NoSuchElementException, IllegalStateException, Exception {
+	public ChannelSftp get() throws Exception {
 		PoolableChannelSftp channel = pool.borrowObject();
 		if(channel.isClosed()||!channel.isConnected()) {
 			PoolableChannelSftp poolableChannelSftp = (PoolableChannelSftp)channel;
