@@ -12,7 +12,6 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -31,10 +30,6 @@ public class SynchronizedAop {
 	private OriginalZooKeeperFactory factory;
 	@Autowired
 	private Context context;
-	@Value("${zookeeper.distributed_lock.retries}")
-	private int retries;
-	@Value("${zookeeper.distributed_lock.timeout}")
-	private int timeout;
 	private final static String KEY = "execution";
 
 	@Pointcut("@annotation(com.quincy.sdk.annotation.Synchronized)")
@@ -71,11 +66,11 @@ public class SynchronizedAop {
 				}
 				if(seq>minSeq) {//没拿到锁
 					synchronized(lock) {
-						lock.wait(timeout);
+						lock.wait(annotation.timeout());
 					}
 					if(!lock.isNotified()) {
 						retried++;
-						if(retried>=retries)
+						if(retried>=annotation.retries())
 							throw new RuntimeException("Distributed Lock Timeout!");
 					}
 					lock.setNotified(false);

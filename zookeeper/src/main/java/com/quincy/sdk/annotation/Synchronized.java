@@ -11,4 +11,6 @@ import java.lang.annotation.Target;
 @Target(value = {ElementType.ANNOTATION_TYPE, ElementType.METHOD})
 public @interface Synchronized {
 	public String value() default "";
+	public int retries() default 10;
+	public long timeout() default 5000;
 }

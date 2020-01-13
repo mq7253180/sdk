@@ -10,7 +10,6 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -26,14 +25,6 @@ import redis.clients.jedis.JedisPool;
 public class CacheAop {
 	@Resource(name = "cacheKeyPrefix")
 	private String cacheKeyPrefix;
-	@Value("${cache.failover.delay_secs}")
-	private int failoverDelaySecs;
-	@Value("${cache.failover.retries}")
-	private int failoverRetries;
-	@Value("${cache.failover.retry.interval_millis}")
-	private long intervalMillis;
-	@Value("${cache.failover.retry_failure.return_null}")
-	private boolean returnNull;
 	@Autowired
 	private JedisPool jedisPool;
 
@@ -78,17 +69,17 @@ public class CacheAop {
     				byte[] nxKey = (_key+"_nx").getBytes();
     				long setNx = jedis.setnx(nxKey, nxKey);
     				if(setNx>0) {
-    					jedis.expire(nxKey, failoverDelaySecs);
+    					jedis.expire(nxKey, annotation.failoverDelaySecs());
     					Object retVal = this.invokeAndCache(jedis, joinPoint, annotation, key);
     					return retVal;
     				} else {
-    					for(int i=0;i<failoverRetries;i++) {
-    						Thread.sleep(intervalMillis);
+    					for(int i=0;i<annotation.failoverRetries();i++) {
+    						Thread.sleep(annotation.intervalMillis());
     						cache = jedis.get(key);
     						if(cache!=null&&cache.length>0)
     							break;
     					}
-    					if((cache==null||cache.length==0)&&!returnNull) {
+    					if((cache==null||cache.length==0)&&!annotation.returnNull()) {
     						Object retVal = this.invokeAndCache(jedis, joinPoint, annotation, key);
     						return retVal;
     					}

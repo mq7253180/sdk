@@ -12,4 +12,8 @@ import java.lang.annotation.Target;
 public @interface Cache {
 	public int expire() default 0;
 	public String key() default "";
+	public int failoverDelaySecs() default 3;
+	public int failoverRetries() default 3;
+	public long intervalMillis() default 1000;
+	public boolean returnNull() default true;
 }
