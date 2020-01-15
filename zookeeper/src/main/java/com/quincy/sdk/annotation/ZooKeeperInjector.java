@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(value = {ElementType.ANNOTATION_TYPE, ElementType.METHOD})
-public @interface OriginalZooKeeperInjector {
+public @interface ZooKeeperInjector {
 	public boolean canBeReadOnly() default false;
 }

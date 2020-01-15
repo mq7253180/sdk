@@ -19,7 +19,7 @@ public class ZooKeeperInjectorAop {
 	@Autowired
 	private ZooKeeperFactory factory;
 
-	@Pointcut("@annotation(com.quincy.sdk.annotation.OriginalZooKeeperInjector)")
+	@Pointcut("@annotation(com.quincy.sdk.annotation.ZooKeeperInjector)")
     public void pointCut() {}
 
     @Around("pointCut()")
