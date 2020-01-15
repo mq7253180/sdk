@@ -20,7 +20,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.quincy.core.zookeeper.ContextConstants;
-import com.quincy.core.zookeeper.OriginalZooKeeperFactory;
+import com.quincy.core.zookeeper.ZooKeeperFactory;
 import com.quincy.sdk.Constants;
 import com.quincy.sdk.zookeeper.Context;
 import com.quincy.sdk.zookeeper.Handler;
@@ -37,8 +37,8 @@ public class ZooKeeperApplicationContext implements Watcher, Context {
 	private final static Map<String, Handler> handlers = new ConcurrentHashMap<String, Handler>();
 
 	@Bean
-	public OriginalZooKeeperFactory originalZooKeeperFactory() {
-		return new OriginalZooKeeperFactory() {
+	public ZooKeeperFactory originalZooKeeperFactory() {
+		return new ZooKeeperFactory() {
 			@Override
 			public ZooKeeper connect() throws IOException {
 				return createZooKeeper();
@@ -59,7 +59,7 @@ public class ZooKeeperApplicationContext implements Watcher, Context {
 		if(event.getPath()!=null) {
 			Handler h = handlers.get(event.getPath());
 			if(h!=null)
-				h.process(event);
+				h.onCreation(event);
 		}
 	}
 

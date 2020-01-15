@@ -35,29 +35,29 @@ public class PooledChannelSftpFactory implements PooledObjectFactory<PoolableCha
 		ChannelSftp channel = null;
 		String dbsHost = null;
 		String privateKey = "";
-        if(File.separator.equals("/")){//Linux
-        	privateKey = System.getProperty("user.home") + "/.ssh/id_rsa";
+        if(File.separator.equals("/")) {//Linux
+        		privateKey = System.getProperty("user.home") + "/.ssh/id_rsa";
         } else {//windows
-        	privateKey = System.getProperty("user.home") + "\\.ssh\\wsh\\id_rsa";
+        		privateKey = System.getProperty("user.home") + "\\.ssh\\wsh\\id_rsa";
         }
         JSch jsch = new JSch();
         jsch.addIdentity(privateKey);
         try {
-        	dbsHost = hostMaster;
-        	session = jsch.getSession(username, dbsHost, port);
+        		dbsHost = hostMaster;
+        		session = jsch.getSession(username, dbsHost, port);
 	        session.setConfig("StrictHostKeyChecking", "no");
 	        log.info("Connecting to remote server: {}@{} ...", username, dbsHost);
 	        session.connect();
 	        channel = (ChannelSftp) session.openChannel("sftp");
 	        channel.connect();
         } catch(Exception e) {
-        	log.error("SFTP_CONNECT_ERR: "+dbsHost+"\r\n", e);
-        	if(channel!=null)
-        		channel.disconnect();
-        	if(session!=null)
-        		session.disconnect();
-        	dbsHost = hostSlave;
-        	session = jsch.getSession(username, dbsHost, port);
+        		log.error("SFTP_CONNECT_ERR: "+dbsHost+"\r\n", e);
+        		if(channel!=null)
+        			channel.disconnect();
+        		if(session!=null)
+        			session.disconnect();
+        		dbsHost = hostSlave;
+        		session = jsch.getSession(username, dbsHost, port);
 	        session.setConfig("StrictHostKeyChecking", "no");
 	        log.info("Connecting to remote server: {}@{} ...", username, dbsHost);
 	        session.connect();

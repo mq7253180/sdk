@@ -4,5 +4,6 @@ import org.apache.zookeeper.WatchedEvent;
 
 public interface Handler {
 	public String getPath();
-	public void process(WatchedEvent event);
+	public void onChange(WatchedEvent event);
+	public void onCreation(WatchedEvent event);
 }

@@ -24,8 +24,8 @@ public class ChannelSftpSourceImpl implements ChannelSftpSource {
 			public void onSwallowException(Exception e) {
 				log.error("\r\nSFTP_CONNECTION_POOL_ERR:\r\n", e);
 			}
-    	});
-    	f.setPool(pool);
+		});
+		f.setPool(pool);
 		this.pool = pool;
 	}
 

@@ -15,7 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import com.quincy.core.zookeeper.OriginalZooKeeperFactory;
+import com.quincy.core.zookeeper.ZooKeeperFactory;
 import com.quincy.sdk.annotation.Synchronized;
 import com.quincy.sdk.helper.AopHelper;
 import com.quincy.sdk.zookeeper.Context;
@@ -27,7 +27,7 @@ import lombok.Data;
 @Component
 public class SynchronizedAop {
 	@Autowired
-	private OriginalZooKeeperFactory factory;
+	private ZooKeeperFactory factory;
 	@Autowired
 	private Context context;
 	private final static String KEY = "execution";
@@ -39,11 +39,13 @@ public class SynchronizedAop {
     public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
 		Synchronized annotation = AopHelper.getAnnotation(joinPoint, Synchronized.class);
 		String key = annotation.value();
+		String path = context.getSynPath()+"/"+key;
+		String lockPath = path+"/"+KEY;
+		String realPath = null;
 		ZooKeeper zk = null;
 		try {
 			zk = factory.connect();
-			String path = context.getSynPath()+"/"+key;
-			String realPath = zk.create(path+"/"+KEY, KEY.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
+			realPath = zk.create(lockPath, KEY.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
 			String seqStr = realPath.substring(realPath.indexOf(KEY)+KEY.length(), realPath.length());
 			int seq = Integer.parseInt(seqStr);
 			Lock lock = new Lock();
@@ -77,9 +79,12 @@ public class SynchronizedAop {
 				} else//拿到锁
 					break;
 			}
-			return joinPoint.proceed();
+			Object toReturn = joinPoint.proceed();
+			zk.delete(realPath, -1);//Release the lock.
+			return toReturn;
 		} finally {
-			zk.close();
+			if(zk!=null)
+				zk.close();
 		}
 	}
 

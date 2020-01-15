@@ -10,14 +10,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import com.quincy.core.zookeeper.OriginalZooKeeperFactory;
+import com.quincy.core.zookeeper.ZooKeeperFactory;
 
 @Aspect
 @Order(4)
 @Component
-public class OriginalZooKeeperInjectorAop {
+public class ZooKeeperInjectorAop {
 	@Autowired
-	private OriginalZooKeeperFactory factory;
+	private ZooKeeperFactory factory;
 
 	@Pointcut("@annotation(com.quincy.sdk.annotation.OriginalZooKeeperInjector)")
     public void pointCut() {}
