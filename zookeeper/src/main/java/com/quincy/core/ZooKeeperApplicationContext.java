@@ -1,8 +1,6 @@
 package com.quincy.core;
 
-import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
@@ -10,7 +8,6 @@ import javax.annotation.Resource;
 import org.apache.commons.pool2.impl.AbandonedConfig;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
@@ -27,21 +24,19 @@ import com.quincy.core.zookeeper.ZooKeeperSource;
 import com.quincy.core.zookeeper.impl.ZooKeeperSourceImpl;
 import com.quincy.sdk.Constants;
 import com.quincy.sdk.zookeeper.Context;
-import com.quincy.sdk.zookeeper.Handler;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Configuration
-public class ZooKeeperApplicationContext implements Watcher, Context {
+public class ZooKeeperApplicationContext implements Context {
 	@Resource(name = Constants.BEAN_NAME_PROPERTIES)
 	private Properties properties;
 	@Value("#{'${zk.distributed-lock.keys}'.split(',')}")
 	private String[] distributedLockKeys;
-	private final static Map<String, Handler> handlers = new ConcurrentHashMap<String, Handler>();
 
 	@Bean
-	public ZooKeeperSource zkeeperSource() {
+	public ZooKeeperSource zkeeperSource() throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		String url = properties.getProperty("zk.url");
 	    int timeout = Integer.parseInt(properties.getProperty("zk.timeout"));
 	    Integer maxTotal = Integer.valueOf(properties.getProperty("zk.pool.max-total"));
@@ -50,6 +45,7 @@ public class ZooKeeperApplicationContext implements Watcher, Context {
 	    Long maxWaitMillis = Long.valueOf(properties.getProperty("zk.pool.max-wait-millis"));
 	    Long softMinEvictableIdleTimeMillis = Long.valueOf(properties.getProperty("zk.pool.soft-min-evictable-idle-time-millis"));
 	    Long timeBetweenEvictionRunsMillis = Long.valueOf(properties.getProperty("zk.pool.time-between-eviction-runs-millis"));
+	    Class<?> clazz = Class.forName(properties.getProperty("zk.pool.on-creation-watcher-impl"));
 		GenericObjectPoolConfig<PoolableZooKeeper> pc = new GenericObjectPoolConfig<PoolableZooKeeper>();
 		pc.setMaxIdle(maxIdle);
 		pc.setMinIdle(minIdle);
@@ -66,7 +62,7 @@ public class ZooKeeperApplicationContext implements Watcher, Context {
 		pc.setTimeBetweenEvictionRunsMillis(timeBetweenEvictionRunsMillis);//驱逐器触发间隔
 //		pc.setEvictorShutdownTimeoutMillis(evictorShutdownTimeoutMillis);
 		pc.setEvictionPolicyClassName(MyEvictionPolicy.class.getName());
-		PoolableZooKeeperFactory f = new PoolableZooKeeperFactory(url, timeout, this);
+		PoolableZooKeeperFactory f = new PoolableZooKeeperFactory(url, timeout, (Watcher)clazz.newInstance());
 		AbandonedConfig ac = new AbandonedConfig();
 //		ac.setRemoveAbandonedOnMaintenance(true); //在Maintenance的时候检查是否有泄漏
 //		ac.setRemoveAbandonedOnBorrow(true); //borrow 的时候检查泄漏
@@ -75,28 +71,8 @@ public class ZooKeeperApplicationContext implements Watcher, Context {
 		return s;
 	}
 
-	@Override
-	public void process(WatchedEvent event) {
-		log.info(event.getPath()+"==="+event.getType().name()+"==="+event.getState().name()+"==="+event.getState().getIntValue()+"==="+event.getState().ordinal()+"==="+event.toString());
-		if(event.getPath()!=null) {
-			Handler h = handlers.get(event.getPath());
-			if(h!=null)
-				h.onCreation(event);
-		}
-	}
-
-	@Override
-	public void addHandler(Handler h) {
-		handlers.put(h.getPath(), h);
-	}
-
-	@Override
-	public boolean handlerExists(String path) {
-		return handlers.containsKey(path);
-	}
-
 	@Autowired
-	ZooKeeperSource zooKeeperSource;
+	private ZooKeeperSource zooKeeperSource;
 
 	@PostConstruct
 	public void init() throws Exception {
