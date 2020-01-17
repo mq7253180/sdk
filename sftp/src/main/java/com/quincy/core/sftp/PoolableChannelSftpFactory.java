@@ -14,14 +14,14 @@ import com.jcraft.jsch.Session;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class PooledChannelSftpFactory implements PooledObjectFactory<PoolableChannelSftp> {
+public class PoolableChannelSftpFactory implements PooledObjectFactory<PoolableChannelSftp> {
 	private String hostMaster;
 	private String hostSlave;
 	private int port;
 	private String username;
 	private volatile ObjectPool<PoolableChannelSftp> pool;
 
-	public PooledChannelSftpFactory(String hostMaster, String hostSlave, int port, String username) {
+	public PoolableChannelSftpFactory(String hostMaster, String hostSlave, int port, String username) {
 		this.hostMaster = hostMaster;
 		this.hostSlave = hostSlave;
 		this.port = port;
@@ -48,7 +48,7 @@ public class PooledChannelSftpFactory implements PooledObjectFactory<PoolableCha
 	        session.setConfig("StrictHostKeyChecking", "no");
 	        log.info("Connecting to remote server: {}@{} ...", username, dbsHost);
 	        session.connect();
-	        channel = (ChannelSftp) session.openChannel("sftp");
+	        channel = (ChannelSftp)session.openChannel("sftp");
 	        channel.connect();
         } catch(Exception e) {
         		log.error("SFTP_CONNECT_ERR: "+dbsHost+"\r\n", e);
@@ -61,17 +61,17 @@ public class PooledChannelSftpFactory implements PooledObjectFactory<PoolableCha
 	        session.setConfig("StrictHostKeyChecking", "no");
 	        log.info("Connecting to remote server: {}@{} ...", username, dbsHost);
 	        session.connect();
-	        channel = (ChannelSftp) session.openChannel("sftp");
+	        channel = (ChannelSftp)session.openChannel("sftp");
 	        channel.connect();
         }
-        log.info("\r\nSFTP_CONNECTING_DURATION================"+(System.currentTimeMillis()-start));
+        log.info("\r\nSFTP_CONNECTING_DURATION================{}", (System.currentTimeMillis()-start));
 		PoolableChannelSftp c = new PoolableChannelSftp(channel, pool);
 		return new DefaultPooledObject<PoolableChannelSftp>(c);
 	}
 
 	@Override
 	public void destroyObject(PooledObject<PoolableChannelSftp> p) throws Exception {
-		log.info("=======================================destroyObject");
+		log.info("SFTP_POOL=======================================destroyObject");
 		/*StackTraceElement stack[] = Thread.currentThread().getStackTrace();  
         for(int i=0;i<stack.length;i++){
         	log.info("-----"+stack[i].getClassName()+"."+stack[i].getMethodName());
@@ -81,14 +81,14 @@ public class PooledChannelSftpFactory implements PooledObjectFactory<PoolableCha
 
 	@Override
 	public boolean validateObject(PooledObject<PoolableChannelSftp> p) {
-		log.info("=======================================validateObject");
+		log.info("SFTP_POOL=======================================validateObject");
 		try {
-			log.info("------------------"+p.getObject().isClosed()+"==="+p.getObject().isConnected());
+			log.info("SFTP_POOL------------------isClosed: {}===isConnected: {}", p.getObject().isClosed(), p.getObject().isConnected());
 			if((!p.getObject().isClosed())&&p.getObject().isConnected()) {
-				log.info("------------------OBJ_VALICATION_TRUE");
+				log.info("SFTP_POOL------------------OBJ_VALIDATION_TRUE");
 				return true;
 			} else {
-				log.info("------------------OBJ_VALICATION_FALSE");
+				log.info("SFTP_POOL------------------OBJ_VALIDATION_FALSE");
 				return false;
 			}
 		} catch (final Exception e) {
@@ -99,12 +99,12 @@ public class PooledChannelSftpFactory implements PooledObjectFactory<PoolableCha
 
 	@Override
 	public void activateObject(PooledObject<PoolableChannelSftp> p) throws Exception {
-		log.info("=======================================activateObject");
+		log.info("SFTP_POOL=======================================activateObject");
 	}
 
 	@Override
 	public void passivateObject(PooledObject<PoolableChannelSftp> p) throws Exception {
-		log.info("=======================================passivateObject");
+		log.info("SFTP_POOL=======================================passivateObject");
 	}
 
 	public ObjectPool<PoolableChannelSftp> getPool() {

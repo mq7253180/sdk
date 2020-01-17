@@ -15,7 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import com.quincy.core.zookeeper.ZooKeeperFactory;
+import com.quincy.core.zookeeper.ZooKeeperSource;
 import com.quincy.sdk.annotation.Synchronized;
 import com.quincy.sdk.helper.AopHelper;
 import com.quincy.sdk.zookeeper.Context;
@@ -27,7 +27,7 @@ import lombok.Data;
 @Component
 public class SynchronizedAop {
 	@Autowired
-	private ZooKeeperFactory factory;
+	private ZooKeeperSource zkSource;
 	@Autowired
 	private Context context;
 	private final static String KEY = "execution";
@@ -44,7 +44,7 @@ public class SynchronizedAop {
 		String realPath = null;
 		ZooKeeper zk = null;
 		try {
-			zk = factory.connect();
+			zk = zkSource.get();
 			realPath = zk.create(lockPath, KEY.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
 			String seqStr = realPath.substring(realPath.indexOf(KEY)+KEY.length(), realPath.length());
 			int seq = Integer.parseInt(seqStr);

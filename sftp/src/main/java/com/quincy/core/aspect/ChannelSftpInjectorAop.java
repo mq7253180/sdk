@@ -33,7 +33,7 @@ public class ChannelSftpInjectorAop {
     			for(int i=0;i<clazzes.length;i++) {
     				Class<?> clazz = clazzes[i];
     				if(ChannelSftpInjector.class.getName().equals(clazz.getName())) {
-    					channel = (ChannelSftp)channelSftpSource.get();
+    					channel = channelSftpSource.get();
     					args[i] = channel;
     					break;
     				}

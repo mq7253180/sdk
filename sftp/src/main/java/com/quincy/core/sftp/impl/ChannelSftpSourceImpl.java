@@ -9,7 +9,7 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import com.jcraft.jsch.ChannelSftp;
 import com.quincy.core.sftp.ChannelSftpSource;
 import com.quincy.core.sftp.PoolableChannelSftp;
-import com.quincy.core.sftp.PooledChannelSftpFactory;
+import com.quincy.core.sftp.PoolableChannelSftpFactory;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ChannelSftpSourceImpl implements ChannelSftpSource {
 	private ObjectPool<PoolableChannelSftp> pool;
 
-	public ChannelSftpSourceImpl(PooledChannelSftpFactory f, GenericObjectPoolConfig<PoolableChannelSftp> pc, AbandonedConfig ac) {
+	public ChannelSftpSourceImpl(PoolableChannelSftpFactory f, GenericObjectPoolConfig<PoolableChannelSftp> pc, AbandonedConfig ac) {
 		GenericObjectPool<PoolableChannelSftp> pool = new GenericObjectPool<PoolableChannelSftp>(f, pc, ac);
 		pool.setSwallowedExceptionListener(new SwallowedExceptionListener() {
 			@Override
@@ -31,13 +31,15 @@ public class ChannelSftpSourceImpl implements ChannelSftpSource {
 
 	@Override
 	public ChannelSftp get() throws Exception {
-		PoolableChannelSftp channel = pool.borrowObject();
-		if(channel.isClosed()||!channel.isConnected()) {
-			PoolableChannelSftp poolableChannelSftp = (PoolableChannelSftp)channel;
-			poolableChannelSftp.reallyDisconnect();
-			pool.invalidateObject(channel);
+		PoolableChannelSftp channel = null;
+		while(true) {
+			channel = pool.borrowObject();
+			if(channel.isClosed()||!channel.isConnected()) {
+				channel.reallyDisconnect();
+				pool.invalidateObject(channel);
+			} else
+				return channel;
 		}
-		return channel;
 	}
 
 	@Override
