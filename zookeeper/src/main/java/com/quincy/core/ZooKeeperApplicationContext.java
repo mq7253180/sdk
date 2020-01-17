@@ -25,9 +25,6 @@ import com.quincy.core.zookeeper.impl.ZooKeeperSourceImpl;
 import com.quincy.sdk.Constants;
 import com.quincy.sdk.zookeeper.Context;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 @Configuration
 public class ZooKeeperApplicationContext implements Context {
 	@Resource(name = Constants.BEAN_NAME_PROPERTIES)
@@ -79,7 +76,6 @@ public class ZooKeeperApplicationContext implements Context {
 		ZooKeeper zk = null;
 		try {
 			zk = zooKeeperSource.get();
-			log.info("111================={}", (zk!=null));
 			Stat stat = zk.exists(zookeeperRootNode, false);
 			if(stat==null)
 				zk.create(zookeeperRootNode, "Root".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
@@ -92,7 +88,6 @@ public class ZooKeeperApplicationContext implements Context {
 				if(stat==null)
 					zk.create(path, "Distributed Locks's Executions".getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
 			}
-			log.info("222================={}", (zk!=null));
 		} finally {
 			if(zk!=null)
 				zk.close();

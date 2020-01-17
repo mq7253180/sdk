@@ -34,6 +34,7 @@ public class ZooKeeperSourceImpl implements ZooKeeperSource {
 	public ZooKeeper get() throws Exception {
 		PoolableZooKeeper zk = null;
 		while(true) {
+			log.info("ZK_POOL=================NumActive: {}---NumIdle: {}", pool.getNumActive(), pool.getNumIdle());
 			zk = pool.borrowObject();
 			States states = zk.getState();
 			if(!states.isAlive()) {

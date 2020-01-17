@@ -24,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Configuration
-//@Order(1)
 public class CommonApplicationContext {//implements TransactionManagementConfigurer {
 	@Bean
     public MessageSource messageSource() throws IOException {

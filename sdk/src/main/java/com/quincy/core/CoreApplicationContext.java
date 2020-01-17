@@ -18,7 +18,6 @@ import com.quincy.sdk.Constants;
 
 @PropertySource("classpath:application-sdk.properties")
 @Configuration
-//@Order(2)
 //@AutoConfigureAfter(CommonApplicationContext.class)
 //@Import(CommonApplicationContext.class)
 public class CoreApplicationContext {//implements TransactionManagementConfigurer {

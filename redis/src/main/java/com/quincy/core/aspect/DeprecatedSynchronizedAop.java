@@ -13,7 +13,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPubSub;
 
 @Aspect
-@Order(1)
+@Order(2)
 @Component
 public class DeprecatedSynchronizedAop extends JedisNeededBaseAop {
 	private final static String SET_KEY = "SYNCHRONIZATION";

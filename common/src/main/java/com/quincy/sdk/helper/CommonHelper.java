@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.Enumeration;
 import java.util.Locale;
@@ -25,6 +26,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.tools.zip.ZipEntry;
 import org.apache.tools.zip.ZipFile;
 import org.apache.tools.zip.ZipOutputStream;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -399,6 +402,38 @@ public class CommonHelper {
         }
         return sb.toString();
     }
+
+	public static String fullMethodPath(Class<?> clazz, MethodSignature methodSignature, Method method, Object[] args, String _separator0, String _separator1, String _separator2) throws NoSuchMethodException, SecurityException {
+		StringBuilder sb = new StringBuilder(100);
+		sb.append(clazz.getName());
+		sb.append(trim(_separator0));
+		sb.append(methodSignature.getName());
+		String separator1 = trim(_separator1);
+		String separator2 = trim(_separator2);
+		if(separator1!=null&&separator2!=null) {
+			if(method==null)
+				method = clazz.getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
+			Class<?>[] clazzes = method.getParameterTypes();
+			if(args!=null&&args.length>0) {
+				for(int i=0;i<args.length;i++) {
+					Object arg = args[i];
+					sb.append(separator1);
+					sb.append(clazzes[i].getName());
+					sb.append(separator2);
+					sb.append(arg==null?"null":arg.toString().trim());
+				}
+			}
+		}
+		return sb.toString();
+	}
+
+	public static String fullMethodPath(ProceedingJoinPoint joinPoint, String separator0, String separator1, String separator2) throws NoSuchMethodException, SecurityException {
+		Class<?> clazz = joinPoint.getTarget().getClass();
+		MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
+		Method method = clazz.getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
+		String key = fullMethodPath(clazz, methodSignature, method, joinPoint.getArgs(), separator0, separator1, separator2);
+		return key;
+	}
 
 	public static void main(String[] args) throws IOException {
 //		zip(new String[] {"D:/fxcupload/quincy"}, "D:/fxcupload/quincy.zip");
