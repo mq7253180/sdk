@@ -9,9 +9,9 @@
 	<url>https://github.com/mq7253180/sdk</url>
 	<description>Common utils included</description>
 	<properties>
-    	<argLine>-Dfile.encoding=UTF-8</argLine>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<argLine>-Dfile.encoding=UTF-8</argLine>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
 	<distributionManagement>
 		<snapshotRepository>
@@ -119,9 +119,9 @@
 			</plugin> -->
 		</plugins>
 		<resources>
-	        <resource>
-	            <directory>src/main/resources</directory>
-	            <filtering>true</filtering>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
 			</resource>
  		</resources>
 	</build>
