@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.quincy.core.mapper.CoreMapper" >
+	<delete id="deleteTransactionAtomicArgs">
+		DELETE x FROM s_transaction_arg x 
+		INNER JOIN s_transaction_atomic a ON x.parent_id=a.id 
+		<where>
+			a.tx_id=#{txId, jdbcType=INTEGER} AND x.type=1
+		</where>
+	</delete>
+	<delete id="deleteTransactionAtomics">
+		DELETE x FROM s_transaction_atomic x 
+		<where>
+			x.tx_id=#{txId, jdbcType=INTEGER}
+		</where>
+	</delete>
+	<delete id="deleteArgs">
+		DELETE x FROM s_transaction_arg x 
+		<where>
+			x.parent_id=#{parentId, jdbcType=INTEGER} 
+			AND x.type=#{type, jdbcType=TINYINT}
+		</where>
+	</delete>
+	<delete id="deleteTransaction">
+		DELETE FROM s_transaction 
+		<where>
+			id=#{id, jdbcType=INTEGER}
+		</where>
+	</delete>
+	<update id="updateTransactionVersion">
+		UPDATE s_transaction 
+		<set>
+			version=version+1,status=0 
+		</set>
+		<where>
+			id=#{id, jdbcType=INTEGER} 
+			AND version=#{version, jdbcType=INTEGER} 
+			AND status=1
+		</where>
+	</update>
+</mapper>

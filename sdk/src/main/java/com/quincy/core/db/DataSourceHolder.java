@@ -3,18 +3,18 @@ package com.quincy.core.db;
 public class DataSourceHolder {
 	public final static String MASTER = "master";
 	public final static String SLAVE = "slave";
-    private static final ThreadLocal<String> dataSources = new ThreadLocal<String>();
+    private static final ThreadLocal<String> dataSource = new ThreadLocal<String>();
 
     public static void setMaster() {
-        dataSources.set(MASTER);
+        dataSource.set(MASTER);
     }
     public static void setSlave() {
-        dataSources.set(SLAVE);
+        dataSource.set(SLAVE);
     }
     public static String getDetermineCurrentLookupKey() {
-        return dataSources.get();
+        return dataSource.get();
     }
     public static void remove() {
-        dataSources.remove();
+        dataSource.remove();
     }
 }

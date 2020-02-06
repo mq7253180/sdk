@@ -74,7 +74,7 @@ public class CommonHelper {
 		i18nChainHead = headerSupport;
 	}
 
-	public static abstract class I18NSupport {
+	private static abstract class I18NSupport {
 		private I18NSupport next;
 
 		protected abstract String resolve(HttpServletRequest request);

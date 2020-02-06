@@ -10,5 +10,5 @@ import java.lang.annotation.Target;
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(value = {ElementType.ANNOTATION_TYPE, ElementType.METHOD})
 public @interface PermissionNeeded {
-	public String value() default "";
+	public String value();
 }
