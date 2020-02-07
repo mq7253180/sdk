@@ -21,6 +21,7 @@ public class Constants {
 	public final static String BEAN_NAME_PROPERTIES = "quincyPropertiesFactory";
 //	public final static KeyFingerPrintCalculator KEY_FINGER_PRINT_CALCULATOR = new JcaKeyFingerprintCalculator();
 	public final static KeyFingerPrintCalculator KEY_FINGER_PRINT_CALCULATOR = new BcKeyFingerprintCalculator();
-	public final static String PACKAGE_NAME_ENTITY = "com.quincy.sdk.entity";
-	public final static String PACKAGE_NAME_REPOSITORY = "com.quincy.sdk.dao";
+	public final static String PACKAGE_NAME_ENTITY = "com.quincy.*.entity";
+	public final static String PACKAGE_NAME_REPOSITORY = "com.quincy.*.dao";
+	public final static String PACKAGE_NAME_MAPPER = "com.quincy.*.mapper";
 }
