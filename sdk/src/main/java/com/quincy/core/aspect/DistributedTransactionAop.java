@@ -34,6 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DistributedTransactionAop {
 	private final static ThreadLocal<List<TransactionAtomic>> atomicsHolder = new ThreadLocal<List<TransactionAtomic>>();
 	private final static ThreadLocal<Boolean> inTransactionHolder = new ThreadLocal<Boolean>();
+	private final static int MSG_MAX_LENGTH = 200;
 
 	@Autowired
 	private ApplicationContext applicationContext;
@@ -68,10 +69,13 @@ public class DistributedTransactionAop {
 		tx.setBeanName(this.getBeanName(clazz));
 		MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
 		tx.setMethodName(methodSignature.getName());
+		tx.setParameterTypes(methodSignature.getParameterTypes());
 		tx = transactionService.insertTransaction(tx);
 		atomics = tx.getAtomics();
-		for(TransactionAtomic atomic:atomics)
-			atomic.setMethodName(atomic.getConfirmMethodName());
+		if(atomics!=null&&atomics.size()>0) {
+			for(TransactionAtomic atomic:atomics)
+				atomic.setMethodName(atomic.getConfirmMethodName());
+		}
 		this.invokeAtomics(tx, TransactionConstants.ATOMIC_STATUS_SUCCESS, cancel);
 		return retVal;
 	}
@@ -135,8 +139,8 @@ public class DistributedTransactionAop {
 	/**
 	 * 调重试或撤消方法
 	 * @param tx: 事务信息
-	 * @param status: 执行成功后要置的状态
-	 * @param _break: 其中一个失败后是否继续执行其他
+	 * @param statusTo: 执行成功后要置的状态
+	 * @param breakOnFailure: 其中一个失败后是否继续执行其他
 	 */
 	private void invokeAtomics(Transaction tx, Integer statusTo, boolean breakOnFailure) throws NoSuchMethodException, SecurityException {
 		List<TransactionAtomic> atomics = tx.getAtomics();
@@ -144,29 +148,51 @@ public class DistributedTransactionAop {
 		if(atomics!=null&&atomics.size()>0) {
 			for(TransactionAtomic atomic:atomics) {//逐个执行事务方法
 				Object bean = applicationContext.getBean(atomic.getBeanName());
-				Method method = bean.getClass().getMethod(atomic.getMethodName(), atomic.getParameterTypes());
+				Method method = null;
+				try {
+					log.info("===================={}", atomic.getBeanName()+"."+atomic.getMethodName());
+					for(Class<?> clazz:atomic.getParameterTypes())
+						log.info("-----------{}", clazz.getName());
+					method = bean.getClass().getMethod(atomic.getMethodName(), atomic.getParameterTypes());
+				} catch(NoSuchMethodException e) {
+					this.updateTransactionToComleted(tx.getId());
+					throw e;
+				}
+				TransactionAtomic toUpdate = new TransactionAtomic();
+				toUpdate.setId(atomic.getId());
+				boolean update = true;
 				try {
 					method.invoke(bean, atomic.getArgs());
-					TransactionAtomic toUpdate = new TransactionAtomic();
-					toUpdate.setId(atomic.getId());
 					toUpdate.setStatus(statusTo);
-					transactionService.updateTransactionAtomic(toUpdate);
 				} catch(Exception e) {
 					success = false;
-					log.error("DISTRIBUTED_TRANSACTION_ERR====================\r\n", e);
+					String msg = CommonHelper.trim(e.getCause().toString());
+					if(msg!=null) {
+						if(msg.length()>MSG_MAX_LENGTH)
+							msg = msg.substring(0, MSG_MAX_LENGTH);
+						toUpdate.setMsg(msg);
+					} else
+						update = false;
+					log.error("DISTRIBUTED_TRANSACTION_ERR====================", e);
 					if(breakOnFailure)
 						break;
+				} finally {
+					if(update)
+						transactionService.updateTransactionAtomic(toUpdate);
 				}
 			}
 		}
 		if(success) {
 			transactionService.deleteTransaction(tx.getId());
-		} else {
-			Transaction toUpdate = new Transaction();
-			toUpdate.setId(tx.getId());
-			toUpdate.setStatus(TransactionConstants.TX_STATUS_ED);
-			transactionService.updateTransaction(toUpdate);
-		}
+		} else
+			this.updateTransactionToComleted(tx.getId());
+	}
+
+	private void updateTransactionToComleted(Long id) {
+		Transaction toUpdate = new Transaction();
+		toUpdate.setId(id);
+		toUpdate.setStatus(TransactionConstants.TX_STATUS_ED);
+		transactionService.updateTransaction(toUpdate);
 	}
 
 	private static Support chainHead;

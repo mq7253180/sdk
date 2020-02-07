@@ -1,7 +1,9 @@
 package com.quincy.core.service.impl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,18 @@ import com.quincy.core.service.TransactionService;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
+	private final static Map<String, Class<?>> clazzMap = new HashMap<String, Class<?>>(8);
+	static {
+		clazzMap.put("byte", byte.class);
+		clazzMap.put("short", short.class);
+		clazzMap.put("int", int.class);
+		clazzMap.put("long", long.class);
+		clazzMap.put("float", float.class);
+		clazzMap.put("double", double.class);
+		clazzMap.put("char", char.class);
+		clazzMap.put("boolean", boolean.class);
+	}
+
 	@Autowired
 	private TransactionRepository transactionRepository;
 	@Autowired
@@ -45,7 +59,7 @@ public class TransactionServiceImpl implements TransactionService {
 		Object[] args = _tx.getArgs();
 		Transaction tx = transactionRepository.save(_tx);
 		tx.setArgs(args);
-		this.saveArgs(args, tx.getId(), TransactionConstants.ARG_TYPE_TX, mapper);
+		this.saveArgs(args, _tx.getParameterTypes(), tx.getId(), TransactionConstants.ARG_TYPE_TX, mapper);
 		List<TransactionAtomic> _atomics = _tx.getAtomics();
 		if(_atomics!=null&&_atomics.size()>0) {
 			List<TransactionAtomic> atomics = new ArrayList<TransactionAtomic>(_atomics.size());
@@ -55,24 +69,24 @@ public class TransactionServiceImpl implements TransactionService {
 				TransactionAtomic atomic = transactionAtomicRepository.save(_atomic);
 				atomic.setArgs(args);
 				atomics.add(atomic);
-				this.saveArgs(args, atomic.getId(), TransactionConstants.ARG_TYPE_ATOMIC, mapper);
+				this.saveArgs(args, _atomic.getParameterTypes(), atomic.getId(), TransactionConstants.ARG_TYPE_ATOMIC, mapper);
 			}
 			tx.setAtomics(atomics);
 		}
 		return tx;
 	}
 
-	private List<TransactionArg> saveArgs(Object[] _args, Long parentId, int type, ObjectMapper mapper) throws JsonProcessingException {
+	private List<TransactionArg> saveArgs(Object[] _args, Class<?>[] parameterTypes, Long parentId, int type, ObjectMapper mapper) throws JsonProcessingException {
 		List<TransactionArg> args = null;
 		if(_args!=null&&_args.length>0) {
 			args = new ArrayList<TransactionArg>(_args.length);
-			int i = 0;
-			for(Object _arg:_args) {
+			for(int i=0;i<_args.length;i++) {
+				Object _arg = _args[i];
 				TransactionArg arg = new TransactionArg();
 				arg.setParentId(parentId);
-				arg.setClazz(_arg.getClass().getName());
+				arg.setClazz(parameterTypes[i].getName());
 				arg.setValue(mapper.writeValueAsString(_arg));
-				arg.setSort(i++);
+				arg.setSort(i);
 				arg.setType(type);
 				arg = transactionArgRepository.save(arg);
 				args.add(arg);
@@ -90,6 +104,8 @@ public class TransactionServiceImpl implements TransactionService {
 				atomic = o.get();
 				if(_atomic.getStatus()!=null)
 					atomic.setStatus(_atomic.getStatus());
+				if(_atomic.getMsg()!=null)
+					atomic.setMsg(_atomic.getMsg());
 				atomic = transactionAtomicRepository.save(atomic);
 			}
 		}
@@ -135,18 +151,20 @@ public class TransactionServiceImpl implements TransactionService {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		List<TransactionAtomic> atomics =  transactionAtomicRepository.findByTxIdAndStatus(txId, status);
+		List<TransactionAtomic> atomics =  transactionAtomicRepository.findByTxIdAndStatusOrderById(txId, status);
 		if(atomics!=null&&atomics.size()>0) {
 			for(TransactionAtomic atomic:atomics) {
-				List<TransactionArg> _args = transactionArgRepository.findByParentIdAndType(atomic.getId(), TransactionConstants.ARG_TYPE_ATOMIC);
+				List<TransactionArg> _args = transactionArgRepository.findByParentIdAndTypeOrderById(atomic.getId(), TransactionConstants.ARG_TYPE_ATOMIC);
 				if(_args!=null&&_args.size()>0) {
 					Class<?>[] parameterTypes = new Class<?>[_args.size()];
 					Object[] args = new Object[_args.size()];
 					for(int i=0;i<_args.size();i++) {
 						TransactionArg _arg = _args.get(i);
-						Class<?> parameterType = Class.forName(_arg.getClazz(), false, this.getClass().getClassLoader());
+						Class<?> parameterType = clazzMap.get(_arg.getClazz());
+						if(parameterType==null)
+							parameterType = Class.forName(_arg.getClazz(), false, this.getClass().getClassLoader());
 						parameterTypes[i] = parameterType;
-						Object arg = mapper.readValue(_arg.getValue(), Class.forName(_arg.getClazz(), false, this.getClass().getClassLoader()));
+						Object arg = mapper.readValue(_arg.getValue(), parameterType);
 						args[i] = arg;
 					}
 					atomic.setParameterTypes(parameterTypes);

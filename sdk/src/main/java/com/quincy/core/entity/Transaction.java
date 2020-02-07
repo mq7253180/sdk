@@ -44,5 +44,7 @@ public class Transaction {
 	@Transient
 	private Object[] args;
 	@Transient
+	private Class<?>[] parameterTypes;
+	@Transient
 	private List<TransactionAtomic> atomics;
 }
