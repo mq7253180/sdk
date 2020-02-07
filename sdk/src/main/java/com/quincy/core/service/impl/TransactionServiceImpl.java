@@ -121,6 +121,8 @@ public class TransactionServiceImpl implements TransactionService {
 				tx = o.get();
 				if(_tx.getStatus()!=null)
 					tx.setStatus(_tx.getStatus());
+				if(_tx.getLastExecuted()!=null)
+					tx.setLastExecuted(_tx.getLastExecuted());;
 				tx = transactionRepository.save(tx);
 			}
 		}

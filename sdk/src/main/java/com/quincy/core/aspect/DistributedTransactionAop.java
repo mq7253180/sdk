@@ -2,6 +2,7 @@ package com.quincy.core.aspect;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -192,6 +193,7 @@ public class DistributedTransactionAop {
 		Transaction toUpdate = new Transaction();
 		toUpdate.setId(id);
 		toUpdate.setStatus(TransactionConstants.TX_STATUS_ED);
+		toUpdate.setLastExecuted(new Date());
 		transactionService.updateTransaction(toUpdate);
 	}
 

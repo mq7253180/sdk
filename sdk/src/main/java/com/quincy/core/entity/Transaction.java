@@ -31,10 +31,10 @@ public class Transaction {
 	private String beanName;
 	@Column(name="method_name")
 	private String methodName;
-	@Column(name="last_executed_start")
-	private Date lastExecutedStart;
-	@Column(name="last_executed_end")
-	private Date lastExecutedEnd;
+	@Column(name="creation_time")
+	private Date creationTime;
+	@Column(name="last_executed")
+	private Date lastExecuted;
 	@Column(name="type")
 	private Integer type;//0失败重试(定时任务执行status为0的原子操作); 1失败撤消(定时任务执行status为1的原子操作)
 	@Column(name="status")
