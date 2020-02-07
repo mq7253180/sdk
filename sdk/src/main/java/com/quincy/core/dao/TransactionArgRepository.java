@@ -10,5 +10,5 @@ import com.quincy.core.entity.TransactionArg;
 
 @Repository
 public interface TransactionArgRepository extends JpaRepository<TransactionArg, Long>, JpaSpecificationExecutor<TransactionArg> {
-	public List<TransactionArg> findByParentIdAndTypeOrderById(Long parentId, Integer type);
+	public List<TransactionArg> findByParentIdAndTypeOrderBySort(Long parentId, Integer type);
 }

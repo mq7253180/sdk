@@ -32,6 +32,8 @@ public class TransactionAtomic {
 	private String methodName;//确认或撤消方法名
 	@Column(name="status")
 	private Integer status;//1执行成功; 0还未执行或执行失败
+	@Column(name="sort")
+	private Integer sort;
 	@Column(name="msg")
 	private String msg;
 	@Transient

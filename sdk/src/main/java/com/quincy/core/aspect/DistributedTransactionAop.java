@@ -104,6 +104,7 @@ public class DistributedTransactionAop {
 			atomic.setParameterTypes(methodSignature.getParameterTypes());
 			atomic.setArgs(joinPoint.getArgs());
 			List<TransactionAtomic> atomics = atomicsHolder.get();
+			atomic.setSort(atomics.size());
 			atomics.add(atomic);
 		}
 		return null;

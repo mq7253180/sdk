@@ -153,10 +153,10 @@ public class TransactionServiceImpl implements TransactionService {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		List<TransactionAtomic> atomics =  transactionAtomicRepository.findByTxIdAndStatusOrderById(txId, status);
+		List<TransactionAtomic> atomics =  transactionAtomicRepository.findByTxIdAndStatusOrderBySort(txId, status);
 		if(atomics!=null&&atomics.size()>0) {
 			for(TransactionAtomic atomic:atomics) {
-				List<TransactionArg> _args = transactionArgRepository.findByParentIdAndTypeOrderById(atomic.getId(), TransactionConstants.ARG_TYPE_ATOMIC);
+				List<TransactionArg> _args = transactionArgRepository.findByParentIdAndTypeOrderBySort(atomic.getId(), TransactionConstants.ARG_TYPE_ATOMIC);
 				if(_args!=null&&_args.size()>0) {
 					Class<?>[] parameterTypes = new Class<?>[_args.size()];
 					Object[] args = new Object[_args.size()];

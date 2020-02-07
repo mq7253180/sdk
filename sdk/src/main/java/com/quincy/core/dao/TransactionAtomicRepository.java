@@ -10,5 +10,5 @@ import com.quincy.core.entity.TransactionAtomic;
 
 @Repository
 public interface TransactionAtomicRepository extends JpaRepository<TransactionAtomic, Long>, JpaSpecificationExecutor<TransactionAtomic> {
-	public List<TransactionAtomic> findByTxIdAndStatusOrderById(Long txId, Integer status);
+	public List<TransactionAtomic> findByTxIdAndStatusOrderBySort(Long txId, Integer status);
 }
