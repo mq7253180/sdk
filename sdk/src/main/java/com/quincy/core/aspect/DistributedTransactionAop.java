@@ -150,32 +150,32 @@ public class DistributedTransactionAop {
 		if(atomics!=null&&atomics.size()>0) {
 			for(TransactionAtomic atomic:atomics) {//逐个执行事务方法
 				Object bean = applicationContext.getBean(atomic.getBeanName());
+				TransactionAtomic toUpdate = new TransactionAtomic();
+				toUpdate.setId(atomic.getId());
 				Method method = null;
 				try {
-					log.info("===================={}", atomic.getBeanName()+"."+atomic.getMethodName());
-					for(Class<?> clazz:atomic.getParameterTypes())
-						log.info("-----------{}", clazz.getName());
 					method = bean.getClass().getMethod(atomic.getMethodName(), atomic.getParameterTypes());
 				} catch(NoSuchMethodException e) {
+					toUpdate.setMsg(CommonHelper.trim(e.toString()));
+					transactionService.updateTransactionAtomic(toUpdate);
 					this.updateTransactionToComleted(tx.getId());
 					throw e;
 				}
-				TransactionAtomic toUpdate = new TransactionAtomic();
-				toUpdate.setId(atomic.getId());
 				boolean update = true;
 				try {
 					method.invoke(bean, atomic.getArgs());
 					toUpdate.setStatus(statusTo);
 				} catch(Exception e) {
 					success = false;
-					String msg = CommonHelper.trim(e.getCause().toString());
+					Throwable cause = e.getCause();
+					String msg = CommonHelper.trim(cause.toString());
 					if(msg!=null) {
 						if(msg.length()>MSG_MAX_LENGTH)
 							msg = msg.substring(0, MSG_MAX_LENGTH);
 						toUpdate.setMsg(msg);
 					} else
 						update = false;
-					log.error("DISTRIBUTED_TRANSACTION_ERR====================", e);
+					log.error("\r\nDISTRIBUTED_TRANSACTION_ERR====================", cause);
 					if(breakOnFailure)
 						break;
 				} finally {
