@@ -114,14 +114,17 @@ public class DistributedTransactionAop {
 	public void compensate() throws Exception {
 		List<Transaction> failedTransactions = transactionService.findFailedTransactions();
 		for(Transaction tx:failedTransactions) {
-			int affected = transactionService.updateTransactionVersion(tx.getId(), tx.getVersion());
-			if(affected>0) {//乐观锁, 集群部署多个结点时, 谁更新版本成功了谁负责执行
-				List<TransactionAtomic> atomics = transactionService.findTransactionAtomics(tx.getId(), tx.getType());
-				tx.setAtomics(atomics);
-				if(tx.getType()==TransactionConstants.TX_TYPE_CONFIRM)
-					this.invokeAtomics(tx, TransactionConstants.ATOMIC_STATUS_SUCCESS, false);
-				else
-					this.invokeAtomics(tx, TransactionConstants.ATOMIC_STATUS_CANCELED, false);
+			Object bean = applicationContext.getBean(tx.getBeanName());
+			if(bean!=null) {
+				int affected = transactionService.updateTransactionVersion(tx.getId(), tx.getVersion());
+				if(affected>0) {//乐观锁, 集群部署多个结点时, 谁更新版本成功了谁负责执行
+					List<TransactionAtomic> atomics = transactionService.findTransactionAtomics(tx.getId(), tx.getType());
+					tx.setAtomics(atomics);
+					if(tx.getType()==TransactionConstants.TX_TYPE_CONFIRM)
+						this.invokeAtomics(tx, TransactionConstants.ATOMIC_STATUS_SUCCESS, false);
+					else
+						this.invokeAtomics(tx, TransactionConstants.ATOMIC_STATUS_CANCELED, false);
+				}
 			}
 		}
 	}
