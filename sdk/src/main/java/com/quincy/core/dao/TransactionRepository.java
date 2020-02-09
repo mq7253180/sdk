@@ -10,5 +10,5 @@ import com.quincy.core.entity.Transaction;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long>, JpaSpecificationExecutor<Transaction> {
-	public List<Transaction> findByStatus(int status);
+	public List<Transaction> findByApplicationNameAndStatus(String applicationName, int status);
 }

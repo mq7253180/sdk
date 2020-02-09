@@ -139,8 +139,8 @@ public class TransactionServiceImpl implements TransactionService {
 	}
 
 	@Override
-	public List<Transaction> findFailedTransactions() {
-		return transactionRepository.findByStatus(TransactionConstants.TX_STATUS_ED);
+	public List<Transaction> findFailedTransactions(String applicationName) {
+		return transactionRepository.findByApplicationNameAndStatus(applicationName, TransactionConstants.TX_STATUS_ED);
 	}
 
 	@Override

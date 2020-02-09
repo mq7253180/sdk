@@ -27,6 +27,8 @@ public class Transaction {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="id")
 	private Long id;
+	@Column(name="application_name")
+	private String applicationName;
 	@Column(name="bean_name")
 	private String beanName;
 	@Column(name="method_name")

@@ -11,6 +11,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -41,6 +42,8 @@ public class DistributedTransactionAop {
 	private ApplicationContext applicationContext;
 	@Autowired
 	private TransactionService transactionService;
+	@Value("${spring.application.name}")
+	private String applicationName;
 
 	@Pointcut("@annotation(com.quincy.sdk.annotation.transaction.DistributedTransactional)")
     public void transactionPointCut() {}
@@ -63,6 +66,7 @@ public class DistributedTransactionAop {
 				throw new RuntimeException("In a same transaction scpoe, all of attributes of 'cancel' must be specified a value if there are atomic operation(s) are specified by attribute 'cancel'.");
 		}
 		Transaction tx = new Transaction();
+		tx.setApplicationName(applicationName);
 		tx.setAtomics(atomics);
 		tx.setType(cancel?TransactionConstants.TX_TYPE_CANCEL:TransactionConstants.TX_TYPE_CONFIRM);
 		tx.setArgs(joinPoint.getArgs());
@@ -112,7 +116,7 @@ public class DistributedTransactionAop {
 
 	@Scheduled(cron = "0 0/1 * * * ?")
 	public void compensate() throws Exception {
-		List<Transaction> failedTransactions = transactionService.findFailedTransactions();
+		List<Transaction> failedTransactions = transactionService.findFailedTransactions(applicationName);
 		for(Transaction tx:failedTransactions) {
 			Object bean = applicationContext.getBean(tx.getBeanName());
 			if(bean!=null) {
