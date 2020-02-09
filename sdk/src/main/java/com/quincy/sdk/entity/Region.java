@@ -37,4 +37,6 @@ public class Region implements Serializable {
 	private String currency;
 	@Column(name="locale")
 	private String locale;
+	@Column(name="parent_id")
+	private Long parentId;
 }

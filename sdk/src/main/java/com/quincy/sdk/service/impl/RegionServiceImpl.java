@@ -18,4 +18,9 @@ public class RegionServiceImpl implements RegionService {
 	public List<Region> findAll() {
 		return regionRepository.findAll();
 	}
+
+	@Override
+	public List<Region> findAllAsPoliticallyCorrect() {
+		return regionRepository.findByParentId(0l);
+	}
 }

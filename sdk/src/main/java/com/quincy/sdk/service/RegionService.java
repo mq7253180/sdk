@@ -6,4 +6,5 @@ import com.quincy.sdk.entity.Region;
 
 public interface RegionService {
 	public List<Region> findAll();
+	public List<Region> findAllAsPoliticallyCorrect();
 }
