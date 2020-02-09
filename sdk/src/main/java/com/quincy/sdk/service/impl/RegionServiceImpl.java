@@ -20,7 +20,7 @@ public class RegionServiceImpl implements RegionService {
 	}
 
 	@Override
-	public List<Region> findAllAsPoliticallyCorrect() {
+	public List<Region> findCountries() {
 		return regionRepository.findByParentId(0l);
 	}
 }
