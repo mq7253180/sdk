@@ -1,6 +1,9 @@
 package com.quincy.core;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.annotation.Resource;
 
@@ -9,9 +12,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.quincy.sdk.Constants;
+import com.quincy.sdk.helper.CommonHelper;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisSentinelPool;
 import redis.clients.util.Pool;
 
 @Configuration
@@ -21,10 +26,6 @@ public class RedisApplicationContext {
 
 	@Bean
     public Pool<Jedis> jedisPool() {
-		String redisHost = properties.getProperty("spring.redis.host");
-		int redisPort = Integer.parseInt(properties.getProperty("spring.redis.port"));
-		String redisPwd = properties.getProperty("spring.redis.password");
-		int redisTimeout = Integer.parseInt(properties.getProperty("spring.redis.timeout"));
 //		int redisMaxActive = Integer.parseInt(properties.getProperty("spring.redis.pool.max-active"));
 		long redisMaxWait = Long.parseLong(properties.getProperty("spring.redis.pool.max-wait"));
 		int redisMaxTotal = Integer.parseInt(properties.getProperty("spring.redis.pool.max-total"));
@@ -35,7 +36,19 @@ public class RedisApplicationContext {
 		cfg.setMaxIdle(redisMaxIdle);
 		cfg.setMinIdle(redisMinIdle);
 		cfg.setMaxWaitMillis(redisMaxWait);
-		JedisPool pool = new JedisPool(cfg, redisHost, redisPort, redisTimeout, redisPwd);
+		int redisTimeout = Integer.parseInt(properties.getProperty("spring.redis.timeout"));
+		String redisPwd = properties.getProperty("spring.redis.password");
+		String sentinelMaster = CommonHelper.trim(properties.getProperty("spring.redis.sentinel.master"));
+		String sentinelNodes = CommonHelper.trim(properties.getProperty("spring.redis.sentinel.nodes"));
+		Pool<Jedis> pool = null;
+		if(sentinelNodes!=null&&sentinelMaster!=null) {
+			Set<String> sentinels = new HashSet<String>(Arrays.asList(sentinelNodes.split(",")));
+			pool = new JedisSentinelPool(sentinelMaster, sentinels, cfg, redisTimeout, redisPwd);
+		} else {
+			String redisHost = properties.getProperty("spring.redis.host");
+			int redisPort = Integer.parseInt(properties.getProperty("spring.redis.port"));
+			pool = new JedisPool(cfg, redisHost, redisPort, redisTimeout, redisPwd);
+		}
 		return pool;
 	}
 
