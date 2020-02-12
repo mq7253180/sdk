@@ -41,7 +41,7 @@ public class RedisApplicationContext {
 		String sentinelMaster = CommonHelper.trim(properties.getProperty("spring.redis.sentinel.master"));
 		String sentinelNodes = CommonHelper.trim(properties.getProperty("spring.redis.sentinel.nodes"));
 		Pool<Jedis> pool = null;
-		if(sentinelNodes!=null&&sentinelMaster!=null) {
+		if(sentinelMaster!=null&&sentinelNodes!=null) {//哨兵
 			Set<String> sentinels = new HashSet<String>(Arrays.asList(sentinelNodes.split(",")));
 			pool = new JedisSentinelPool(sentinelMaster, sentinels, cfg, redisTimeout, redisPwd);
 		} else {
