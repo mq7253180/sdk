@@ -20,12 +20,12 @@ import com.quincy.sdk.Constants;
 import com.quincy.sdk.helper.CommonHelper;
 
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
+import redis.clients.util.Pool;
 
 @Service("authorizationCacheServiceImpl")
 public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 	@Autowired
-	private JedisPool jedisPool;
+	private Pool<Jedis> jedisPool;
 	@Value("${expire.session}")
 	private int sessionExpire;
 	@Value("${domain}")

@@ -12,6 +12,7 @@ import com.quincy.sdk.Constants;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.util.Pool;
 
 @Configuration
 public class RedisApplicationContext {
@@ -19,7 +20,7 @@ public class RedisApplicationContext {
 	private Properties properties;
 
 	@Bean
-    public JedisPool jedisPool() {
+    public Pool<Jedis> jedisPool() {
 		String redisHost = properties.getProperty("spring.redis.host");
 		int redisPort = Integer.parseInt(properties.getProperty("spring.redis.port"));
 		String redisPwd = properties.getProperty("spring.redis.password");

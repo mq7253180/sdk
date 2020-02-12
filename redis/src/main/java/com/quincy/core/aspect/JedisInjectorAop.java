@@ -10,14 +10,14 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
+import redis.clients.util.Pool;
 
 @Aspect
 @Order(3)
 @Component
 public class JedisInjectorAop {
 	@Autowired
-	private JedisPool jedisPool;
+	private Pool<Jedis> jedisPool;
 
 	@Pointcut("@annotation(com.quincy.sdk.annotation.JedisInjector)")
     public void pointCut() {}

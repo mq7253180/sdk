@@ -6,7 +6,7 @@ import org.aspectj.lang.annotation.Around;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
+import redis.clients.util.Pool;
 
 public abstract class JedisNeededBaseAop {
 	protected abstract void pointCut();
@@ -14,7 +14,7 @@ public abstract class JedisNeededBaseAop {
 	protected abstract void after(JoinPoint joinPoint, Jedis jedis, Object obj);
 
 	@Autowired
-	private JedisPool jedisPool;
+	private Pool<Jedis> jedisPool;
 
     @Around("pointCut()")
     public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {

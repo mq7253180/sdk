@@ -18,7 +18,7 @@ import com.quincy.sdk.helper.CommonHelper;
 
 import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
+import redis.clients.util.Pool;
 
 @Slf4j
 @Aspect
@@ -28,7 +28,7 @@ public class CacheAop {
 	@Resource(name = "cacheKeyPrefix")
 	private String cacheKeyPrefix;
 	@Autowired
-	private JedisPool jedisPool;
+	private Pool<Jedis> jedisPool;
 
 	@Pointcut("@annotation(com.quincy.sdk.annotation.Cache)")
     public void pointCut() {}
