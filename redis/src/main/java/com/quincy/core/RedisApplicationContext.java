@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
@@ -82,5 +83,13 @@ public class RedisApplicationContext {
 	@Bean("cacheKeyPrefix")
 	public String cacheKeyPrefix() {
 		return properties.getProperty("spring.application.name")+".cache.";
+	}
+
+	@PreDestroy
+	private void destroy() {
+		if(pool!=null)
+			pool.close();
+		if(jedisCluster!=null)
+			jedisCluster.close();
 	}
 }
