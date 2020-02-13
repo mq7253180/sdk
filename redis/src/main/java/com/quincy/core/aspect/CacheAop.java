@@ -13,12 +13,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import com.quincy.core.redis.JedisSource;
 import com.quincy.sdk.annotation.Cache;
 import com.quincy.sdk.helper.CommonHelper;
 
 import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.Jedis;
-import redis.clients.util.Pool;
 
 @Slf4j
 @Aspect
@@ -28,7 +28,7 @@ public class CacheAop {
 	@Resource(name = "cacheKeyPrefix")
 	private String cacheKeyPrefix;
 	@Autowired
-	private Pool<Jedis> jedisPool;
+	private JedisSource jedisSource;
 
 	@Pointcut("@annotation(com.quincy.sdk.annotation.Cache)")
     public void pointCut() {}
@@ -45,7 +45,7 @@ public class CacheAop {
     		byte[] key = _key.getBytes();
     		Jedis jedis = null;
     		try {
-    			jedis = jedisPool.getResource();
+    			jedis = jedisSource.get();
     			byte[] cache = jedis.get(key);
     			if(cache==null||cache.length==0) {
     				byte[] nxKey = (_key+"_nx").getBytes();

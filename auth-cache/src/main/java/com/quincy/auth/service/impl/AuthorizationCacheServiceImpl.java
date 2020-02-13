@@ -16,16 +16,16 @@ import org.springframework.stereotype.Service;
 import com.quincy.auth.o.DSession;
 import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthCallback;
+import com.quincy.core.redis.JedisSource;
 import com.quincy.sdk.Constants;
 import com.quincy.sdk.helper.CommonHelper;
 
 import redis.clients.jedis.Jedis;
-import redis.clients.util.Pool;
 
 @Service("authorizationCacheServiceImpl")
 public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 	@Autowired
-	private Pool<Jedis> jedisPool;
+	private JedisSource jedisSource;
 	@Value("${expire.session}")
 	private int sessionExpire;
 	@Value("${domain}")
@@ -60,7 +60,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 		byte[] key = (sessionKeyPrefix+jsessionid).getBytes();
 		Jedis jedis = null;
 		try {
-			jedis = jedisPool.getResource();
+			jedis = jedisSource.get();
 			if(originalJsessionid!=null&&originalJsessionid.length()>0) {//同一user不同客户端登录互踢
 				byte[] originalKey = (sessionKeyPrefix+originalJsessionid).getBytes();
 				byte[] b = jedis.get(originalKey);
@@ -114,7 +114,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 			if(token!=null) {
 				Jedis jedis = null;
 				try {
-					jedis = jedisPool.getResource();
+					jedis = jedisSource.get();
 					return this.run(jedis, token);
 				} finally {
 					if(jedis!=null)
@@ -144,7 +144,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 		String key = appName+"."+flag+"."+token;
 		Jedis jedis = null;
 		try {
-			jedis = jedisPool.getResource();
+			jedis = jedisSource.get();
 			jedis.set(key, content);
 			int seconds = expire*60;
 			jedis.expire(key, seconds);
@@ -180,7 +180,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 	public void updateSession(User user) throws IOException {
 		Jedis jedis = null;
 		try {
-			jedis = jedisPool.getResource();
+			jedis = jedisSource.get();
 			this.updateSession(user, jedis);
 		} finally {
 			if(jedis!=null)
@@ -192,7 +192,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 	public <T extends User> void updateSession(List<T> users) throws IOException {
 		Jedis jedis = null;
 		try {
-			jedis = jedisPool.getResource();
+			jedis = jedisSource.get();
 			for(User user:users) {
 				this.updateSession(user, jedis);
 			}

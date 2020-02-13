@@ -5,8 +5,9 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.quincy.core.redis.JedisSource;
+
 import redis.clients.jedis.Jedis;
-import redis.clients.util.Pool;
 
 public abstract class JedisNeededBaseAop {
 	protected abstract void pointCut();
@@ -14,13 +15,13 @@ public abstract class JedisNeededBaseAop {
 	protected abstract void after(JoinPoint joinPoint, Jedis jedis, Object obj);
 
 	@Autowired
-	private Pool<Jedis> jedisPool;
+	private JedisSource jedisSource;
 
     @Around("pointCut()")
     public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
     		Jedis jedis = null;
     		try {
-    			jedis = jedisPool.getResource();
+    			jedis = jedisSource.get();
     			Object obj = this.before(joinPoint, jedis);
     			Object result = joinPoint.proceed();
     			this.after(joinPoint, jedis, obj);

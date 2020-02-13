@@ -9,15 +9,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import com.quincy.core.redis.JedisSource;
+
 import redis.clients.jedis.Jedis;
-import redis.clients.util.Pool;
 
 @Aspect
 @Order(3)
 @Component
 public class JedisInjectorAop {
 	@Autowired
-	private Pool<Jedis> jedisPool;
+	private JedisSource jedisSource;
 
 	@Pointcut("@annotation(com.quincy.sdk.annotation.JedisInjector)")
     public void pointCut() {}
@@ -32,7 +33,7 @@ public class JedisInjectorAop {
     			for(int i=0;i<clazzes.length;i++) {
     				Class<?> clazz = clazzes[i];
     				if(Jedis.class.getName().equals(clazz.getName())) {
-    					jedis = jedisPool.getResource();
+    					jedis = jedisSource.get();
     					args[i] = jedis;
     					break;
     				}
