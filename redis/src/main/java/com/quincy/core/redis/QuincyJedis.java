@@ -456,8 +456,53 @@ public class QuincyJedis extends Jedis {
 
 	@Override
 	public byte[] dump(final byte[] key) {
+		return jedisCluster.dump(key);
+	}
+
+	@Override
+	  public String echo(final String string) {
+		return jedisCluster.echo(string);
+	}
+
+	@Override
+	  public byte[] echo(final byte[] string) {
+		return jedisCluster.echo(string);
+	}
+
+	@Override
+	  public Object eval(final String script) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	  public Object eval(final byte[] script) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	  public Object eval(final byte[] script, final byte[] keyCount, final byte[]... params) {
+		return jedisCluster.eval(script, keyCount, params);
+	}
+
+	@Override
+	  public Object eval(final byte[] script, final int keyCount, final byte[]... params) {
+		return jedisCluster.eval(script, keyCount, params);
+	}
+
+	@Override
+	  public Object eval(final byte[] script, final List<byte[]> keys, final List<byte[]> args) {
+		return jedisCluster.eval(script, keys, args);
+	}
+
+	@Override
+	  public Object eval(final String script, final int keyCount, final String... params) {
+		return jedisCluster.eval(script, keyCount, params);
+	}
+
+	@Override
+	  public Object eval(final String script, final List<String> keys, final List<String> args) {
 //		Jedis jedis;
 //		jedis
-		return jedisCluster.dump(key);
+		return jedisCluster.eval(script, keys, args);
 	}
 }
