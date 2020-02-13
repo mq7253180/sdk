@@ -7,11 +7,11 @@ import redis.clients.jedis.BitPosParams;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
 
-public class MyJedis extends Jedis {
+public class QuincyJedis extends Jedis {
 	private final static String EXCEPTION_MSG = "The method can not be supported as cluster mode.";
 	private JedisCluster jedisCluster;
 
-	public MyJedis(JedisCluster jedisCluster) {
+	public QuincyJedis(JedisCluster jedisCluster) {
 //		Jedis jedis;
 //		jedis
 		this.jedisCluster = jedisCluster;
