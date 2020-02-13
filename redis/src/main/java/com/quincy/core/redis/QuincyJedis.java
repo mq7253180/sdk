@@ -1,20 +1,28 @@
 package com.quincy.core.redis;
 
+import java.io.IOException;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.BitOP;
 import redis.clients.jedis.BitPosParams;
+import redis.clients.jedis.ClusterReset;
+import redis.clients.jedis.DebugParams;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.JedisCluster.Reset;
 
+@Slf4j
 public class QuincyJedis extends Jedis {
 	private final static String EXCEPTION_MSG = "The method can not be supported as cluster mode.";
 	private JedisCluster jedisCluster;
 
 	public QuincyJedis(JedisCluster jedisCluster) {
-//		Jedis jedis;
-//		jedis
 		this.jedisCluster = jedisCluster;
+	}
+
+	public JedisCluster getJedisCluster() {
+		return jedisCluster;
 	}
 
 	@Override
@@ -185,5 +193,271 @@ public class QuincyJedis extends Jedis {
 	@Override
 	public byte[] brpoplpush(final byte[] source, final byte[] destination, final int timeout) {
 		return jedisCluster.brpoplpush(source, destination, timeout);
+	}
+
+	@Override
+	public String clientGetname() {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public byte[] clientGetnameBinary() {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String clientKill(final String ipPort) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String clientKill(final byte[] ipPort) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String clientKill(final String ip, final int port) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String clientList() {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public byte[] clientListBinary() {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String clientPause(final long timeout) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String clientSetname(final String name) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String clientSetname(final byte[] name) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public void close() {
+		try {
+			jedisCluster.close();
+		} catch (IOException e) {
+			log.error("JEDIS_CLUSTER_CLOSE_ERR====================", e);
+		}
+	}
+
+	@Override
+	public String clusterAddSlots(final int... slots) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public Long clusterCountKeysInSlot(final int slot) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String clusterDelSlots(final int... slots) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String clusterFailover() {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String clusterFlushSlots() {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String clusterForget(final String nodeId) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public List<String> clusterGetKeysInSlot(final int slot, final int count) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String clusterInfo() {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public Long clusterKeySlot(final String key) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String clusterMeet(final String ip, final int port) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String clusterNodes() {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String clusterReplicate(final String nodeId) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String clusterReset(final Reset resetType) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String clusterReset(final ClusterReset resetType) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String clusterSaveConfig() {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String clusterSetSlotImporting(final int slot, final String nodeId) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String clusterSetSlotMigrating(final int slot, final String nodeId) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String clusterSetSlotNode(final int slot, final String nodeId) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String clusterSetSlotStable(final int slot) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public List<String> clusterSlaves(final String nodeId) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public List<Object> clusterSlots() {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public List<String> configGet(final String pattern) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public List<byte[]> configGet(final byte[] pattern) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String configResetStat() {
+		return jedisCluster.configResetStat();
+	}
+
+	@Override
+	public String configRewrite() {
+		return jedisCluster.configRewrite();
+	}
+
+	@Override
+	public String configSet(final String parameter, final String value) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public byte[] configSet(final byte[] parameter, final byte[] value) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public void connect() {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public Long dbSize() {
+		return jedisCluster.dbSize();
+	}
+
+	@Override
+	public String debug(final DebugParams params) {
+		return jedisCluster.debug(params);
+	}
+
+	@Override
+	public Long decr(final String key) {
+		return jedisCluster.decr(key);
+	}
+
+	@Override
+	public Long decr(final byte[] key) {
+		return jedisCluster.decr(key);
+	}
+
+	@Override
+	public Long decrBy(final String key, final long decrement) {
+		return jedisCluster.decrBy(key, decrement);
+	}
+
+	@Override
+	public Long decrBy(final byte[] key, final long decrement) {
+		return jedisCluster.decrBy(key, decrement);
+	}
+
+	@Override
+	public Long del(final String... keys) {
+		return jedisCluster.del(keys);
+	}
+
+	@Override
+	public Long del(final String key) {
+		return jedisCluster.del(key);
+	}
+
+	@Override
+	public Long del(final byte[]... keys) {
+		return jedisCluster.del(keys);
+	}
+
+	@Override
+	public Long del(final byte[] key) {
+		return jedisCluster.del(key);
+	}
+
+	@Override
+	public void disconnect() {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public byte[] dump(final String key) {
+		return jedisCluster.dump(key);
+	}
+
+	@Override
+	public byte[] dump(final byte[] key) {
+//		Jedis jedis;
+//		jedis
+		return jedisCluster.dump(key);
 	}
 }

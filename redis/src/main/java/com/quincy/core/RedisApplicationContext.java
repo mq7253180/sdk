@@ -95,7 +95,9 @@ public class RedisApplicationContext {
 	private void destroy() {
 		if(pool!=null)
 			pool.close();
-		if(jedisCluster!=null)
+		if(jedisCluster!=null) {
 			jedisCluster.close();
+			jedisCluster.disconnect();
+		}
 	}
 }
