@@ -1,6 +1,9 @@
 package com.quincy.core.redis;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -867,8 +870,60 @@ public class QuincyJedis extends Jedis {
 	@Override
 	public ScanResult<Map.Entry<String, String>> hscan(final String key, final int cursor,
 			final ScanParams params) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public Long hset(final String key, final Map<String, String> hash) {
+		return jedisCluster.hset(key, hash);
+	}
+
+	@Override
+	public Long hset(final String key, final String field, final String value) {
+		return jedisCluster.hset(key, field, value);
+	}
+
+	@Override
+	public Long hset(final byte[] key, final Map<byte[], byte[]> hash) {
+		return jedisCluster.hset(key, hash);
+	}
+
+	@Override
+	public Long hset(final byte[] key, final byte[] field, final byte[] value) {
+		return jedisCluster.hset(key, field, value);
+	}
+
+	@Override
+	public Long hsetnx(final String key, final String field, final String value) {
+		return jedisCluster.hsetnx(key, field, value);
+	}
+
+	@Override
+	public Long hsetnx(final byte[] key, final byte[] field, final byte[] value) {
+		return jedisCluster.hsetnx(key, field, value);
+	}
+
+	@Override
+	public Long hstrlen(final String key, final String field) {
+		return jedisCluster.hstrlen(key, field);
+	}
+
+	@Override
+	public Long hstrlen(final byte[] key, final byte[] field) {
+		return jedisCluster.hstrlen(key, field);
+	}
+
+	@Override
+	public List<String> hvals(final String key) {
 //		Jedis jedis;
 //		jedis;
-		throw new RuntimeException(EXCEPTION_MSG);
+		return jedisCluster.hvals(key);
+	}
+
+	@Override
+	public List<byte[]> hvals(final byte[] key) {
+		Collection<byte[]> collection = jedisCluster.hvals(key);
+		byte[][] bb = new byte[collection.size()][];
+		return Arrays.asList(collection.toArray(bb));
 	}
 }
