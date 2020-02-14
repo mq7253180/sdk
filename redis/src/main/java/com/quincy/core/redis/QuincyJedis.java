@@ -1382,8 +1382,108 @@ public class QuincyJedis extends Jedis {
 
 	@Override
 	public String quit() {
+		return jedisCluster.quit();
+	}
+
+	@Override
+	public byte[] randomBinaryKey() {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String randomKey() {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String readonly() {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String rename(final String oldkey, final String newkey) {
+		return jedisCluster.rename(oldkey, newkey);
+	}
+
+	@Override
+	public String rename(final byte[] oldkey, final byte[] newkey) {
+		return jedisCluster.rename(oldkey, newkey);
+	}
+
+	@Override
+	public Long renamenx(final String oldkey, final String newkey) {
+		return jedisCluster.renamenx(oldkey, newkey);
+	}
+
+	@Override
+	public Long renamenx(final byte[] oldkey, final byte[] newkey) {
+		return jedisCluster.renamenx(oldkey, newkey);
+	}
+
+	@Override
+	public void resetState() {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String restore(final String key, final int ttl, final byte[] serializedValue) {
+		return jedisCluster.restore(key, ttl, serializedValue);
+	}
+
+	@Override
+	public String restore(final byte[] key, final int ttl, final byte[] serializedValue) {
+		return jedisCluster.restore(key, ttl, serializedValue);
+	}
+
+	@Override
+	public String restoreReplace(final String key, final int ttl, final byte[] serializedValue) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String restoreReplace(final byte[] key, final int ttl, final byte[] serializedValue) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String rpop(final String key) {
+		return jedisCluster.rpop(key);
+	}
+
+	@Override
+	public byte[] rpop(final byte[] key) {
+		return jedisCluster.rpop(key);
+	}
+
+	@Override
+	public String rpoplpush(final String srckey, final String dstkey) {
+		return jedisCluster.rpoplpush(srckey, dstkey);
+	}
+
+	@Override
+	public byte[] rpoplpush(final byte[] srckey, final byte[] dstkey) {
+		return jedisCluster.rpoplpush(srckey, dstkey);
+	}
+
+	@Override
+	public Long rpush(final String key, final String... strings) {
+		return jedisCluster.rpush(key, strings);
+	}
+
+	@Override
+	public Long rpush(final byte[] key, final byte[]... strings) {
+		return jedisCluster.rpush(key, strings);
+	}
+
+	@Override
+	public Long rpushx(final String key, final String... string) {
+		return jedisCluster.rpushx(key, string);
+	}
+
+	@Override
+	public Long rpushx(final byte[] key, final byte[]... string) {
 //		Jedis jedis;
 //		jedis;
-		return jedisCluster.quit();
+		return jedisCluster.rpushx(key, string);
 	}
 }
