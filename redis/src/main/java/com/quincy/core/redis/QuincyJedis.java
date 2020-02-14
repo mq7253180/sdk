@@ -1173,6 +1173,36 @@ public class QuincyJedis extends Jedis {
 
 	@Override
 	public List<Object> multi(final TransactionBlock jedisTransaction) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String objectEncoding(final String key) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public byte[] objectEncoding(final byte[] key) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public Long objectIdletime(final String key) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public Long objectIdletime(final byte[] key) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public Long objectRefcount(final String key) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public Long objectRefcount(final byte[] key) {
 //		Jedis jedis;
 //		jedis;
 		throw new RuntimeException(EXCEPTION_MSG);
