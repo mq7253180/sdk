@@ -1,7 +1,6 @@
 package com.quincy.core.redis;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -915,8 +914,6 @@ public class QuincyJedis extends Jedis {
 
 	@Override
 	public List<String> hvals(final String key) {
-//		Jedis jedis;
-//		jedis;
 		return jedisCluster.hvals(key);
 	}
 
@@ -925,5 +922,52 @@ public class QuincyJedis extends Jedis {
 		Collection<byte[]> collection = jedisCluster.hvals(key);
 		byte[][] bb = new byte[collection.size()][];
 		return Arrays.asList(collection.toArray(bb));
+	}
+
+	@Override
+	  public Long incr(final String key) {
+		return jedisCluster.incr(key);
+	}
+
+	@Override
+	  public Long incr(final byte[] key) {
+		return jedisCluster.incr(key);
+	}
+
+	@Override
+	  public Long incrBy(final String key, final long increment) {
+		return jedisCluster.incrBy(key, increment);
+	}
+
+	@Override
+	  public Long incrBy(final byte[] key, final long increment) {
+		return jedisCluster.incrBy(key, increment);
+	}
+
+	@Override
+	  public Double incrByFloat(final String key, final double increment) {
+		return jedisCluster.incrByFloat(key, increment);
+	}
+
+	@Override
+	  public Double incrByFloat(final byte[] key, final double increment) {
+		return jedisCluster.incrByFloat(key, increment);
+	}
+
+	@Override
+	  public String info() {
+		return jedisCluster.info();
+	}
+
+	@Override
+	  public String info(final String section) {
+		return jedisCluster.info(section);
+	}
+
+	@Override
+	public boolean isConnected() {
+//		Jedis jedis;
+//		jedis;
+		throw new RuntimeException(EXCEPTION_MSG);
 	}
 }
