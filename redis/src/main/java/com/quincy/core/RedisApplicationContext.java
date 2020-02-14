@@ -1,5 +1,6 @@
 package com.quincy.core;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Properties;
@@ -33,7 +34,7 @@ public class RedisApplicationContext {
 	private Properties properties;
 
 	private static Pool<Jedis> pool;
-	private static Jedis jedisCluster;
+	private static QuincyJedis quincyJedis;
 
 	@Bean
     public JedisSource jedisPool() {
@@ -62,12 +63,12 @@ public class RedisApplicationContext {
 					String[] ss = node.split(":");
 					clusterNodes_.add(new HostAndPort(ss[0], Integer.valueOf(ss[1])));
 				}
-				jedisCluster = new QuincyJedis(new JedisCluster(clusterNodes_, redisTimeout, cfg));
+				quincyJedis = new QuincyJedis(new JedisCluster(clusterNodes_, redisTimeout, cfg));
 				log.info("REDIS_MODE============CLUSTER");
 				return new JedisSource() {
 					@Override
 					public Jedis get() {
-						return jedisCluster;
+						return quincyJedis;
 					}
 				};
 			}
@@ -92,12 +93,13 @@ public class RedisApplicationContext {
 	}
 
 	@PreDestroy
-	private void destroy() {
+	private void destroy() throws IOException {
 		if(pool!=null)
 			pool.close();
-		if(jedisCluster!=null) {
-			jedisCluster.close();
-			jedisCluster.disconnect();
+		if(quincyJedis!=null) {
+			JedisCluster jedisCluster = quincyJedis.getJedisCluster();
+			if(jedisCluster!=null)
+				jedisCluster.close();
 		}
 	}
 }
