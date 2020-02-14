@@ -18,8 +18,11 @@ import redis.clients.jedis.GeoRadiusResponse;
 import redis.clients.jedis.GeoUnit;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
+import redis.clients.jedis.JedisMonitor;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
+import redis.clients.jedis.Transaction;
+import redis.clients.jedis.TransactionBlock;
 import redis.clients.jedis.BinaryClient.LIST_POSITION;
 import redis.clients.jedis.JedisCluster.Reset;
 import redis.clients.jedis.ListPosition;
@@ -998,25 +1001,25 @@ public class QuincyJedis extends Jedis {
 
 	@Override
 	public Long linsert(final String key, final LIST_POSITION where, final String pivot,
-	  final String value) {
+	final String value) {
 		return jedisCluster.linsert(key, where, pivot, value);
 	}
 
 	@Override
 	public Long linsert(final String key, final ListPosition where, final String pivot,
-	  final String value) {
+	final String value) {
 		return jedisCluster.linsert(key, where, pivot, value);
 	}
 
 	@Override
 	public Long linsert(final byte[] key, final LIST_POSITION where, final byte[] pivot,
-	  final byte[] value) {
+	final byte[] value) {
 		return jedisCluster.linsert(key, where, pivot, value);
 	}
 
 	@Override
 	public Long linsert(final byte[] key, final ListPosition where, final byte[] pivot,
-	  final byte[] value) {
+	final byte[] value) {
 		return jedisCluster.linsert(key, where, pivot, value);
 	}
 
@@ -1097,8 +1100,81 @@ public class QuincyJedis extends Jedis {
 
 	@Override
 	public String ltrim(final byte[] key, final long start, final long stop) {
+		return jedisCluster.ltrim(key, start, stop);
+	}
+
+	@Override
+	public String mset(final String... keysvalues) {
+		return jedisCluster.mset(keysvalues);
+	}
+
+	@Override
+	public String mset(final byte[]... keysvalues) {
+		return jedisCluster.mset(keysvalues);
+	}
+
+	@Override
+	public Long msetnx(final String... keysvalues) {
+		return jedisCluster.msetnx(keysvalues);
+	}
+
+	@Override
+	public Long msetnx(final byte[]... keysvalues) {
+		return jedisCluster.msetnx(keysvalues);
+	}
+
+	@Override
+	public List<String> mget(final String... keys) {
+		return jedisCluster.mget(keys);
+	}
+
+	@Override
+	public List<byte[]> mget(final byte[]... keys) {
+		return jedisCluster.mget(keys);
+	}
+
+	@Override
+	public String migrate(final String host, final int port, final String key,
+			final int destinationDb, final int timeout) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String migrate(final String host, final int port, final byte[] key,
+			final int destinationDb, final int timeout) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String migrate(final byte[] host, final int port, final byte[] key,
+			final int destinationDb, final int timeout) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public void monitor(final JedisMonitor jedisMonitor) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public Long move(final String key, final int dbIndex) {
+		return jedisCluster.move(key, dbIndex);
+	}
+
+	@Override
+	public Long move(final byte[] key, final int dbIndex) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public Transaction multi() {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public List<Object> multi(final TransactionBlock jedisTransaction) {
 //		Jedis jedis;
 //		jedis;
-		return jedisCluster.ltrim(key, start, stop);
+		throw new RuntimeException(EXCEPTION_MSG);
 	}
 }
