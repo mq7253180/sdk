@@ -20,7 +20,9 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
+import redis.clients.jedis.BinaryClient.LIST_POSITION;
 import redis.clients.jedis.JedisCluster.Reset;
+import redis.clients.jedis.ListPosition;
 import redis.clients.jedis.params.geo.GeoRadiusParam;
 
 @Slf4j
@@ -925,49 +927,178 @@ public class QuincyJedis extends Jedis {
 	}
 
 	@Override
-	  public Long incr(final String key) {
+	public Long incr(final String key) {
 		return jedisCluster.incr(key);
 	}
 
 	@Override
-	  public Long incr(final byte[] key) {
+	public Long incr(final byte[] key) {
 		return jedisCluster.incr(key);
 	}
 
 	@Override
-	  public Long incrBy(final String key, final long increment) {
+	public Long incrBy(final String key, final long increment) {
 		return jedisCluster.incrBy(key, increment);
 	}
 
 	@Override
-	  public Long incrBy(final byte[] key, final long increment) {
+	public Long incrBy(final byte[] key, final long increment) {
 		return jedisCluster.incrBy(key, increment);
 	}
 
 	@Override
-	  public Double incrByFloat(final String key, final double increment) {
+	public Double incrByFloat(final String key, final double increment) {
 		return jedisCluster.incrByFloat(key, increment);
 	}
 
 	@Override
-	  public Double incrByFloat(final byte[] key, final double increment) {
+	public Double incrByFloat(final byte[] key, final double increment) {
 		return jedisCluster.incrByFloat(key, increment);
 	}
 
 	@Override
-	  public String info() {
+	public String info() {
 		return jedisCluster.info();
 	}
 
 	@Override
-	  public String info(final String section) {
+	public String info(final String section) {
 		return jedisCluster.info(section);
 	}
 
 	@Override
 	public boolean isConnected() {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public Set<String> keys(final String pattern) {
+		return jedisCluster.keys(pattern);
+	}
+
+	@Override
+	public Set<byte[]> keys(final byte[] pattern) {
+		return jedisCluster.keys(pattern);
+	}
+
+	@Override
+	public Long lastsave() {
+		return jedisCluster.lastsave();
+	}
+
+	@Override
+	public String lindex(final String key, final long index) {
+		return jedisCluster.lindex(key, index);
+	}
+
+	@Override
+	public byte[] lindex(final byte[] key, final long index) {
+		return jedisCluster.lindex(key, index);
+	}
+
+	@Override
+	public Long linsert(final String key, final LIST_POSITION where, final String pivot,
+	  final String value) {
+		return jedisCluster.linsert(key, where, pivot, value);
+	}
+
+	@Override
+	public Long linsert(final String key, final ListPosition where, final String pivot,
+	  final String value) {
+		return jedisCluster.linsert(key, where, pivot, value);
+	}
+
+	@Override
+	public Long linsert(final byte[] key, final LIST_POSITION where, final byte[] pivot,
+	  final byte[] value) {
+		return jedisCluster.linsert(key, where, pivot, value);
+	}
+
+	@Override
+	public Long linsert(final byte[] key, final ListPosition where, final byte[] pivot,
+	  final byte[] value) {
+		return jedisCluster.linsert(key, where, pivot, value);
+	}
+
+	@Override
+	public Long llen(final String key) {
+		return jedisCluster.llen(key);
+	}
+
+	@Override
+	public Long llen(final byte[] key) {
+		return jedisCluster.llen(key);
+	}
+
+	@Override
+	public String lpop(final String key) {
+		return jedisCluster.lpop(key);
+	}
+
+	@Override
+	public byte[] lpop(final byte[] key) {
+		return jedisCluster.lpop(key);
+	}
+
+	@Override
+	public Long lpush(final String key, final String... strings) {
+		return jedisCluster.lpush(key, strings);
+	}
+
+	@Override
+	public Long lpush(final byte[] key, final byte[]... strings) {
+		return jedisCluster.lpush(key, strings);
+	}
+
+	@Override
+	public Long lpushx(final String key, final String... strings) {
+		return jedisCluster.lpushx(key, strings);
+	}
+
+	@Override
+	public Long lpushx(final byte[] key, final byte[]... strings) {
+		return jedisCluster.lpushx(key, strings);
+	}
+
+	@Override
+	public List<String> lrange(final String key, final long start, final long stop) {
+		return jedisCluster.lrange(key, start, stop);
+	}
+
+	@Override
+	public List<byte[]> lrange(final byte[] key, final long start, final long stop) {
+		return jedisCluster.lrange(key, start, stop);
+	}
+
+	@Override
+	public Long lrem(final String key, final long count, final String value) {
+		return jedisCluster.lrem(key, count, value);
+	}
+
+	@Override
+	public Long lrem(final byte[] key, final long count, final byte[] value) {
+		return jedisCluster.lrem(key, count, value);
+	}
+
+	@Override
+	public String lset(final String key, final long index, final String value) {
+		return jedisCluster.lset(key, index, value);
+	}
+
+	@Override
+	public String lset(final byte[] key, final long index, final byte[] value) {
+		return jedisCluster.lset(key, index, value);
+	}
+
+	@Override
+	public String ltrim(final String key, final long start, final long stop) {
+		return jedisCluster.ltrim(key, start, stop);
+	}
+
+	@Override
+	public String ltrim(final byte[] key, final long start, final long stop) {
 //		Jedis jedis;
 //		jedis;
-		throw new RuntimeException(EXCEPTION_MSG);
+		return jedisCluster.ltrim(key, start, stop);
 	}
 }
