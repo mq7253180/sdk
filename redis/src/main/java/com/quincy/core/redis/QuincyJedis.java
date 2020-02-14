@@ -19,13 +19,17 @@ import redis.clients.jedis.GeoUnit;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisMonitor;
+import redis.clients.jedis.JedisPubSub;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
 import redis.clients.jedis.Transaction;
 import redis.clients.jedis.TransactionBlock;
 import redis.clients.jedis.BinaryClient.LIST_POSITION;
+import redis.clients.jedis.BinaryJedisPubSub;
 import redis.clients.jedis.JedisCluster.Reset;
 import redis.clients.jedis.ListPosition;
+import redis.clients.jedis.Pipeline;
+import redis.clients.jedis.PipelineBlock;
 import redis.clients.jedis.params.geo.GeoRadiusParam;
 
 @Slf4j
@@ -1203,8 +1207,183 @@ public class QuincyJedis extends Jedis {
 
 	@Override
 	public Long objectRefcount(final byte[] key) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public Long persist(final String key) {
+		return jedisCluster.persist(key);
+	}
+
+	@Override
+	public Long persist(final byte[] key) {
+		return jedisCluster.persist(key);
+	}
+
+	@Override
+	public Long pexpire(final String key, final int seconds) {
+		return jedisCluster.pexpire(key, seconds);
+	}
+
+	@Override
+	public Long pexpire(final String key, final long milliseconds) {
+		return jedisCluster.pexpire(key, milliseconds);
+	}
+
+	@Override
+	public Long pexpire(final byte[] key, final int seconds) {
+		return jedisCluster.pexpire(key, seconds);
+	}
+
+	@Override
+	public Long pexpire(final byte[] key, final long milliseconds) {
+		return jedisCluster.pexpire(key, milliseconds);
+	}
+
+	@Override
+	public Long pexpireAt(final String key, final long millisecondsTimestamp) {
+		return jedisCluster.pexpireAt(key, millisecondsTimestamp);
+	}
+
+	@Override
+	public Long pexpireAt(final byte[] key, final long millisecondsTimestamp) {
+		return jedisCluster.pexpireAt(key, millisecondsTimestamp);
+	}
+
+	@Override
+	public Long pfadd(final String key, final String... elements) {
+		return jedisCluster.pfadd(key, elements);
+	}
+
+	@Override
+	public Long pfadd(final byte[] key, final byte[]... elements) {
+		return jedisCluster.pfadd(key, elements);
+	}
+
+	@Override
+	public long pfcount(final String key) {
+		return jedisCluster.pfcount(key);
+	}
+	
+	@Override
+	public long pfcount(final String... keys) {
+		return jedisCluster.pfcount(keys);
+	}
+
+	@Override
+	public long pfcount(final byte[] key) {
+		return jedisCluster.pfcount(key);
+	}
+	
+	@Override
+	public Long pfcount(final byte[]... keys) {
+		return jedisCluster.pfcount(keys);
+	}
+
+	@Override
+	public String pfmerge(final String destkey, final String... sourcekeys) {
+		return jedisCluster.pfmerge(destkey, sourcekeys);
+	}
+
+	@Override
+	public String pfmerge(final byte[] destkey, final byte[]... sourcekeys) {
+		return jedisCluster.pfmerge(destkey, sourcekeys);
+	}
+
+	@Override
+	public String ping() {
+		return jedisCluster.ping();
+	}
+
+	@Override
+	public String ping(final String message) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public byte[] ping(final byte[] message) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public Pipeline pipelined() {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public List<Object> pipelined(final PipelineBlock jedisPipeline) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String psetex(final String key, final long milliseconds, final String value) {
+		return jedisCluster.psetex(key, milliseconds, value);
+	}
+
+	@Override
+	public String psetex(final String key, final int milliseconds, final String value) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String psetex(final byte[] key, final long milliseconds, final byte[] value) {
+		return jedisCluster.psetex(key, milliseconds, value);
+	}
+
+	@Override
+	public String psetex(final byte[] key, final int milliseconds, final byte[] value) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public void psubscribe(final JedisPubSub jedisPubSub, final String... patterns) {
+		jedisCluster.psubscribe(jedisPubSub, patterns);
+	}
+
+	@Override
+	public void psubscribe(final BinaryJedisPubSub jedisPubSub, final byte[]... patterns) {
+		jedisCluster.psubscribe(jedisPubSub, patterns);
+	}
+
+	@Override
+	public Long pttl(final String key) {
+		return jedisCluster.pttl(key);
+	}
+
+	@Override
+	public Long pttl(final byte[] key) {
+		return jedisCluster.pttl(key);
+	}
+
+	@Override
+	public Long publish(final String channel, final String message) {
+		return jedisCluster.publish(channel, message);
+	}
+
+	@Override
+	public Long publish(final byte[] channel, final byte[] message) {
+		return jedisCluster.publish(channel, message);
+	}
+
+	@Override
+	public List<String> pubsubChannels(final String pattern) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public Long pubsubNumPat() {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public Map<String, String> pubsubNumSub(String... channels) {
+		throw new RuntimeException(EXCEPTION_MSG);
+	}
+
+	@Override
+	public String quit() {
 //		Jedis jedis;
 //		jedis;
-		throw new RuntimeException(EXCEPTION_MSG);
+		return jedisCluster.quit();
 	}
 }
