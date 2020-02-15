@@ -35,6 +35,7 @@ public class RedisApplicationContext {
 
 	private static Pool<Jedis> pool;
 	private static QuincyJedis quincyJedis;
+	protected static final int DEFAULT_MAX_ATTEMPTS = 5;
 
 	@Bean
     public JedisSource jedisPool() {
@@ -50,7 +51,9 @@ public class RedisApplicationContext {
 		cfg.setMaxWaitMillis(redisMaxWait);
 		int redisTimeout = Integer.parseInt(properties.getProperty("spring.redis.timeout"));
 		String redisPwd = properties.getProperty("spring.redis.password");
-		String[] _clusterNodes = CommonHelper.trim(properties.getProperty("spring.redis.nodes")).split(",");
+		String _clusterNodesStr = CommonHelper.trim(properties.getProperty("spring.redis.nodes"));
+		String[] _clusterNodes = _clusterNodesStr.split(",");
+		log.info("REDIS_NODES======================{}", _clusterNodesStr);
 		if(_clusterNodes.length>1) {
 			Set<String> clusterNodes = new HashSet<String>(Arrays.asList(_clusterNodes));
 			String sentinelMaster = CommonHelper.trim(properties.getProperty("spring.redis.sentinel.master"));
@@ -63,7 +66,7 @@ public class RedisApplicationContext {
 					String[] ss = node.split(":");
 					clusterNodes_.add(new HostAndPort(ss[0], Integer.valueOf(ss[1])));
 				}
-				quincyJedis = new QuincyJedis(new JedisCluster(clusterNodes_, redisTimeout, cfg));
+				quincyJedis = new QuincyJedis(new JedisCluster(clusterNodes_, redisTimeout, 50, DEFAULT_MAX_ATTEMPTS, redisPwd, cfg));
 				log.info("REDIS_MODE============CLUSTER");
 				return new JedisSource() {
 					@Override

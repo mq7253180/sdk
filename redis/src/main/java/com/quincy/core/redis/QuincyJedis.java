@@ -18,13 +18,13 @@ public class QuincyJedis extends Jedis {
 	}
 
 	@Override
-	public String get(final String key) {
-		return jedisCluster.get(key);
+	public String set(final String key, final String value) {
+		return jedisCluster.set(key, value);
 	}
 
 	@Override
-	public byte[] get(final byte[] key) {
-		return jedisCluster.get(key);
+	public String set(final byte[] key, final byte[] value) {
+		return jedisCluster.set(key, value);
 	}
 
 	@Override
@@ -35,6 +35,16 @@ public class QuincyJedis extends Jedis {
 	@Override
 	public Long setnx(final byte[] key, final byte[] value) {
 		return jedisCluster.setnx(key, value);
+	}
+
+	@Override
+	public String get(final String key) {
+		return jedisCluster.get(key);
+	}
+
+	@Override
+	public byte[] get(final byte[] key) {
+		return jedisCluster.get(key);
 	}
 
 	@Override
@@ -55,6 +65,16 @@ public class QuincyJedis extends Jedis {
 	@Override
 	public Long del(final byte[] key) {
 		return jedisCluster.del(key);
+	}
+
+	@Override
+	public Long sadd(final String key, final String... members) {
+		return jedisCluster.sadd(key, members);
+	}
+
+	@Override
+	public Long sadd(final byte[] key, final byte[]... members) {
+		return jedisCluster.sadd(key, members);
 	}
 
 	@Override
