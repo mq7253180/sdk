@@ -4,6 +4,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -26,26 +27,27 @@ public class JedisInjectorAop {
 
     @Around("pointCut()")
     public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
+    		MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
+    		Class<?>[] clazzes = methodSignature.getParameterTypes();
     		Object[] args = joinPoint.getArgs();
     		Jedis jedis = null;
     		JedisCluster jedisCluster = null;
     		try {
-    			for(int i=0;i<args.length;i++) {
-    				Object arg = args[i];
-    				if(arg instanceof Jedis) {
-    					if(jedis==null)
-    						jedis = jedisSource.get();
-    					if(arg instanceof JedisCluster) {
-        					if(jedisCluster==null)
-        						jedisCluster = ((QuincyJedis)jedis).getJedisCluster();
-        					args[i] = jedisCluster;
-        				} else
-        					args[i] = jedis;
+    			for(int i=0;i<clazzes.length;i++) {
+    				if(jedis==null)
+    					jedis = jedisSource.get();
+    				String className = clazzes[i].getName();
+    				if(Jedis.class.getName().equals(className)) {
+    					args[i] = jedis;
+    				} else if(JedisCluster.class.getName().equals(className)) {
+    					if(jedisCluster==null)
+    						jedisCluster = ((QuincyJedis)jedis).getJedisCluster();
+    					args[i] = jedisCluster;
     				}
     			}
     			return joinPoint.proceed(args);
     		} finally {
-    			if(jedis!=null)
+    			if(jedisCluster==null&&jedis!=null)
     				jedis.close();
     		}
     }
