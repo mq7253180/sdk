@@ -39,16 +39,30 @@ public class RedisApplicationContext {
 
 	@Bean
     public JedisSource jedisPool() {
-//		int redisMaxActive = Integer.parseInt(properties.getProperty("spring.redis.pool.max-active"));
-		long redisMaxWait = Long.parseLong(properties.getProperty("spring.redis.pool.max-wait"));
-		int redisMaxTotal = Integer.parseInt(properties.getProperty("spring.redis.pool.max-total"));
-		int redisMaxIdle = Integer.parseInt(properties.getProperty("spring.redis.pool.max-idle"));
-		int redisMinIdle = Integer.parseInt(properties.getProperty("spring.redis.pool.min-idle"));
+//		int redisMaxActive = Integer.parseInt(properties.getProperty("spring.redis.pool.maxActive"));
+		int maxTotal = Integer.parseInt(properties.getProperty("spring.redis.pool.maxTotal"));
+		int maxIdle = Integer.parseInt(properties.getProperty("spring.redis.pool.maxIdle"));
+		int minIdle = Integer.parseInt(properties.getProperty("spring.redis.pool.minIdle"));
+		long maxWaitMillis = Long.parseLong(properties.getProperty("spring.redis.pool.maxWait"));
+		long minEvictableIdleTimeMillis = Long.parseLong(properties.getProperty("spring.redis.pool.minEvictableIdleTimeMillis"));
+		long timeBetweenEvictionRunsMillis = Long.parseLong(properties.getProperty("spring.redis.pool.timeBetweenEvictionRunsMillis"));
+		int numTestsPerEvictionRun = Integer.parseInt(properties.getProperty("spring.redis.pool.numTestsPerEvictionRun"));
+		boolean blockWhenExhausted = Boolean.parseBoolean(properties.getProperty("spring.redis.pool.blockWhenExhausted"));
+		boolean testOnBorrow = Boolean.parseBoolean(properties.getProperty("spring.redis.pool.testOnBorrow"));
+		boolean testWhileIdle = Boolean.parseBoolean(properties.getProperty("spring.redis.pool.testWhileIdle"));
+		boolean testOnReturn = Boolean.parseBoolean(properties.getProperty("spring.redis.pool.testOnReturn"));
 		GenericObjectPoolConfig<JedisCommands> cfg = new GenericObjectPoolConfig<JedisCommands>();
-		cfg.setMaxTotal(redisMaxTotal);
-		cfg.setMaxIdle(redisMaxIdle);
-		cfg.setMinIdle(redisMinIdle);
-		cfg.setMaxWaitMillis(redisMaxWait);
+		cfg.setMaxTotal(maxTotal);
+		cfg.setMaxIdle(maxIdle);
+		cfg.setMinIdle(minIdle);
+		cfg.setMaxWaitMillis(maxWaitMillis);
+		cfg.setMinEvictableIdleTimeMillis(minEvictableIdleTimeMillis);
+		cfg.setTimeBetweenEvictionRunsMillis(timeBetweenEvictionRunsMillis);
+		cfg.setNumTestsPerEvictionRun(numTestsPerEvictionRun);
+		cfg.setBlockWhenExhausted(blockWhenExhausted);
+		cfg.setTestOnBorrow(testOnBorrow);
+		cfg.setTestWhileIdle(testWhileIdle);
+		cfg.setTestOnReturn(testOnReturn);
 		int redisTimeout = Integer.parseInt(properties.getProperty("spring.redis.timeout"));
 		String redisPwd = properties.getProperty("spring.redis.password");
 		String _clusterNodesStr = CommonHelper.trim(properties.getProperty("spring.redis.nodes"));
@@ -61,12 +75,13 @@ public class RedisApplicationContext {
 				pool = new JedisSentinelPool(sentinelMaster, clusterNodes, cfg, redisTimeout, redisPwd);
 				log.info("REDIS_MODE============SENTINEL");
 			} else {//集群
+				int soTimeout = Integer.parseInt(properties.getProperty("spring.redis.soTimeout"));
 				Set<HostAndPort> clusterNodes_ = new HashSet<HostAndPort>(clusterNodes.size());
 				for(String node:clusterNodes) {
 					String[] ss = node.split(":");
 					clusterNodes_.add(new HostAndPort(ss[0], Integer.valueOf(ss[1])));
 				}
-				quincyJedis = new QuincyJedis(new JedisCluster(clusterNodes_, redisTimeout, 50, DEFAULT_MAX_ATTEMPTS, redisPwd, cfg));
+				quincyJedis = new QuincyJedis(new JedisCluster(clusterNodes_, redisTimeout, soTimeout, DEFAULT_MAX_ATTEMPTS, redisPwd, cfg));
 				log.info("REDIS_MODE============CLUSTER");
 				return new JedisSource() {
 					@Override
