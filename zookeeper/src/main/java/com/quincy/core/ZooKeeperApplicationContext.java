@@ -3,6 +3,7 @@ package com.quincy.core;
 import java.util.Properties;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 
 import org.apache.commons.pool2.impl.AbandonedConfig;
@@ -29,41 +30,36 @@ import com.quincy.sdk.zookeeper.Context;
 public class ZooKeeperApplicationContext implements Context {
 	@Resource(name = Constants.BEAN_NAME_PROPERTIES)
 	private Properties properties;
-	@Value("#{'${zk.distributed-lock.keys}'.split(',')}")
+	@Value("#{'${zk.distributedLock.keys}'.split(',')}")
 	private String[] distributedLockKeys;
 
 	@Bean
 	public ZooKeeperSource zkeeperSource() throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		String url = properties.getProperty("zk.url");
 	    int timeout = Integer.parseInt(properties.getProperty("zk.timeout"));
-	    Integer maxTotal = Integer.valueOf(properties.getProperty("zk.pool.max-total"));
-	    Integer maxIdle = Integer.valueOf(properties.getProperty("zk.pool.max-idle"));
-	    Integer minIdle = Integer.valueOf(properties.getProperty("zk.pool.min-idle"));
-	    Long maxWaitMillis = Long.valueOf(properties.getProperty("zk.pool.max-wait-millis"));
-	    Long softMinEvictableIdleTimeMillis = Long.valueOf(properties.getProperty("zk.pool.soft-min-evictable-idle-time-millis"));
-	    Long timeBetweenEvictionRunsMillis = Long.valueOf(properties.getProperty("zk.pool.time-between-eviction-runs-millis"));
-	    Class<?> clazz = Class.forName(properties.getProperty("zk.pool.on-creation-watcher-impl"));
+	    Class<?> clazz = Class.forName(properties.getProperty("zk.watcher"));
 		GenericObjectPoolConfig<PoolableZooKeeper> pc = new GenericObjectPoolConfig<PoolableZooKeeper>();
-		pc.setMaxIdle(maxIdle);
-		pc.setMinIdle(minIdle);
-		pc.setMaxTotal(maxTotal);
-//		pc.setNumTestsPerEvictionRun(numTestsPerEvictionRun);
-//		pc.setTestOnCreate(true);
-		pc.setTestOnBorrow(true);
-//		pc.setTestOnReturn(true);
-//		pc.setTestWhileIdle(true);
-//		pc.setBlockWhenExhausted(true);
-		pc.setMaxWaitMillis(maxWaitMillis);//最大等待时间
-		pc.setMinEvictableIdleTimeMillis(-1);//最小空闲时间
-		pc.setSoftMinEvictableIdleTimeMillis(softMinEvictableIdleTimeMillis);//最小空闲时间
-		pc.setTimeBetweenEvictionRunsMillis(timeBetweenEvictionRunsMillis);//驱逐器触发间隔
-//		pc.setEvictorShutdownTimeoutMillis(evictorShutdownTimeoutMillis);
+		pc.setMaxTotal(Integer.parseInt(properties.getProperty("zk.pool.maxTotal")));
+		pc.setMaxIdle(Integer.parseInt(properties.getProperty("zk.pool.maxIdle")));
+		pc.setMinIdle(Integer.parseInt(properties.getProperty("zk.pool.minIdle")));
+		pc.setMaxWaitMillis(Long.parseLong(properties.getProperty("zk.pool.maxWaitMillis")));
+		pc.setMinEvictableIdleTimeMillis(Long.parseLong(properties.getProperty("zk.pool.minEvictableIdleTimeMillis")));
+		pc.setTimeBetweenEvictionRunsMillis(Long.parseLong(properties.getProperty("zk.pool.timeBetweenEvictionRunsMillis")));
+		pc.setNumTestsPerEvictionRun(Integer.parseInt(properties.getProperty("zk.pool.numTestsPerEvictionRun")));
+		pc.setBlockWhenExhausted(Boolean.parseBoolean(properties.getProperty("zk.pool.blockWhenExhausted")));
+		pc.setTestOnBorrow(Boolean.parseBoolean(properties.getProperty("zk.pool.testOnBorrow")));
+		pc.setTestWhileIdle(Boolean.parseBoolean(properties.getProperty("zk.pool.testWhileIdle")));
+		pc.setTestOnReturn(Boolean.parseBoolean(properties.getProperty("zk.pool.testOnReturn")));
 		pc.setEvictionPolicyClassName(MyEvictionPolicy.class.getName());
 		PoolableZooKeeperFactory f = new PoolableZooKeeperFactory(url, timeout, (Watcher)clazz.newInstance());
 		AbandonedConfig ac = new AbandonedConfig();
-//		ac.setRemoveAbandonedOnMaintenance(true); //在Maintenance的时候检查是否有泄漏
-//		ac.setRemoveAbandonedOnBorrow(true); //borrow 的时候检查泄漏
-//		ac.setRemoveAbandonedTimeout(10);
+		ac.setRemoveAbandonedOnMaintenance(Boolean.parseBoolean(properties.getProperty("zk.pool.removeAbandonedOnMaintenance")));//在Maintenance的时候检查是否有泄漏
+		ac.setRemoveAbandonedOnBorrow(Boolean.parseBoolean(properties.getProperty("zk.pool.removeAbandonedOnBorrow")));//borrow的时候检查泄漏
+		ac.setRemoveAbandonedTimeout(Integer.parseInt(properties.getProperty("zk.pool.removeAbandonedTimeout")));//如果一个对象borrow之后n秒还没有返还给pool，认为是泄漏的对象
+		ac.setLogAbandoned(Boolean.parseBoolean(properties.getProperty("zk.pool.logAbandoned")));
+		ac.setUseUsageTracking(Boolean.parseBoolean(properties.getProperty("zk.pool.useUsageTracking")));
+		ac.setRequireFullStackTrace(Boolean.parseBoolean(properties.getProperty("zk.pool.requireFullStackTrace")));
+//		ac.setLogWriter(logWriter);
 		ZooKeeperSource s = new ZooKeeperSourceImpl(f, pc, ac);
 		return s;
 	}
@@ -118,5 +114,14 @@ public class ZooKeeperApplicationContext implements Context {
 	@Override
 	public String getSynPath() {
 		return zookeeperSynchronizationNode;
+	}
+
+	@Autowired
+	private ZooKeeperSource zkSource;
+
+	@PreDestroy
+	public void destroy() {
+		if(zkSource!=null)
+			zkSource.close();
 	}
 }
