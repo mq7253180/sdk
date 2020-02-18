@@ -26,6 +26,7 @@ import com.quincy.core.entity.TransactionArg;
 import com.quincy.core.entity.TransactionAtomic;
 import com.quincy.core.mapper.CoreMapper;
 import com.quincy.core.service.TransactionService;
+import com.quincy.sdk.helper.CommonHelper;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
@@ -105,7 +106,7 @@ public class TransactionServiceImpl implements TransactionService {
 				if(_atomic.getStatus()!=null)
 					atomic.setStatus(_atomic.getStatus());
 				if(_atomic.getMsg()!=null)
-					atomic.setMsg(_atomic.getMsg());
+					atomic.setMsg(CommonHelper.trim(_atomic.getMsg()));
 				atomic = transactionAtomicRepository.save(atomic);
 			}
 		}
@@ -171,9 +172,15 @@ public class TransactionServiceImpl implements TransactionService {
 					}
 					atomic.setParameterTypes(parameterTypes);
 					atomic.setArgs(args);
+					atomic.setOriginArgs(_args);
 				}
 			}
 		}
 		return atomics;
+	}
+
+	@Override
+	public List<TransactionArg> findArgs(Long parentId, Integer type) {
+		return transactionArgRepository.findByParentIdAndTypeOrderBySort(parentId, type);
 	}
 }

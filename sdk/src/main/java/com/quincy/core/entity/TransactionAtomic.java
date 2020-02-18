@@ -1,5 +1,7 @@
 package com.quincy.core.entity;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
@@ -42,4 +44,6 @@ public class TransactionAtomic {
 	private Object[] args;
 	@Transient
 	private Class<?>[] parameterTypes;
+	@Transient
+	private List<TransactionArg> originArgs;
 }

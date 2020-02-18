@@ -5,6 +5,7 @@ import java.util.List;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.quincy.core.entity.Transaction;
+import com.quincy.core.entity.TransactionArg;
 import com.quincy.core.entity.TransactionAtomic;
 
 public interface TransactionService {
@@ -15,4 +16,5 @@ public interface TransactionService {
 	public List<Transaction> findFailedTransactions(String applicationName);
 	public int updateTransactionVersion(Long id, Integer version);
 	public List<TransactionAtomic> findTransactionAtomics(Long txId, Integer status) throws ClassNotFoundException, JsonMappingException, JsonProcessingException;
+	public List<TransactionArg> findArgs(Long parentId, Integer type);
 }

@@ -1,6 +1,8 @@
 package com.quincy.core.aspect;
 
 import java.lang.reflect.Method;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -22,8 +24,12 @@ import org.springframework.stereotype.Service;
 
 import com.quincy.core.TransactionConstants;
 import com.quincy.core.entity.Transaction;
+import com.quincy.core.entity.TransactionArg;
 import com.quincy.core.entity.TransactionAtomic;
 import com.quincy.core.service.TransactionService;
+import com.quincy.sdk.GlobalSync;
+import com.quincy.sdk.TransactionContext;
+import com.quincy.sdk.TransactionFailure;
 import com.quincy.sdk.annotation.transaction.AtomicOperational;
 import com.quincy.sdk.helper.CommonHelper;
 
@@ -33,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 @Aspect
 @Order(7)
 @Component
-public class DistributedTransactionAop {
+public class DistributedTransactionAop implements TransactionContext {
 	private final static ThreadLocal<List<TransactionAtomic>> atomicsHolder = new ThreadLocal<List<TransactionAtomic>>();
 	private final static ThreadLocal<Boolean> inTransactionHolder = new ThreadLocal<Boolean>();
 	private final static int MSG_MAX_LENGTH = 200;
@@ -145,6 +151,8 @@ public class DistributedTransactionAop {
 		return beanName;
 	}
 
+	private TransactionFailure transactionFailure;
+
 	/**
 	 * 调重试或撤消方法
 	 * @param tx: 事务信息
@@ -153,6 +161,7 @@ public class DistributedTransactionAop {
 	 */
 	private void invokeAtomics(Transaction tx, Integer statusTo, boolean breakOnFailure) throws NoSuchMethodException, SecurityException {
 		List<TransactionAtomic> atomics = tx.getAtomics();
+		List<TransactionAtomic> failureAtomics = new ArrayList<>(atomics.size());
 		boolean success = true;
 		if(atomics!=null&&atomics.size()>0) {
 			for(TransactionAtomic atomic:atomics) {//逐个执行事务方法
@@ -172,8 +181,10 @@ public class DistributedTransactionAop {
 				try {
 					method.invoke(bean, atomic.getArgs());
 					toUpdate.setStatus(statusTo);
+					toUpdate.setMsg("");
 				} catch(Exception e) {
 					success = false;
+					failureAtomics.add(atomic);
 					Throwable cause = e.getCause();
 					String msg = CommonHelper.trim(cause.toString());
 					if(msg!=null) {
@@ -193,16 +204,71 @@ public class DistributedTransactionAop {
 		}
 		if(success) {
 			transactionService.deleteTransaction(tx.getId());
-		} else
-			this.updateTransactionToComleted(tx.getId());
+		} else {
+			Transaction txPo = this.updateTransactionToComleted(tx.getId());
+			if(tx.getVersion()!=null&&transactionFailure!=null) {
+				DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				int retriesBeforeInform = transactionFailure.retriesBeforeInform();
+				int retries = tx.getVersion()+1;
+				if(retries>=retriesBeforeInform) {
+					StringBuilder message = new StringBuilder();
+					message.append("创建时间: ");
+					message.append(df.format(tx.getCreationTime()));
+					message.append(", 最后执行时间: ");
+					message.append(df.format(txPo.getLastExecuted()));
+					message.append(", 已执行了: ");
+					message.append(tx.getVersion()+1);
+					message.append("次, 方法: ");
+					message.append(tx.getApplicationName());
+					message.append(".");
+					message.append(tx.getBeanName());
+					message.append(".");
+					message.append(tx.getMethodName());
+					message.append("(");
+					List<TransactionArg> args = transactionService.findArgs(tx.getId(), TransactionConstants.ARG_TYPE_TX);
+					int appendComma = args.size()-1;
+					for(int i=0;i<args.size();i++) {
+						TransactionArg arg = args.get(i);
+						message.append(arg.getValue());
+						if(i<appendComma)
+							message.append(",");
+					}
+					message.append(")");
+					for(TransactionAtomic atomic:failureAtomics) {
+						args = atomic.getOriginArgs();
+						appendComma = args.size()-1;
+						message.append("\r\n\t");
+						message.append(atomic.getBeanName());
+						message.append(".");
+						message.append(atomic.getMethodName());
+						message.append("(");
+						for(int i=0;i<args.size();i++) {
+							TransactionArg arg = args.get(i);
+							message.append(arg.getValue());
+							if(i<appendComma)
+								message.append(",");
+						}
+						message.append("): ");
+						message.append(atomic.getMsg());
+					}
+					GlobalSync.getThreadPoolExecutor().execute(new Runnable() {
+						@Override
+						public void run() {
+							transactionFailure.inform(message.toString());
+						}
+					});
+				}
+			}
+		}
 	}
 
-	private void updateTransactionToComleted(Long id) {
+	private Transaction updateTransactionToComleted(Long id) {
 		Transaction toUpdate = new Transaction();
 		toUpdate.setId(id);
 		toUpdate.setStatus(TransactionConstants.TX_STATUS_ED);
 		toUpdate.setLastExecuted(new Date());
-		transactionService.updateTransaction(toUpdate);
+		Transaction tx = transactionService.updateTransaction(toUpdate);
+		return tx;
 	}
 
 	private static Support chainHead;
@@ -254,5 +320,10 @@ public class DistributedTransactionAop {
 			String beanName = this.resolve(clazz);
 			return beanName==null?(this.next==null?null:this.next.support(clazz)):beanName;
 		}
+	}
+
+	@Override
+	public void setTransactionFailure(TransactionFailure transactionFailure) {
+		this.transactionFailure = transactionFailure;
 	}
 }
