@@ -1,5 +1,8 @@
 package com.quincy.core;
 
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -8,6 +11,8 @@ import javax.annotation.Resource;
 import javax.sql.DataSource;
 
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.apache.commons.pool2.impl.AbandonedConfig;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +21,9 @@ import org.springframework.context.annotation.PropertySource;
 import com.quincy.core.db.DataSourceHolder;
 import com.quincy.core.db.RoutingDataSource;
 import com.quincy.sdk.Constants;
-import com.quincy.sdk.PoolParams;
+import com.quincy.sdk.helper.CommonHelper;
+
+import lombok.Data;
 
 @PropertySource("classpath:application-sdk.properties")
 @Configuration
@@ -25,17 +32,9 @@ import com.quincy.sdk.PoolParams;
 public class CoreApplicationContext {//implements TransactionManagementConfigurer {
 	@Resource(name = Constants.BEAN_NAME_PROPERTIES)
 	private Properties properties;
-	@Autowired
-	private PoolParams poolParams;
 
 	@Bean(name = "dataSource")
-    public DataSource routingDataSource() {
-		boolean removeAbandonedOnMaintenance = Boolean.parseBoolean(properties.getProperty("spring.datasource.pool.removeAbandonedOnMaintenance"));
-		boolean removeAbandonedOnBorrow = Boolean.parseBoolean(properties.getProperty("spring.datasource.pool.removeAbandonedOnBorrow"));
-		int removeAbandonedTimeout = Integer.parseInt(properties.getProperty("spring.datasource.pool.removeAbandonedTimeout"));
-		boolean defaultAutoCommit = Boolean.parseBoolean(properties.getProperty("spring.datasource.dbcp2.defaultAutoCommit"));
-		boolean poolPreparedStatements = Boolean.parseBoolean(properties.getProperty("spring.datasource.dbcp2.poolPreparedStatements"));
-		int maxOpenPreparedStatements = Integer.parseInt(properties.getProperty("spring.datasource.dbcp2.maxOpenPreparedStatements"));
+    public DataSource routingDataSource() throws SQLException {
 		String driverClassName = properties.getProperty("spring.datasource.driver-class-name");
 		String masterUrl = properties.getProperty("spring.datasource.url");
 		String masterUserName = properties.getProperty("spring.datasource.username");
@@ -43,54 +42,28 @@ public class CoreApplicationContext {//implements TransactionManagementConfigure
 		String slaveUrl = properties.getProperty("spring.datasource.url.slave");
 		String slaveUserName = properties.getProperty("spring.datasource.username.slave");
 		String slavePassword = properties.getProperty("spring.datasource.password.slave");
+		int masterRatio = Integer.parseInt(properties.getProperty("spring.datasource.pool.masterRatio"));
+		int slaveRatio = Integer.parseInt(properties.getProperty("spring.datasource.pool.slaveRatio"));
 
-		BasicDataSource masterDB = new BasicDataSource();
-		masterDB.setMaxTotal(poolParams.getMaxTotal());
-		masterDB.setMaxIdle(poolParams.getMaxIdle());
-		masterDB.setMinIdle(poolParams.getMinIdle());
-		masterDB.setMaxWaitMillis(poolParams.getMaxWaitMillis());
-		masterDB.setMinEvictableIdleTimeMillis(poolParams.getMinEvictableIdleTimeMillis());
-		masterDB.setTimeBetweenEvictionRunsMillis(poolParams.getTimeBetweenEvictionRunsMillis());
-		masterDB.setNumTestsPerEvictionRun(poolParams.getNumTestsPerEvictionRun());
-		masterDB.setTestOnBorrow(poolParams.getTestOnBorrow());
-		masterDB.setTestWhileIdle(poolParams.getTestWhileIdle());
-		masterDB.setTestOnReturn(poolParams.getTestOnReturn());
-		masterDB.setRemoveAbandonedOnMaintenance(removeAbandonedOnMaintenance);
-		masterDB.setRemoveAbandonedOnBorrow(removeAbandonedOnBorrow);
-		masterDB.setRemoveAbandonedTimeout(removeAbandonedTimeout);
-
+		BasicDataSource masterDB = this.createBasicDataSource(masterRatio);
 		masterDB.setDriverClassName(driverClassName);
 		masterDB.setUrl(masterUrl);
 		masterDB.setUsername(masterUserName);
 		masterDB.setPassword(masterPassword);
+		masterDB.setDefaultAutoCommit(true);
+//		masterDB.setAutoCommitOnReturn(true);
+		masterDB.setRollbackOnReturn(false);
+		masterDB.setDefaultReadOnly(false);
 
-		masterDB.setDefaultAutoCommit(defaultAutoCommit);
-		masterDB.setPoolPreparedStatements(poolPreparedStatements);
-		masterDB.setMaxOpenPreparedStatements(maxOpenPreparedStatements);
-
-		BasicDataSource slaveDB = new BasicDataSource();
-		slaveDB.setMaxTotal(poolParams.getMaxTotal());
-		slaveDB.setMaxIdle(poolParams.getMaxIdle());
-		slaveDB.setMinIdle(poolParams.getMinIdle());
-		slaveDB.setMaxWaitMillis(poolParams.getMaxWaitMillis());
-		slaveDB.setMinEvictableIdleTimeMillis(poolParams.getMinEvictableIdleTimeMillis());
-		slaveDB.setTimeBetweenEvictionRunsMillis(poolParams.getTimeBetweenEvictionRunsMillis());
-		slaveDB.setNumTestsPerEvictionRun(poolParams.getNumTestsPerEvictionRun());
-		slaveDB.setTestOnBorrow(poolParams.getTestOnBorrow());
-		slaveDB.setTestWhileIdle(poolParams.getTestWhileIdle());
-		slaveDB.setTestOnReturn(poolParams.getTestOnReturn());
-		slaveDB.setRemoveAbandonedOnMaintenance(removeAbandonedOnMaintenance);
-		slaveDB.setRemoveAbandonedOnBorrow(removeAbandonedOnBorrow);
-		slaveDB.setRemoveAbandonedTimeout(removeAbandonedTimeout);
-
+		BasicDataSource slaveDB = this.createBasicDataSource(slaveRatio);
 		slaveDB.setDriverClassName(driverClassName);
 		slaveDB.setUrl(slaveUrl);
 		slaveDB.setUsername(slaveUserName);
 		slaveDB.setPassword(slavePassword);
-
-		slaveDB.setDefaultAutoCommit(defaultAutoCommit);
-		slaveDB.setPoolPreparedStatements(poolPreparedStatements);
-		slaveDB.setMaxOpenPreparedStatements(maxOpenPreparedStatements);
+		slaveDB.setDefaultAutoCommit(false);
+//		slaveDB.setAutoCommitOnReturn(false);
+		slaveDB.setRollbackOnReturn(true);
+		slaveDB.setDefaultReadOnly(true);
 
 		Map<Object, Object> targetDataSources = new HashMap<Object, Object>(2);
 		targetDataSources.put(DataSourceHolder.MASTER, masterDB);
@@ -100,6 +73,131 @@ public class CoreApplicationContext {//implements TransactionManagementConfigure
 		db.setDefaultTargetDataSource(masterDB);
 		return db;
 	}
+
+	@Data
+	private class DBConnPoolParams {
+		private boolean poolingStatements;
+		private int maxOpenPreparedStatements;
+		private int initialSize;
+		private Integer defaultQueryTimeoutSeconds;
+		private String validationQuery;
+		private int validationQueryTimeoutSeconds;
+		private long maxConnLifetimeMillis;
+		private Collection<String> connectionInitSqls;
+		private boolean logExpiredConnections;
+		private boolean cacheState;
+		private int defaultTransactionIsolation;
+		private String connectionProperties;
+		private boolean fastFailValidation;
+		private Collection<String> disconnectionSqlCodes;
+		private String defaultCatalog;
+		private String defaultSchema;
+		private boolean accessToUnderlyingConnectionAllowed;
+	}
+
+	@Bean
+	public DBConnPoolParams dbConnPoolParams() throws SQLException {
+		String poolPreparedStatements = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.poolPreparedStatements"));
+		String maxOpenPreparedStatements = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.maxOpenPreparedStatements"));
+		String initialSize = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.initialSize"));
+		String defaultQueryTimeoutSeconds = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.defaultQueryTimeoutSeconds"));
+		String validationQuery = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.validationQuery"));
+		String validationQueryTimeoutSeconds = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.validationQueryTimeoutSeconds"));
+		String maxConnLifetimeMillis = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.maxConnLifetimeMillis"));
+		String logExpiredConnections = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.logExpiredConnections"));
+		String cacheState = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.cacheState"));
+		String _connectionInitSqls = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.connectionInitSqls"));
+		String defaultTransactionIsolation = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.defaultTransactionIsolation"));
+		String connectionProperties = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.connectionProperties"));
+		String fastFailValidation = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.fastFailValidation"));
+		String _disconnectionSqlCodes = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.disconnectionSqlCodes"));
+		String defaultCatalog = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.defaultCatalog"));
+		String defaultSchema = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.defaultSchema"));
+		String accessToUnderlyingConnectionAllowed = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.accessToUnderlyingConnectionAllowed"));
+		BasicDataSource ds = new BasicDataSource();
+		DBConnPoolParams p = new DBConnPoolParams();
+		p.setPoolingStatements(poolPreparedStatements==null?ds.isPoolPreparedStatements():Boolean.parseBoolean(poolPreparedStatements));
+		p.setMaxOpenPreparedStatements(maxOpenPreparedStatements==null?ds.getMaxOpenPreparedStatements():Integer.parseInt(maxOpenPreparedStatements));
+		p.setInitialSize(initialSize==null?ds.getInitialSize():Integer.parseInt(initialSize));
+		p.setDefaultQueryTimeoutSeconds(defaultQueryTimeoutSeconds==null?ds.getDefaultQueryTimeout():Integer.valueOf(defaultQueryTimeoutSeconds));
+		p.setValidationQuery(validationQuery==null?ds.getValidationQuery():CommonHelper.trim(validationQuery));
+		p.setValidationQueryTimeoutSeconds(validationQueryTimeoutSeconds==null?ds.getValidationQueryTimeout():Integer.parseInt(validationQueryTimeoutSeconds));
+		p.setMaxConnLifetimeMillis(maxConnLifetimeMillis==null?ds.getMaxConnLifetimeMillis():Long.parseLong(maxConnLifetimeMillis));
+		p.setLogExpiredConnections(logExpiredConnections==null?ds.getLogExpiredConnections():Boolean.parseBoolean(logExpiredConnections));
+		p.setCacheState(cacheState==null?ds.getCacheState():Boolean.parseBoolean(cacheState));
+		p.setDefaultTransactionIsolation(defaultTransactionIsolation==null?ds.getDefaultTransactionIsolation():Integer.parseInt(defaultTransactionIsolation));
+		p.setConnectionProperties(connectionProperties);
+		p.setFastFailValidation(fastFailValidation==null?ds.getFastFailValidation():Boolean.parseBoolean(fastFailValidation));
+		p.setDefaultCatalog(defaultCatalog);
+		p.setDefaultSchema(defaultSchema);
+		p.setAccessToUnderlyingConnectionAllowed(accessToUnderlyingConnectionAllowed==null?ds.isAccessToUnderlyingConnectionAllowed():Boolean.parseBoolean(accessToUnderlyingConnectionAllowed));
+		if(_connectionInitSqls!=null) {
+			String[] connectionInitSqls = _connectionInitSqls.split(";");
+			if(connectionInitSqls!=null&&connectionInitSqls.length>0)
+				p.setConnectionInitSqls(Arrays.asList(connectionInitSqls));
+		}
+		if(_disconnectionSqlCodes!=null) {
+			String[] disconnectionSqlCodes = _disconnectionSqlCodes.split(",");
+			if(disconnectionSqlCodes!=null&&disconnectionSqlCodes.length>0)
+				p.setDisconnectionSqlCodes(Arrays.asList(disconnectionSqlCodes));
+		}
+		ds.close();
+		return p;
+	}
+
+	@Autowired
+	private GenericObjectPoolConfig<?> poolCfg;
+	@Autowired
+	private AbandonedConfig abandonedCfg;
+	@Autowired
+	private DBConnPoolParams dbConnPoolParams;
+
+	private BasicDataSource createBasicDataSource(int ratio) throws SQLException {
+		BasicDataSource ds = new BasicDataSource();
+		ds.setMaxTotal(poolCfg.getMaxTotal()>0?poolCfg.getMaxTotal()*ratio:poolCfg.getMaxTotal());
+		ds.setMaxIdle(poolCfg.getMaxIdle()>0?poolCfg.getMaxIdle()*ratio:poolCfg.getMaxIdle());
+		ds.setMinIdle(poolCfg.getMinIdle()>0?poolCfg.getMinIdle()*ratio:poolCfg.getMinIdle());
+		ds.setMaxWaitMillis(poolCfg.getMaxWaitMillis());
+		ds.setMinEvictableIdleTimeMillis(poolCfg.getMinEvictableIdleTimeMillis());
+		ds.setTimeBetweenEvictionRunsMillis(poolCfg.getTimeBetweenEvictionRunsMillis());
+		ds.setNumTestsPerEvictionRun(poolCfg.getNumTestsPerEvictionRun()>0?poolCfg.getNumTestsPerEvictionRun()*ratio:poolCfg.getNumTestsPerEvictionRun());
+		ds.setTestOnBorrow(poolCfg.getTestOnBorrow());
+		ds.setTestOnCreate(poolCfg.getTestOnCreate());
+		ds.setTestOnReturn(poolCfg.getTestOnReturn());
+		ds.setTestWhileIdle(poolCfg.getTestWhileIdle());
+		ds.setLifo(poolCfg.getLifo());
+		ds.setEvictionPolicyClassName(poolCfg.getEvictionPolicyClassName());
+		ds.setSoftMinEvictableIdleTimeMillis(poolCfg.getSoftMinEvictableIdleTimeMillis());
+		ds.setJmxName(poolCfg.getJmxNameBase());
+		ds.setRemoveAbandonedOnMaintenance(abandonedCfg.getRemoveAbandonedOnMaintenance());
+		ds.setRemoveAbandonedOnBorrow(abandonedCfg.getRemoveAbandonedOnBorrow());
+		ds.setRemoveAbandonedTimeout(abandonedCfg.getRemoveAbandonedTimeout());
+		ds.setLogAbandoned(abandonedCfg.getLogAbandoned());
+		ds.setAbandonedUsageTracking(abandonedCfg.getUseUsageTracking());
+
+		ds.setInitialSize(dbConnPoolParams.getInitialSize()>0?dbConnPoolParams.getInitialSize()*ratio:dbConnPoolParams.getInitialSize());
+		ds.setMaxOpenPreparedStatements(dbConnPoolParams.getMaxOpenPreparedStatements()>0?dbConnPoolParams.getMaxOpenPreparedStatements()*ratio:dbConnPoolParams.getMaxOpenPreparedStatements());
+		ds.setPoolPreparedStatements(dbConnPoolParams.isPoolingStatements());
+		ds.setDefaultQueryTimeout(dbConnPoolParams.getDefaultQueryTimeoutSeconds());
+		ds.setValidationQuery(dbConnPoolParams.getValidationQuery());
+		ds.setValidationQueryTimeout(dbConnPoolParams.getValidationQueryTimeoutSeconds());
+		ds.setMaxConnLifetimeMillis(dbConnPoolParams.getMaxConnLifetimeMillis());
+		ds.setConnectionInitSqls(dbConnPoolParams.getConnectionInitSqls());
+		ds.setLogExpiredConnections(dbConnPoolParams.isLogExpiredConnections());
+		ds.setCacheState(dbConnPoolParams.isCacheState());
+		ds.setDefaultTransactionIsolation(dbConnPoolParams.getDefaultTransactionIsolation());
+		ds.setFastFailValidation(dbConnPoolParams.isFastFailValidation());
+		ds.setDisconnectionSqlCodes(dbConnPoolParams.getDisconnectionSqlCodes());
+		ds.setDefaultCatalog(dbConnPoolParams.getDefaultCatalog());
+		ds.setDefaultSchema(dbConnPoolParams.getDefaultSchema());
+		if(dbConnPoolParams.getConnectionProperties()!=null)
+			ds.setConnectionProperties(dbConnPoolParams.getConnectionProperties());
+		ds.setAccessToUnderlyingConnectionAllowed(dbConnPoolParams.isAccessToUnderlyingConnectionAllowed());//PoolGuard是否可以获取底层连接
+		//Deprecated
+//		ds.setEnableAutoCommitOnReturn(autoCommitOnReturn);
+		return ds;
+	}
+
 /*
 	@Bean(name = "dataSourceMaster")
     public DataSource masterDataSource() {

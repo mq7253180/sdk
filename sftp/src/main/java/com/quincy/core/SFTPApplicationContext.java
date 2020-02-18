@@ -38,9 +38,10 @@ public class SFTPApplicationContext {
 		pc.setNumTestsPerEvictionRun(Integer.parseInt(properties.getProperty("sftp.pool.numTestsPerEvictionRun")));
 		pc.setBlockWhenExhausted(Boolean.parseBoolean(properties.getProperty("sftp.pool.blockWhenExhausted")));
 		pc.setTestOnBorrow(Boolean.parseBoolean(properties.getProperty("sftp.pool.testOnBorrow")));
-		pc.setTestWhileIdle(Boolean.parseBoolean(properties.getProperty("sftp.pool.testWhileIdle")));
+		pc.setTestOnCreate(Boolean.parseBoolean(properties.getProperty("sftp.pool.testOnCreate")));
 		pc.setTestOnReturn(Boolean.parseBoolean(properties.getProperty("sftp.pool.testOnReturn")));
-		pc.setEvictionPolicyClassName(MyEvictionPolicy.class.getName());
+		pc.setTestWhileIdle(Boolean.parseBoolean(properties.getProperty("sftp.pool.testWhileIdle")));
+//		pc.setEvictionPolicyClassName(MyEvictionPolicy.class.getName());
 		PoolableChannelSftpFactory f = new PoolableChannelSftpFactory(hostPrimary, hostSecondary, port, username);
 		AbandonedConfig ac = new AbandonedConfig();
 		ac.setRemoveAbandonedOnMaintenance(Boolean.parseBoolean(properties.getProperty("sftp.pool.removeAbandonedOnMaintenance")));//在Maintenance的时候检查是否有泄漏

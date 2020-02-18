@@ -32,35 +32,39 @@ public class ZooKeeperApplicationContext implements Context {
 	private Properties properties;
 	@Value("#{'${zk.distributedLock.keys}'.split(',')}")
 	private String[] distributedLockKeys;
+	@Autowired
+	private GenericObjectPoolConfig<?> poolCfg;
+	@Autowired
+	private AbandonedConfig abandonedCfg;
 
 	@Bean
 	public ZooKeeperSource zkeeperSource() throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 		String url = properties.getProperty("zk.url");
 	    int timeout = Integer.parseInt(properties.getProperty("zk.timeout"));
 	    Class<?> clazz = Class.forName(properties.getProperty("zk.watcher"));
-		GenericObjectPoolConfig<PoolableZooKeeper> pc = new GenericObjectPoolConfig<PoolableZooKeeper>();
-		pc.setMaxTotal(Integer.parseInt(properties.getProperty("zk.pool.maxTotal")));
-		pc.setMaxIdle(Integer.parseInt(properties.getProperty("zk.pool.maxIdle")));
-		pc.setMinIdle(Integer.parseInt(properties.getProperty("zk.pool.minIdle")));
-		pc.setMaxWaitMillis(Long.parseLong(properties.getProperty("zk.pool.maxWaitMillis")));
-		pc.setMinEvictableIdleTimeMillis(Long.parseLong(properties.getProperty("zk.pool.minEvictableIdleTimeMillis")));
-		pc.setTimeBetweenEvictionRunsMillis(Long.parseLong(properties.getProperty("zk.pool.timeBetweenEvictionRunsMillis")));
-		pc.setNumTestsPerEvictionRun(Integer.parseInt(properties.getProperty("zk.pool.numTestsPerEvictionRun")));
-		pc.setBlockWhenExhausted(Boolean.parseBoolean(properties.getProperty("zk.pool.blockWhenExhausted")));
-		pc.setTestOnBorrow(Boolean.parseBoolean(properties.getProperty("zk.pool.testOnBorrow")));
-		pc.setTestWhileIdle(Boolean.parseBoolean(properties.getProperty("zk.pool.testWhileIdle")));
-		pc.setTestOnReturn(Boolean.parseBoolean(properties.getProperty("zk.pool.testOnReturn")));
-		pc.setEvictionPolicyClassName(MyEvictionPolicy.class.getName());
+		GenericObjectPoolConfig<PoolableZooKeeper> cfg = new GenericObjectPoolConfig<PoolableZooKeeper>();
+		cfg.setMaxTotal(poolCfg.getMaxTotal());
+		cfg.setMaxIdle(poolCfg.getMaxIdle());
+		cfg.setMinIdle(poolCfg.getMinIdle());
+		cfg.setMaxWaitMillis(poolCfg.getMaxWaitMillis());
+		cfg.setMinEvictableIdleTimeMillis(poolCfg.getMinEvictableIdleTimeMillis());
+		cfg.setTimeBetweenEvictionRunsMillis(poolCfg.getTimeBetweenEvictionRunsMillis());
+		cfg.setNumTestsPerEvictionRun(poolCfg.getNumTestsPerEvictionRun());
+		cfg.setBlockWhenExhausted(poolCfg.getBlockWhenExhausted());
+		cfg.setTestOnBorrow(poolCfg.getTestOnBorrow());
+		cfg.setTestOnCreate(poolCfg.getTestOnCreate());
+		cfg.setTestOnReturn(poolCfg.getTestOnReturn());
+		cfg.setTestWhileIdle(poolCfg.getTestWhileIdle());
+		cfg.setFairness(poolCfg.getFairness());
+		cfg.setLifo(poolCfg.getLifo());
+		cfg.setEvictionPolicyClassName(poolCfg.getEvictionPolicyClassName());
+		cfg.setEvictorShutdownTimeoutMillis(poolCfg.getEvictorShutdownTimeoutMillis());
+		cfg.setSoftMinEvictableIdleTimeMillis(poolCfg.getSoftMinEvictableIdleTimeMillis());
+		cfg.setJmxEnabled(poolCfg.getJmxEnabled());
+		cfg.setJmxNameBase(poolCfg.getJmxNameBase());
+		cfg.setJmxNamePrefix(poolCfg.getJmxNamePrefix());
 		PoolableZooKeeperFactory f = new PoolableZooKeeperFactory(url, timeout, (Watcher)clazz.newInstance());
-		AbandonedConfig ac = new AbandonedConfig();
-		ac.setRemoveAbandonedOnMaintenance(Boolean.parseBoolean(properties.getProperty("zk.pool.removeAbandonedOnMaintenance")));//在Maintenance的时候检查是否有泄漏
-		ac.setRemoveAbandonedOnBorrow(Boolean.parseBoolean(properties.getProperty("zk.pool.removeAbandonedOnBorrow")));//borrow的时候检查泄漏
-		ac.setRemoveAbandonedTimeout(Integer.parseInt(properties.getProperty("zk.pool.removeAbandonedTimeout")));//如果一个对象borrow之后n秒还没有返还给pool，认为是泄漏的对象
-		ac.setLogAbandoned(Boolean.parseBoolean(properties.getProperty("zk.pool.logAbandoned")));
-		ac.setUseUsageTracking(Boolean.parseBoolean(properties.getProperty("zk.pool.useUsageTracking")));
-		ac.setRequireFullStackTrace(Boolean.parseBoolean(properties.getProperty("zk.pool.requireFullStackTrace")));
-//		ac.setLogWriter(logWriter);
-		ZooKeeperSource s = new ZooKeeperSourceImpl(f, pc, ac);
+		ZooKeeperSource s = new ZooKeeperSourceImpl(f, cfg, abandonedCfg);
 		return s;
 	}
 

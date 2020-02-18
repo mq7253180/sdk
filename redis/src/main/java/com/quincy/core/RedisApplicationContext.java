@@ -17,14 +17,12 @@ import org.springframework.context.annotation.Configuration;
 import com.quincy.core.redis.JedisSource;
 import com.quincy.core.redis.QuincyJedis;
 import com.quincy.sdk.Constants;
-import com.quincy.sdk.PoolParams;
 import com.quincy.sdk.helper.CommonHelper;
 
 import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisCommands;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisSentinelPool;
 import redis.clients.util.Pool;
@@ -35,7 +33,7 @@ public class RedisApplicationContext {
 	@Resource(name = Constants.BEAN_NAME_PROPERTIES)
 	private Properties properties;
 	@Autowired
-	private PoolParams poolParams;
+	private GenericObjectPoolConfig<?> poolCfg;
 
 	private static Pool<Jedis> pool;
 	private static QuincyJedis quincyJedis;
@@ -43,18 +41,7 @@ public class RedisApplicationContext {
 
 	@Bean
     public JedisSource jedisPool() {
-		GenericObjectPoolConfig<JedisCommands> cfg = new GenericObjectPoolConfig<JedisCommands>();
-		cfg.setMaxTotal(poolParams.getMaxTotal());
-		cfg.setMaxIdle(poolParams.getMaxIdle());
-		cfg.setMinIdle(poolParams.getMinIdle());
-		cfg.setMaxWaitMillis(poolParams.getMaxWaitMillis());
-		cfg.setMinEvictableIdleTimeMillis(poolParams.getMinEvictableIdleTimeMillis());
-		cfg.setTimeBetweenEvictionRunsMillis(poolParams.getTimeBetweenEvictionRunsMillis());
-		cfg.setNumTestsPerEvictionRun(poolParams.getNumTestsPerEvictionRun());
-		cfg.setTestOnBorrow(poolParams.getTestOnBorrow());
-		cfg.setTestWhileIdle(poolParams.getTestWhileIdle());
-		cfg.setTestOnReturn(poolParams.getTestOnReturn());
-		cfg.setBlockWhenExhausted(Boolean.parseBoolean(properties.getProperty("spring.redis.pool.blockWhenExhausted")));
+//		cfg.setBlockWhenExhausted(Boolean.parseBoolean(properties.getProperty("spring.redis.pool.blockWhenExhausted")));
 		int connectionTimeout = Integer.parseInt(properties.getProperty("spring.redis.timeout"));
 		String redisPwd = properties.getProperty("spring.redis.password");
 		String _clusterNodesStr = CommonHelper.trim(properties.getProperty("spring.redis.nodes"));
@@ -64,7 +51,7 @@ public class RedisApplicationContext {
 			Set<String> clusterNodes = new HashSet<String>(Arrays.asList(_clusterNodes));
 			String sentinelMaster = CommonHelper.trim(properties.getProperty("spring.redis.sentinel.master"));
 			if(sentinelMaster!=null) {//哨兵
-				pool = new JedisSentinelPool(sentinelMaster, clusterNodes, cfg, connectionTimeout, redisPwd);
+				pool = new JedisSentinelPool(sentinelMaster, clusterNodes, poolCfg, connectionTimeout, redisPwd);
 				log.info("REDIS_MODE============SENTINEL");
 			} else {//集群
 				int soTimeout = Integer.parseInt(properties.getProperty("spring.redis.soTimeout"));
@@ -73,7 +60,7 @@ public class RedisApplicationContext {
 					String[] ss = node.split(":");
 					clusterNodes_.add(new HostAndPort(ss[0], Integer.valueOf(ss[1])));
 				}
-				quincyJedis = new QuincyJedis(new JedisCluster(clusterNodes_, connectionTimeout, soTimeout, DEFAULT_MAX_ATTEMPTS, redisPwd, cfg));
+				quincyJedis = new QuincyJedis(new JedisCluster(clusterNodes_, connectionTimeout, soTimeout, DEFAULT_MAX_ATTEMPTS, redisPwd, poolCfg));
 				log.info("REDIS_MODE============CLUSTER");
 				return new JedisSource() {
 					@Override
@@ -86,7 +73,7 @@ public class RedisApplicationContext {
 			String[] ss = _clusterNodes[0].split(":");
 			String redisHost = ss[0];
 			int redisPort = Integer.parseInt(ss[1]);
-			pool = new JedisPool(cfg, redisHost, redisPort, connectionTimeout, redisPwd);
+			pool = new JedisPool(poolCfg, redisHost, redisPort, connectionTimeout, redisPwd);
 			log.info("REDIS_MODE============SINGLETON");
 		}
 		return new JedisSource() {
