@@ -1,7 +1,5 @@
 package com.quincy.core.sftp;
 
-import java.io.File;
-
 import org.apache.commons.pool2.ObjectPool;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.PooledObjectFactory;
@@ -9,63 +7,38 @@ import org.apache.commons.pool2.impl.DefaultPooledObject;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class PoolableChannelSftpFactory implements PooledObjectFactory<PoolableChannelSftp> {
-	private String hostMaster;
-	private String hostSlave;
+	private String host;
 	private int port;
 	private String username;
+	private String privateKey;
 	private volatile ObjectPool<PoolableChannelSftp> pool;
 
-	public PoolableChannelSftpFactory(String hostMaster, String hostSlave, int port, String username) {
-		this.hostMaster = hostMaster;
-		this.hostSlave = hostSlave;
+	public PoolableChannelSftpFactory(String host, int port, String username, String privateKey) {
+		this.host = host;
 		this.port = port;
 		this.username = username;
+		this.privateKey = privateKey;
 	}
 
 	@Override
-	public PooledObject<PoolableChannelSftp> makeObject() throws Exception {
+	public PooledObject<PoolableChannelSftp> makeObject() throws JSchException {
 		long start = System.currentTimeMillis();
-		Session session = null;
-		ChannelSftp channel = null;
-		String dbsHost = null;
-		String privateKey = "";
-        if(File.separator.equals("/")) {//Linux
-        		privateKey = System.getProperty("user.home") + "/.ssh/id_rsa";
-        } else {//windows
-        		privateKey = System.getProperty("user.home") + "\\.ssh\\wsh\\id_rsa";
-        }
         JSch jsch = new JSch();
         jsch.addIdentity(privateKey);
-        try {
-        		dbsHost = hostMaster;
-        		session = jsch.getSession(username, dbsHost, port);
-	        session.setConfig("StrictHostKeyChecking", "no");
-	        log.info("Connecting to remote server: {}@{} ...", username, dbsHost);
-	        session.connect();
-	        channel = (ChannelSftp)session.openChannel("sftp");
-	        channel.connect();
-        } catch(Exception e) {
-        		log.error("SFTP_CONNECT_ERR: "+dbsHost+"\r\n", e);
-        		if(channel!=null)
-        			channel.disconnect();
-        		if(session!=null)
-        			session.disconnect();
-        		dbsHost = hostSlave;
-        		session = jsch.getSession(username, dbsHost, port);
-	        session.setConfig("StrictHostKeyChecking", "no");
-	        log.info("Connecting to remote server: {}@{} ...", username, dbsHost);
-	        session.connect();
-	        channel = (ChannelSftp)session.openChannel("sftp");
-	        channel.connect();
-        }
-        log.info("\r\nSFTP_CONNECTING_DURATION================{}", (System.currentTimeMillis()-start));
+        Session session = jsch.getSession(username, host, port);
+        session.setConfig("StrictHostKeyChecking", "no");
+        session.connect();
+        ChannelSftp channel = (ChannelSftp)session.openChannel("sftp");
+        channel.connect();
 		PoolableChannelSftp c = new PoolableChannelSftp(channel, pool);
+		log.info("\r\nSFTP_CONNECTING_DURATION================{}", (System.currentTimeMillis()-start));
 		return new DefaultPooledObject<PoolableChannelSftp>(c);
 	}
 
