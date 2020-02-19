@@ -113,7 +113,7 @@ public class CommonApplicationContext {//implements TransactionManagementConfigu
 	@Bean
 	public ThreadPoolExecutor threadPoolExecutor() {
 		BlockingQueue<Runnable> blockingQueue = new LinkedBlockingQueue<Runnable>(100000);
-		ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTimeSeconds, TimeUnit.SECONDS, blockingQueue);;
+		ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTimeSeconds, TimeUnit.SECONDS, blockingQueue);
 		return threadPoolExecutor;
 	}
 

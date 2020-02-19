@@ -214,7 +214,7 @@ public class DistributedTransactionAop implements DistributedTransactionContext 
 				int retries = tx.getVersion()+1;
 				if(retries>=retriesBeforeInform) {
 					List<TransactionArg> args = transactionService.findArgs(tx.getId(), TransactionConstants.ARG_TYPE_TX);
-					StringBuilder message = new StringBuilder(300);
+					StringBuilder message = new StringBuilder(350);
 					message.append(tx.getApplicationName()).append(".");
 					this.appendMethodAndArgs(message, tx.getBeanName(), tx.getMethodName(), args);
 					message.append("\r\n创建时间: ").append(df.format(tx.getCreationTime())).append("\r\n最后执行时间: ").append(df.format(txPo.getLastExecuted()));
