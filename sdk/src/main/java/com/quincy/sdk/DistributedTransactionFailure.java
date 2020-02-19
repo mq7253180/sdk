@@ -1,6 +1,6 @@
 package com.quincy.sdk;
 
-public interface TransactionFailure {
+public interface DistributedTransactionFailure {
 	public int retriesBeforeInform();
 	public void inform(String message);
 }

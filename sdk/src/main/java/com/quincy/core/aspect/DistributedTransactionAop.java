@@ -28,8 +28,8 @@ import com.quincy.core.entity.TransactionArg;
 import com.quincy.core.entity.TransactionAtomic;
 import com.quincy.core.service.TransactionService;
 import com.quincy.sdk.GlobalSync;
-import com.quincy.sdk.TransactionContext;
-import com.quincy.sdk.TransactionFailure;
+import com.quincy.sdk.DistributedTransactionContext;
+import com.quincy.sdk.DistributedTransactionFailure;
 import com.quincy.sdk.annotation.transaction.AtomicOperational;
 import com.quincy.sdk.helper.CommonHelper;
 
@@ -39,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 @Aspect
 @Order(7)
 @Component
-public class DistributedTransactionAop implements TransactionContext {
+public class DistributedTransactionAop implements DistributedTransactionContext {
 	private final static ThreadLocal<List<TransactionAtomic>> atomicsHolder = new ThreadLocal<List<TransactionAtomic>>();
 	private final static ThreadLocal<Boolean> inTransactionHolder = new ThreadLocal<Boolean>();
 	private final static int MSG_MAX_LENGTH = 200;
@@ -151,7 +151,7 @@ public class DistributedTransactionAop implements TransactionContext {
 		return beanName;
 	}
 
-	private TransactionFailure transactionFailure;
+	private DistributedTransactionFailure transactionFailure;
 
 	/**
 	 * 调重试或撤消方法
@@ -323,7 +323,7 @@ public class DistributedTransactionAop implements TransactionContext {
 	}
 
 	@Override
-	public void setTransactionFailure(TransactionFailure transactionFailure) {
+	public void setTransactionFailure(DistributedTransactionFailure transactionFailure) {
 		this.transactionFailure = transactionFailure;
 	}
 }
