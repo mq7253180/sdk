@@ -211,45 +211,16 @@ public class DistributedTransactionAop implements DistributedTransactionContext 
 				int retriesBeforeInform = transactionFailure.retriesBeforeInform();
 				int retries = tx.getVersion()+1;
 				if(retries>=retriesBeforeInform) {
-					StringBuilder message = new StringBuilder();
-					message.append("创建时间: ");
-					message.append(df.format(tx.getCreationTime()));
-					message.append(", 最后执行时间: ");
-					message.append(df.format(txPo.getLastExecuted()));
-					message.append(", 已执行了: ");
-					message.append(tx.getVersion()+1);
-					message.append("次, 方法: ");
-					message.append(tx.getApplicationName());
-					message.append(".");
-					message.append(tx.getBeanName());
-					message.append(".");
-					message.append(tx.getMethodName());
-					message.append("(");
 					List<TransactionArg> args = transactionService.findArgs(tx.getId(), TransactionConstants.ARG_TYPE_TX);
-					int appendComma = args.size()-1;
-					for(int i=0;i<args.size();i++) {
-						TransactionArg arg = args.get(i);
-						message.append(arg.getValue());
-						if(i<appendComma)
-							message.append(",");
-					}
-					message.append(")");
+					StringBuilder message = new StringBuilder(300);
+					message.append(tx.getApplicationName()).append(".");
+					this.appendMethodAndArgs(message, tx.getBeanName(), tx.getMethodName(), args);
+					message.append("\r\n创建时间: ").append(df.format(tx.getCreationTime())).append("\r\n最后执行时间: ").append(df.format(txPo.getLastExecuted()));
+					message.append("\r\n已执行了: ").append(tx.getVersion()+1).append("次");
 					for(TransactionAtomic atomic:failureAtomics) {
 						args = atomic.getOriginArgs();
-						appendComma = args.size()-1;
 						message.append("\r\n\t");
-						message.append(atomic.getBeanName());
-						message.append(".");
-						message.append(atomic.getMethodName());
-						message.append("(");
-						for(int i=0;i<args.size();i++) {
-							TransactionArg arg = args.get(i);
-							message.append(arg.getValue());
-							if(i<appendComma)
-								message.append(",");
-						}
-						message.append("): ");
-						message.append(atomic.getMsg());
+						this.appendMethodAndArgs(message, atomic.getBeanName(), atomic.getMethodName(), args).append(": ").append(atomic.getMsg());
 					}
 					GlobalSync.getThreadPoolExecutor().execute(new Runnable() {
 						@Override
@@ -269,6 +240,18 @@ public class DistributedTransactionAop implements DistributedTransactionContext 
 		toUpdate.setLastExecuted(new Date());
 		Transaction tx = transactionService.updateTransaction(toUpdate);
 		return tx;
+	}
+
+	private StringBuilder appendMethodAndArgs(StringBuilder message, String beanName, String methodName, List<TransactionArg> args) {
+		message.append(beanName).append(".").append(methodName).append("(");
+		int appendComma = args.size()-1;
+		for(int i=0;i<args.size();i++) {
+			TransactionArg arg = args.get(i);
+			message.append(arg.getValue());
+			if(i<appendComma)
+				message.append(", ");
+		}
+		return message.append(")");
 	}
 
 	private static Support chainHead;
