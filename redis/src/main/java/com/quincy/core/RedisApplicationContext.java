@@ -40,7 +40,6 @@ public class RedisApplicationContext {
 
 	@Bean
     public JedisSource jedisPool() {
-//		cfg.setBlockWhenExhausted(Boolean.parseBoolean(properties.getProperty("spring.redis.pool.blockWhenExhausted")));
 		int connectionTimeout = Integer.parseInt(properties.getProperty("spring.redis.timeout"));
 		String redisPwd = properties.getProperty("spring.redis.password");
 		String _clusterNodesStr = CommonHelper.trim(properties.getProperty("spring.redis.nodes"));
