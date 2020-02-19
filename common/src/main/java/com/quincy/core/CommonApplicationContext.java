@@ -6,6 +6,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 
@@ -95,6 +99,22 @@ public class CommonApplicationContext {//implements TransactionManagementConfigu
 		for(String l:supportedLocales) {
 			log.warn("SUPPORTED_LOCALE--------------{}", l);
 		}
+	}
+
+	@Value("${threadPool.corePoolSize}")
+	private int corePoolSize;
+	@Value("${threadPool.maximumPoolSize}")
+	private int maximumPoolSize;
+	@Value("${threadPool.keepAliveTimeSeconds}")
+	private int keepAliveTimeSeconds;
+	@Value("${threadPool.blockingQueueCapacity}")
+	private int capacity;
+
+	@Bean
+	public ThreadPoolExecutor threadPoolExecutor() {
+		BlockingQueue<Runnable> blockingQueue = new LinkedBlockingQueue<Runnable>(100000);
+		ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTimeSeconds, TimeUnit.SECONDS, blockingQueue);;
+		return threadPoolExecutor;
 	}
 
 	@javax.annotation.Resource(name = Constants.BEAN_NAME_PROPERTIES)

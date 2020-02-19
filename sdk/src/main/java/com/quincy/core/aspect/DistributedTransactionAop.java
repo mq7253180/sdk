@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -27,7 +28,6 @@ import com.quincy.core.entity.Transaction;
 import com.quincy.core.entity.TransactionArg;
 import com.quincy.core.entity.TransactionAtomic;
 import com.quincy.core.service.TransactionService;
-import com.quincy.sdk.GlobalSync;
 import com.quincy.sdk.DistributedTransactionContext;
 import com.quincy.sdk.DistributedTransactionFailure;
 import com.quincy.sdk.annotation.transaction.AtomicOperational;
@@ -151,6 +151,8 @@ public class DistributedTransactionAop implements DistributedTransactionContext 
 		return beanName;
 	}
 
+	@Autowired
+	private ThreadPoolExecutor threadPoolExecutor;
 	private DistributedTransactionFailure transactionFailure;
 
 	/**
@@ -222,7 +224,7 @@ public class DistributedTransactionAop implements DistributedTransactionContext 
 						message.append("\r\n\t");
 						this.appendMethodAndArgs(message, atomic.getBeanName(), atomic.getMethodName(), args).append(": ").append(atomic.getMsg());
 					}
-					GlobalSync.getThreadPoolExecutor().execute(new Runnable() {
+					threadPoolExecutor.execute(new Runnable() {
 						@Override
 						public void run() {
 							transactionFailure.inform(message.toString());

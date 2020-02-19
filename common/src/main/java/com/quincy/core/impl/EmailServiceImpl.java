@@ -2,6 +2,7 @@ package com.quincy.core.impl;
 
 import java.io.File;
 import java.util.Properties;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
@@ -18,11 +19,11 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.quincy.sdk.Constants;
 import com.quincy.sdk.EmailService;
-import com.quincy.sdk.GlobalSync;
 import com.quincy.sdk.helper.CommonHelper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -32,13 +33,15 @@ import lombok.extern.slf4j.Slf4j;
 public class EmailServiceImpl implements EmailService {
 	@Resource(name = Constants.BEAN_NAME_PROPERTIES)
     private Properties properties;
+	@Autowired
+	private ThreadPoolExecutor threadPoolExecutor;
 
 	public void send(String to, String subject, String content, String attachment, String fileName, String charset, String ccTo, String bccTo) {
 		this.send(to, subject, content, attachment!=null&&attachment.length()>0?new File(attachment):null, fileName, charset, ccTo, bccTo);
 	}
 
 	public void send(String to, String subject, String content, File attachment, String fileName, String _charset, String ccTo, String bccTo) {
-		GlobalSync.getThreadPoolExecutor().execute(new Runnable() {
+		threadPoolExecutor.execute(new Runnable() {
 			@Override
 			public void run() {
 				String charset = CommonHelper.trim(_charset);
