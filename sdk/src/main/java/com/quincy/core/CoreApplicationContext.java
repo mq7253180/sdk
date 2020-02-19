@@ -43,9 +43,8 @@ public class CoreApplicationContext {//implements TransactionManagementConfigure
 		String slaveUserName = properties.getProperty("spring.datasource.username.slave");
 		String slavePassword = properties.getProperty("spring.datasource.password.slave");
 		int masterRatio = Integer.parseInt(properties.getProperty("spring.datasource.pool.masterRatio"));
-		int slaveRatio = Integer.parseInt(properties.getProperty("spring.datasource.pool.slaveRatio"));
 
-		BasicDataSource masterDB = this.createBasicDataSource(masterRatio);
+		BasicDataSource masterDB = this.createBasicDataSource(1);
 		masterDB.setDriverClassName(driverClassName);
 		masterDB.setUrl(masterUrl);
 		masterDB.setUsername(masterUserName);
@@ -55,7 +54,7 @@ public class CoreApplicationContext {//implements TransactionManagementConfigure
 		masterDB.setRollbackOnReturn(false);
 		masterDB.setDefaultReadOnly(false);
 
-		BasicDataSource slaveDB = this.createBasicDataSource(slaveRatio);
+		BasicDataSource slaveDB = this.createBasicDataSource(masterRatio);
 		slaveDB.setDriverClassName(driverClassName);
 		slaveDB.setUrl(slaveUrl);
 		slaveDB.setUsername(slaveUserName);

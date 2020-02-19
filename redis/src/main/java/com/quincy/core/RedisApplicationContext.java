@@ -37,7 +37,6 @@ public class RedisApplicationContext {
 
 	private static Pool<Jedis> pool;
 	private static QuincyJedis quincyJedis;
-	protected static final int DEFAULT_MAX_ATTEMPTS = 5;
 
 	@Bean
     public JedisSource jedisPool() {
@@ -54,13 +53,14 @@ public class RedisApplicationContext {
 				pool = new JedisSentinelPool(sentinelMaster, clusterNodes, poolCfg, connectionTimeout, redisPwd);
 				log.info("REDIS_MODE============SENTINEL");
 			} else {//集群
-				int soTimeout = Integer.parseInt(properties.getProperty("spring.redis.soTimeout"));
 				Set<HostAndPort> clusterNodes_ = new HashSet<HostAndPort>(clusterNodes.size());
 				for(String node:clusterNodes) {
 					String[] ss = node.split(":");
 					clusterNodes_.add(new HostAndPort(ss[0], Integer.valueOf(ss[1])));
 				}
-				quincyJedis = new QuincyJedis(new JedisCluster(clusterNodes_, connectionTimeout, soTimeout, DEFAULT_MAX_ATTEMPTS, redisPwd, poolCfg));
+				int soTimeout = Integer.parseInt(properties.getProperty("spring.redis.cluster.soTimeout"));
+				int maxAttempts = Integer.parseInt(properties.getProperty("spring.redis.cluster.maxAttempts"));
+				quincyJedis = new QuincyJedis(new JedisCluster(clusterNodes_, connectionTimeout, soTimeout, maxAttempts, redisPwd, poolCfg));
 				log.info("REDIS_MODE============CLUSTER");
 				return new JedisSource() {
 					@Override
