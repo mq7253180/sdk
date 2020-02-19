@@ -1,7 +1,5 @@
 package com.quincy.core;
 
-import java.util.Properties;
-
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
@@ -23,13 +21,18 @@ import com.quincy.core.zookeeper.PoolableZooKeeper;
 import com.quincy.core.zookeeper.PoolableZooKeeperFactory;
 import com.quincy.core.zookeeper.ZooKeeperSource;
 import com.quincy.core.zookeeper.impl.ZooKeeperSourceImpl;
-import com.quincy.sdk.Constants;
 import com.quincy.sdk.zookeeper.Context;
 
 @Configuration
 public class ZooKeeperApplicationContext implements Context {
-	@Resource(name = Constants.BEAN_NAME_PROPERTIES)
-	private Properties properties;
+	@Value("${spring.application.name}")
+	private String applicationName;
+	@Value("${zk.url}")
+	private String url;
+	@Value("${zk.timeout}")
+	private int timeout;
+	@Value("${zk.watcher}")
+	private String watcher;
 	@Value("#{'${zk.distributedLock.keys}'.split(',')}")
 	private String[] distributedLockKeys;
 	@Autowired
@@ -39,9 +42,7 @@ public class ZooKeeperApplicationContext implements Context {
 
 	@Bean
 	public ZooKeeperSource zkeeperSource() throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-		String url = properties.getProperty("zk.url");
-	    int timeout = Integer.parseInt(properties.getProperty("zk.timeout"));
-	    Class<?> clazz = Class.forName(properties.getProperty("zk.watcher"));
+	    Class<?> clazz = Class.forName(watcher);
 		GenericObjectPoolConfig<PoolableZooKeeper> cfg = new GenericObjectPoolConfig<PoolableZooKeeper>();
 		cfg.setMaxTotal(poolCfg.getMaxTotal());
 		cfg.setMaxIdle(poolCfg.getMaxIdle());
@@ -96,7 +97,7 @@ public class ZooKeeperApplicationContext implements Context {
 
 	@Bean("zookeeperRootNode")
 	public String zookeeperRootNode() {
-		return "/"+properties.getProperty("spring.application.name");
+		return "/"+applicationName;
 	}
 
 	@Resource(name = "zookeeperRootNode")

@@ -14,6 +14,7 @@ import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.commons.pool2.impl.AbandonedConfig;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
@@ -25,25 +26,32 @@ import com.quincy.sdk.helper.CommonHelper;
 
 import lombok.Data;
 
-@PropertySource("classpath:application-sdk.properties")
+@PropertySource({"classpath:application-sdk.properties", "classpath:application-sensitiveness.properties"})
 @Configuration
 //@AutoConfigureAfter(CommonApplicationContext.class)
 //@Import(CommonApplicationContext.class)
 public class CoreApplicationContext {//implements TransactionManagementConfigurer {
+	@Value("${spring.datasource.driver-class-name}")
+	private String driverClassName;
+	@Value("${spring.datasource.url}")
+	private String masterUrl;
+	@Value("${spring.datasource.username}")
+	private String masterUserName;
+	@Value("${spring.datasource.password}")
+	private String masterPassword;
+	@Value("${spring.datasource.url.slave}")
+	private String slaveUrl;
+	@Value("${spring.datasource.username.slave}")
+	private String slaveUserName;
+	@Value("${spring.datasource.password.slave}")
+	private String slavePassword;
+	@Value("${spring.datasource.pool.masterRatio}")
+	private int masterRatio;
 	@Resource(name = Constants.BEAN_NAME_PROPERTIES)
 	private Properties properties;
 
 	@Bean(name = "dataSource")
     public DataSource routingDataSource() throws SQLException {
-		String driverClassName = properties.getProperty("spring.datasource.driver-class-name");
-		String masterUrl = properties.getProperty("spring.datasource.url");
-		String masterUserName = properties.getProperty("spring.datasource.username");
-		String masterPassword = properties.getProperty("spring.datasource.password");
-		String slaveUrl = properties.getProperty("spring.datasource.url.slave");
-		String slaveUserName = properties.getProperty("spring.datasource.username.slave");
-		String slavePassword = properties.getProperty("spring.datasource.password.slave");
-		int masterRatio = Integer.parseInt(properties.getProperty("spring.datasource.pool.masterRatio"));
-
 		BasicDataSource masterDB = this.createBasicDataSource(1);
 		masterDB.setDriverClassName(driverClassName);
 		masterDB.setUrl(masterUrl);

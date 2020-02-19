@@ -63,9 +63,9 @@ public class EmailServiceImpl implements EmailService {
 						attchment.setFileName(fileName!=null&&fileName.length()>0?fileName:attachment.getName());
 						mimeMultipart.addBodyPart(attchment);
 					}
-					String emailSMTP = properties.getProperty("mail.smtp");
-					String emailUser = properties.getProperty("mail.user");
-					String emailPwd = properties.getProperty("mail.pwd");
+					String emailSMTP = CommonHelper.trim(properties.getProperty("mail.smtp"));
+					String emailUser = CommonHelper.trim(properties.getProperty("mail.user"));
+					String emailPwd = CommonHelper.trim(properties.getProperty("mail.pwd"));
 					Properties properties = new Properties();
 					properties.put("mail.smtp.auth", "true");
 					properties.put("mail.smtp.starttls.enable", "false");

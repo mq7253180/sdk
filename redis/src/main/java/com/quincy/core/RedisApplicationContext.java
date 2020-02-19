@@ -11,6 +11,7 @@ import javax.annotation.Resource;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -30,6 +31,14 @@ import redis.clients.util.Pool;
 @Slf4j
 @Configuration
 public class RedisApplicationContext {
+	@Value("${spring.application.name}")
+	private String applicationName;
+	@Value("#{'${spring.redis.nodes}'.split(',')}")
+	private String[] _clusterNodes;
+	@Value("${spring.redis.password}")
+	private String redisPwd;
+	@Value("${spring.redis.timeout}")
+	private int connectionTimeout;
 	@Resource(name = Constants.BEAN_NAME_PROPERTIES)
 	private Properties properties;
 	@Autowired
@@ -40,11 +49,6 @@ public class RedisApplicationContext {
 
 	@Bean
     public JedisSource jedisPool() {
-		int connectionTimeout = Integer.parseInt(properties.getProperty("spring.redis.timeout"));
-		String redisPwd = properties.getProperty("spring.redis.password");
-		String _clusterNodesStr = CommonHelper.trim(properties.getProperty("spring.redis.nodes"));
-		String[] _clusterNodes = _clusterNodesStr.split(",");
-		log.info("REDIS_NODES======================{}", _clusterNodesStr);
 		if(_clusterNodes.length>1) {
 			Set<String> clusterNodes = new HashSet<String>(Arrays.asList(_clusterNodes));
 			String sentinelMaster = CommonHelper.trim(properties.getProperty("spring.redis.sentinel.master"));
@@ -85,7 +89,7 @@ public class RedisApplicationContext {
 
 	@Bean("cacheKeyPrefix")
 	public String cacheKeyPrefix() {
-		return properties.getProperty("spring.application.name")+".cache.";
+		return applicationName+".cache.";
 	}
 
 	@PreDestroy

@@ -1,20 +1,16 @@
 package com.quincy;
 
-import java.util.Properties;
-import javax.annotation.Resource;
-
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.quincy.sdk.Constants;
-
 @Configuration
 public class AuthorizationCacheContext {
-	@Resource(name = Constants.BEAN_NAME_PROPERTIES)
-	private Properties properties;
+	@Value("${spring.application.name}")
+	private String applicationName;
 
 	@Bean("sessionKeyPrefix")
 	public String sessionKeyPrefix() {
-		return properties.getProperty("spring.application.name")+".session.";
+		return applicationName+".session.";
 	}
 }
