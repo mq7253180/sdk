@@ -32,9 +32,9 @@ public class ZooKeeperInjectorAop {
     			for(int i=0;i<clazzes.length;i++) {
     				Class<?> clazz = clazzes[i];
     				if(ZooKeeper.class.getName().equals(clazz.getName())) {
-    					zk = zkSource.get();
+    					if(zk==null)
+    						zk = zkSource.get();
     					args[i] = zk;
-    					break;
     				}
     			}
     			return joinPoint.proceed(args);
