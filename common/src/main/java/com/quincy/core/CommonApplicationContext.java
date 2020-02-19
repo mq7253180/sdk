@@ -108,11 +108,11 @@ public class CommonApplicationContext {//implements TransactionManagementConfigu
 	@Value("${threadPool.keepAliveTimeSeconds}")
 	private int keepAliveTimeSeconds;
 	@Value("${threadPool.blockingQueueCapacity}")
-	private int capacity;
+	private int blockingQueueCapacity;
 
 	@Bean
 	public ThreadPoolExecutor threadPoolExecutor() {
-		BlockingQueue<Runnable> blockingQueue = new LinkedBlockingQueue<Runnable>(100000);
+		BlockingQueue<Runnable> blockingQueue = new LinkedBlockingQueue<Runnable>(blockingQueueCapacity);
 		ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTimeSeconds, TimeUnit.SECONDS, blockingQueue);
 		return threadPoolExecutor;
 	}
