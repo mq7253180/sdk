@@ -130,10 +130,7 @@ public class DistributedTransactionAop implements DistributedTransactionContext 
 				if(affected>0) {//乐观锁, 集群部署多个结点时, 谁更新版本成功了谁负责执行
 					List<TransactionAtomic> atomics = transactionService.findTransactionAtomics(tx.getId(), tx.getType());
 					tx.setAtomics(atomics);
-					if(tx.getType()==TransactionConstants.TX_TYPE_CONFIRM)
-						this.invokeAtomics(tx, TransactionConstants.ATOMIC_STATUS_SUCCESS, false);
-					else
-						this.invokeAtomics(tx, TransactionConstants.ATOMIC_STATUS_CANCELED, false);
+					this.invokeAtomics(tx, tx.getType()==TransactionConstants.TX_TYPE_CONFIRM?TransactionConstants.ATOMIC_STATUS_SUCCESS:TransactionConstants.ATOMIC_STATUS_CANCELED, false);
 				}
 			}
 		}
