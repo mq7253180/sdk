@@ -65,7 +65,6 @@ public class EmailServiceImpl implements EmailService {
 					}
 					String emailUser = CommonHelper.trim(properties.getProperty("mail.username"));
 					String emailPwd = CommonHelper.trim(properties.getProperty("mail.password"));
-					log.info("\r\n"+properties.getProperty("mail.smtp.auth")+"\r\n"+properties.getProperty("mail.smtp.starttls.enable")+"\r\n"+properties.getProperty("mail.smtp.host")+"\r\n"+emailUser+"\r\n"+emailPwd);
 					Session session = Session.getInstance(properties, new Authenticator() {
 						@Override 
 						protected PasswordAuthentication getPasswordAuthentication() {  
