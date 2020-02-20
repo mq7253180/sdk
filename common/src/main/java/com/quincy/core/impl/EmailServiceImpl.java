@@ -66,9 +66,9 @@ public class EmailServiceImpl implements EmailService {
 					String emailUser = CommonHelper.trim(properties.getProperty("mail.username"));
 					String emailPwd = CommonHelper.trim(properties.getProperty("mail.password"));
 					Session session = Session.getInstance(properties, new Authenticator() {
-						@Override 
-						protected PasswordAuthentication getPasswordAuthentication() {  
-							return new PasswordAuthentication(emailUser, emailPwd);  
+						@Override
+						protected PasswordAuthentication getPasswordAuthentication() {
+							return new PasswordAuthentication(emailUser, emailPwd);
 						}
 					});
 					MimeMessage msg = new MimeMessage(session);
