@@ -69,8 +69,8 @@ public class TransactionServiceImpl implements TransactionService {
 				_atomic.setTxId(tx.getId());
 				TransactionAtomic atomic = transactionAtomicRepository.save(_atomic);
 				atomic.setArgs(args);
+				atomic.setArgList(this.saveArgs(args, _atomic.getParameterTypes(), atomic.getId(), TransactionConstants.ARG_TYPE_ATOMIC, mapper));
 				atomics.add(atomic);
-				this.saveArgs(args, _atomic.getParameterTypes(), atomic.getId(), TransactionConstants.ARG_TYPE_ATOMIC, mapper);
 			}
 			tx.setAtomics(atomics);
 		}
@@ -172,7 +172,7 @@ public class TransactionServiceImpl implements TransactionService {
 					}
 					atomic.setParameterTypes(parameterTypes);
 					atomic.setArgs(args);
-					atomic.setOriginArgs(_args);
+					atomic.setArgList(_args);
 				}
 			}
 		}

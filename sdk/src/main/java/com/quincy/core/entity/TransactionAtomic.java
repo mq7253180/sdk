@@ -45,5 +45,5 @@ public class TransactionAtomic {
 	@Transient
 	private Class<?>[] parameterTypes;
 	@Transient
-	private List<TransactionArg> originArgs;
+	private List<TransactionArg> argList;
 }
