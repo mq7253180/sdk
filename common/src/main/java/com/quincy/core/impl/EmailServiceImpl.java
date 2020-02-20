@@ -63,13 +63,9 @@ public class EmailServiceImpl implements EmailService {
 						attchment.setFileName(fileName!=null&&fileName.length()>0?fileName:attachment.getName());
 						mimeMultipart.addBodyPart(attchment);
 					}
-					String emailSMTP = CommonHelper.trim(properties.getProperty("mail.smtp"));
-					String emailUser = CommonHelper.trim(properties.getProperty("mail.user"));
-					String emailPwd = CommonHelper.trim(properties.getProperty("mail.pwd"));
-					Properties properties = new Properties();
-					properties.put("mail.smtp.auth", "true");
-					properties.put("mail.smtp.starttls.enable", "false");
-					properties.put("mail.smtp.host", emailSMTP);
+					String emailUser = CommonHelper.trim(properties.getProperty("mail.username"));
+					String emailPwd = CommonHelper.trim(properties.getProperty("mail.password"));
+					log.info("\r\n"+properties.getProperty("mail.smtp.auth")+"\r\n"+properties.getProperty("mail.smtp.starttls.enable")+"\r\n"+properties.getProperty("mail.smtp.host")+"\r\n"+emailUser+"\r\n"+emailPwd);
 					Session session = Session.getInstance(properties, new Authenticator() {
 						@Override 
 						protected PasswordAuthentication getPasswordAuthentication() {  
