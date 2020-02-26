@@ -11,8 +11,6 @@ import java.util.Calendar;
 import java.util.Properties;
 import java.util.UUID;
 
-import org.apache.commons.codec.digest.HmacAlgorithms;
-
 public class AliyunDNTXTUpdate {
 	private final static String HTTP_PREFIX = "https://alidns.aliyuncs.com/?";
 	private final static String ACTION_UPDATE = "UpdateDomainRecord";
@@ -71,7 +69,8 @@ public class AliyunDNTXTUpdate {
 		}
 		params.append("&Version=2015-01-09");
 		String stringToSign = "GET&%2F&"+URLEncoder.encode(params.toString(), CHARSET_UTF8);
-		String signature = SecurityHelper.encrypt(HmacAlgorithms.HMAC_SHA_1.getName(), CHARSET_UTF8, secret+"&", stringToSign);
+		//HmacAlgorithms.HMAC_SHA_1.getName()
+		String signature = SecurityHelper.encrypt("HmacSHA1", CHARSET_UTF8, secret+"&", stringToSign);
 		String urlEncodedSignature = URLEncoder.encode(signature, CHARSET_UTF8);
 		System.out.println(stringToSign+"\r\n"+signature+"\r\n"+urlEncodedSignature);
 		params.append("&Signature=");
