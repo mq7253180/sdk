@@ -27,7 +27,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 
 public class HttpClientHelper {
-	private final static String ERR_MSG = "Abnormal HTTP Status Code: %s, URI: %s";
+//	private final static String ERR_MSG = "Abnormal HTTP Status Code: %s, URI: %s";
 
 	public static String get(String url, Header[] headers) throws IOException {
 		HttpGet httpGet = null;
@@ -137,7 +137,7 @@ public class HttpClientHelper {
 			} finally {
 				in.close();
 			}
-			throw new HttpResponseException(statusCode, "\r\n"+String.format(ERR_MSG, statusCode, httpUriRequest.getURI())+"\r\n"+msg);
+			throw new HttpResponseException(statusCode, "\r\nRUL: "+httpUriRequest.getURI()+"\r\nMSG: "+msg);
 		}
 	}
 
