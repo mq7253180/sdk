@@ -21,6 +21,7 @@ import org.apache.http.message.BasicNameValuePair;
 public class AliyunDNTXTUpdate {
 	private final static String HTTP_PREFIX = "https://alidns.aliyuncs.com/?";
 	private final static String ACTION_UPDATE = "UpdateDomainRecord";
+	private final static String CHARSET_UTF8 = "UTF-8";
 
 	public static void main(String[] args) throws IOException, InvalidKeyException, NoSuchAlgorithmException {
 		Properties pro = new Properties();
@@ -44,7 +45,7 @@ public class AliyunDNTXTUpdate {
 //		String _timestamp2 = _timestamp.replaceAll("\\s+", "%20").replaceAll(":", "%3A");
 //		System.out.println(_timestamp2);
 		String timestamp = _timestamp.replaceAll("\\s+", "T")+"Z";
-		timestamp = URLEncoder.encode(timestamp, "UTF-8");
+		timestamp = URLEncoder.encode(timestamp, CHARSET_UTF8);
 		String action = args[1];
 		StringBuilder params = new StringBuilder(500);
 		List<NameValuePair> nameValuePairList = new ArrayList<NameValuePair>(20);
@@ -89,16 +90,16 @@ public class AliyunDNTXTUpdate {
 		}
 		params.append("&Version=2015-01-09");
 		nameValuePairList.add(new BasicNameValuePair("Version", "2015-01-09"));
-		String stringToSign = "GET&%2F&"+URLEncoder.encode(params.toString(), "UTF-8");
-		String signature = SecurityHelper.encrypt(HmacAlgorithms.HMAC_SHA_1.getName(), "UTF-8", secret+"&", stringToSign);
-		String urlEncodedSignature = URLEncoder.encode(signature, "UTF-8");
+		String stringToSign = "GET&%2F&"+URLEncoder.encode(params.toString(), CHARSET_UTF8);
+		String signature = SecurityHelper.encrypt(HmacAlgorithms.HMAC_SHA_1.getName(), CHARSET_UTF8, secret+"&", stringToSign);
+		String urlEncodedSignature = URLEncoder.encode(signature, CHARSET_UTF8);
 		System.out.println(stringToSign+"\r\n"+signature+"\r\n"+urlEncodedSignature);
 		params.append("&Signature=");
 		params.append(urlEncodedSignature);
 		nameValuePairList.add(new BasicNameValuePair("Signature", urlEncodedSignature));
 		String url = HTTP_PREFIX+params.toString();
 		System.out.println(url);
-//		System.out.println(URLDecoder.decode("%2A", "UTF-8")+"---"+URLEncoder.encode("*", "UTF-8"));
+		System.out.println(URLDecoder.decode("%2A", CHARSET_UTF8)+"---"+URLEncoder.encode("*", CHARSET_UTF8));
 		String result = HttpClientHelper.get(url, null);
 		/*
 		 * String result = null; try { result = HttpClientHelper.post(HTTP_PREFIX, null,
