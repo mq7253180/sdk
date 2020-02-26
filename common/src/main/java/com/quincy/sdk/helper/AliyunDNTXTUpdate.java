@@ -3,6 +3,7 @@ package com.quincy.sdk.helper;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -18,7 +19,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 
 public class AliyunDNTXTUpdate {
-	private final static String HTTP_PREFIX = "https://alidns.aliyuncs.com/";
+	private final static String HTTP_PREFIX = "https://alidns.aliyuncs.com/?";
 	private final static String ACTION_UPDATE = "UpdateDomainRecord";
 
 	public static void main(String[] args) throws IOException, InvalidKeyException, NoSuchAlgorithmException {
@@ -39,7 +40,10 @@ public class AliyunDNTXTUpdate {
 		Calendar c = Calendar.getInstance();
 		int zoneOffset = c.get(Calendar.ZONE_OFFSET);
 		c.add(Calendar.HOUR, -(zoneOffset/1000/3600));
-		String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(c.getTime()).replaceAll("\\s+", "T")+"Z";
+		String _timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(c.getTime());
+//		String _timestamp2 = _timestamp.replaceAll("\\s+", "%20").replaceAll(":", "%3A");
+//		System.out.println(_timestamp2);
+		String timestamp = _timestamp.replaceAll("\\s+", "T")+"Z";
 		timestamp = URLEncoder.encode(timestamp, "UTF-8");
 		String action = args[1];
 		StringBuilder params = new StringBuilder(500);
@@ -94,9 +98,14 @@ public class AliyunDNTXTUpdate {
 		nameValuePairList.add(new BasicNameValuePair("Signature", urlEncodedSignature));
 		String url = HTTP_PREFIX+params.toString();
 		System.out.println(url);
-//		System.out.println(URLDecoder.decode("%252A", "UTF-8"));
-//		String result = HttpClientHelper.get(url, null);
-		String result = HttpClientHelper.post(url, null, nameValuePairList);
+//		System.out.println(URLDecoder.decode("+15%3A20%3A31", "UTF-8"));
+		String result = HttpClientHelper.get(url, null);
+		/*
+		 * String result = null; try { result = HttpClientHelper.post(HTTP_PREFIX, null,
+		 * nameValuePairList); } catch(Exception e) {
+		 * System.out.println("========\r\n"+e.getMessage().indexOf(stringToSign));
+		 * throw e; }
+		 */
 		System.out.println(result);
 	}
 }

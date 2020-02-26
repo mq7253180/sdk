@@ -126,8 +126,19 @@ public class HttpClientHelper {
 		if(statusCode==200) {
 			HttpEntity entity = response.getEntity();
 			return entity.getContent();
-		} else
-			throw new HttpResponseException(statusCode, String.format(ERR_MSG, statusCode, httpUriRequest.getURI()));
+		} else {
+			InputStream in = null;
+			String msg = null;
+			try {
+				in = response.getEntity().getContent();
+				byte[] b = new byte[in.available()];
+				in.read(b);
+				msg = new String(b);
+			} finally {
+				in.close();
+			}
+			throw new HttpResponseException(statusCode, "\r\n"+String.format(ERR_MSG, statusCode, httpUriRequest.getURI())+"\r\n"+msg);
+		}
 	}
 
 	public static String getRequestURIOrURL(HttpServletRequest request, String type) {
