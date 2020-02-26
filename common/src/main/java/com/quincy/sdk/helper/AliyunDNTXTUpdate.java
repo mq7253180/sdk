@@ -98,7 +98,7 @@ public class AliyunDNTXTUpdate {
 		nameValuePairList.add(new BasicNameValuePair("Signature", urlEncodedSignature));
 		String url = HTTP_PREFIX+params.toString();
 		System.out.println(url);
-//		System.out.println(URLDecoder.decode("+15%3A20%3A31", "UTF-8"));
+//		System.out.println(URLDecoder.decode("%2A", "UTF-8")+"---"+URLEncoder.encode("*", "UTF-8"));
 		String result = HttpClientHelper.get(url, null);
 		/*
 		 * String result = null; try { result = HttpClientHelper.post(HTTP_PREFIX, null,
