@@ -1,6 +1,6 @@
 package com.quincy.core;
 
-public class TransactionConstants {
+public class DTransactionConstants {
 	public final static int ARG_TYPE_TX = 0;
 	public final static int ARG_TYPE_ATOMIC = 1;
 	public final static int ATOMIC_STATUS_INIT_FAILURE = 0;

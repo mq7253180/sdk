@@ -17,19 +17,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.Order;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
-import com.quincy.core.TransactionConstants;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.quincy.core.DTransactionConstants;
 import com.quincy.core.entity.Transaction;
 import com.quincy.core.entity.TransactionArg;
 import com.quincy.core.entity.TransactionAtomic;
 import com.quincy.core.service.TransactionService;
-import com.quincy.sdk.DistributedTransactionContext;
-import com.quincy.sdk.DistributedTransactionFailure;
+import com.quincy.sdk.DTransactionContext;
+import com.quincy.sdk.DTransactionFailure;
 import com.quincy.sdk.annotation.transaction.AtomicOperational;
 import com.quincy.sdk.helper.CommonHelper;
 
@@ -39,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 @Aspect
 @Order(7)
 @Component
-public class DistributedTransactionAop implements DistributedTransactionContext {
+public class DistributedTransactionAop implements DTransactionContext {
 	private final static ThreadLocal<List<TransactionAtomic>> atomicsHolder = new ThreadLocal<List<TransactionAtomic>>();
 	private final static ThreadLocal<Boolean> inTransactionHolder = new ThreadLocal<Boolean>();
 	private final static int MSG_MAX_LENGTH = 200;
@@ -51,7 +52,7 @@ public class DistributedTransactionAop implements DistributedTransactionContext 
 	@Value("${spring.application.name}")
 	private String applicationName;
 
-	@Pointcut("@annotation(com.quincy.sdk.annotation.transaction.DistributedTransactional)")
+	@Pointcut("@annotation(com.quincy.sdk.annotation.transaction.DTransactional)")
     public void transactionPointCut() {}
 
 	@Around("transactionPointCut()")
@@ -74,7 +75,7 @@ public class DistributedTransactionAop implements DistributedTransactionContext 
 		Transaction tx = new Transaction();
 		tx.setApplicationName(applicationName);
 		tx.setAtomics(atomics);
-		tx.setType(cancel?TransactionConstants.TX_TYPE_CANCEL:TransactionConstants.TX_TYPE_CONFIRM);
+		tx.setType(cancel?DTransactionConstants.TX_TYPE_CANCEL:DTransactionConstants.TX_TYPE_CONFIRM);
 		tx.setArgs(joinPoint.getArgs());
 		Class<?> clazz = joinPoint.getTarget().getClass();
 		tx.setBeanName(this.getBeanName(clazz));
@@ -87,7 +88,7 @@ public class DistributedTransactionAop implements DistributedTransactionContext 
 			for(TransactionAtomic atomic:atomics)
 				atomic.setMethodName(atomic.getConfirmMethodName());
 		}
-		this.invokeAtomics(tx, TransactionConstants.ATOMIC_STATUS_SUCCESS, cancel);
+		this.invokeAtomics(tx, DTransactionConstants.ATOMIC_STATUS_SUCCESS, cancel);
 		return retVal;
 	}
 
@@ -120,8 +121,9 @@ public class DistributedTransactionAop implements DistributedTransactionContext 
 		return null;
 	}
 
-	@Scheduled(cron = "0 0/1 * * * ?")
-	public void compensate() throws Exception {
+//	@Scheduled(cron = "0 0/1 * * * ?")
+	@Override
+	public void compensate() throws JsonMappingException, ClassNotFoundException, JsonProcessingException, NoSuchMethodException, SecurityException {
 		List<Transaction> failedTransactions = transactionService.findFailedTransactions(applicationName);
 		for(Transaction tx:failedTransactions) {
 			Object bean = applicationContext.getBean(tx.getBeanName());
@@ -130,7 +132,7 @@ public class DistributedTransactionAop implements DistributedTransactionContext 
 				if(affected>0) {//乐观锁, 集群部署多个结点时, 谁更新版本成功了谁负责执行
 					List<TransactionAtomic> atomics = transactionService.findTransactionAtomics(tx.getId(), tx.getType());
 					tx.setAtomics(atomics);
-					this.invokeAtomics(tx, tx.getType()==TransactionConstants.TX_TYPE_CONFIRM?TransactionConstants.ATOMIC_STATUS_SUCCESS:TransactionConstants.ATOMIC_STATUS_CANCELED, false);
+					this.invokeAtomics(tx, tx.getType()==DTransactionConstants.TX_TYPE_CONFIRM?DTransactionConstants.ATOMIC_STATUS_SUCCESS:DTransactionConstants.ATOMIC_STATUS_CANCELED, false);
 				}
 			}
 		}
@@ -150,7 +152,7 @@ public class DistributedTransactionAop implements DistributedTransactionContext 
 
 	@Autowired
 	private ThreadPoolExecutor threadPoolExecutor;
-	private DistributedTransactionFailure transactionFailure;
+	private DTransactionFailure transactionFailure;
 
 	/**
 	 * 调重试或撤消方法
@@ -213,7 +215,7 @@ public class DistributedTransactionAop implements DistributedTransactionContext 
 				int retriesBeforeInform = transactionFailure.retriesBeforeInform();
 				int retries = tx.getVersion()+1;
 				if(retries>=retriesBeforeInform) {
-					List<TransactionArg> args = transactionService.findArgs(tx.getId(), TransactionConstants.ARG_TYPE_TX);
+					List<TransactionArg> args = transactionService.findArgs(tx.getId(), DTransactionConstants.ARG_TYPE_TX);
 					StringBuilder message = new StringBuilder(350);
 					message.append(tx.getApplicationName()).append(".");
 					this.appendMethodAndArgs(message, tx.getBeanName(), tx.getMethodName(), args)
@@ -244,7 +246,7 @@ public class DistributedTransactionAop implements DistributedTransactionContext 
 	private Transaction updateTransactionToComleted(Long id) {
 		Transaction toUpdate = new Transaction();
 		toUpdate.setId(id);
-		toUpdate.setStatus(TransactionConstants.TX_STATUS_ED);
+		toUpdate.setStatus(DTransactionConstants.TX_STATUS_ED);
 		toUpdate.setLastExecuted(new Date());
 		Transaction tx = transactionService.updateTransaction(toUpdate);
 		return tx;
@@ -319,7 +321,7 @@ public class DistributedTransactionAop implements DistributedTransactionContext 
 	}
 
 	@Override
-	public void setTransactionFailure(DistributedTransactionFailure transactionFailure) {
+	public void setTransactionFailure(DTransactionFailure transactionFailure) {
 		this.transactionFailure = transactionFailure;
 	}
 }

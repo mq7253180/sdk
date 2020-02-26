@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.quincy.core.TransactionConstants;
+import com.quincy.core.DTransactionConstants;
 import com.quincy.core.dao.TransactionArgRepository;
 import com.quincy.core.dao.TransactionRepository;
 import com.quincy.core.entity.Transaction;
@@ -60,7 +60,7 @@ public class TransactionServiceImpl implements TransactionService {
 		Object[] args = _tx.getArgs();
 		Transaction tx = transactionRepository.save(_tx);
 		tx.setArgs(args);
-		this.saveArgs(args, _tx.getParameterTypes(), tx.getId(), TransactionConstants.ARG_TYPE_TX, mapper);
+		this.saveArgs(args, _tx.getParameterTypes(), tx.getId(), DTransactionConstants.ARG_TYPE_TX, mapper);
 		List<TransactionAtomic> _atomics = _tx.getAtomics();
 		if(_atomics!=null&&_atomics.size()>0) {
 			List<TransactionAtomic> atomics = new ArrayList<TransactionAtomic>(_atomics.size());
@@ -69,7 +69,7 @@ public class TransactionServiceImpl implements TransactionService {
 				_atomic.setTxId(tx.getId());
 				TransactionAtomic atomic = transactionAtomicRepository.save(_atomic);
 				atomic.setArgs(args);
-				atomic.setArgList(this.saveArgs(args, _atomic.getParameterTypes(), atomic.getId(), TransactionConstants.ARG_TYPE_ATOMIC, mapper));
+				atomic.setArgList(this.saveArgs(args, _atomic.getParameterTypes(), atomic.getId(), DTransactionConstants.ARG_TYPE_ATOMIC, mapper));
 				atomics.add(atomic);
 			}
 			tx.setAtomics(atomics);
@@ -135,13 +135,13 @@ public class TransactionServiceImpl implements TransactionService {
 	public void deleteTransaction(Long id) {
 		coreMapper.deleteTransactionAtomicArgs(id);
 		coreMapper.deleteTransactionAtomics(id);
-		coreMapper.deleteArgs(id, TransactionConstants.ARG_TYPE_TX);
+		coreMapper.deleteArgs(id, DTransactionConstants.ARG_TYPE_TX);
 		coreMapper.deleteTransaction(id);
 	}
 
 	@Override
 	public List<Transaction> findFailedTransactions(String applicationName) {
-		return transactionRepository.findByApplicationNameAndStatus(applicationName, TransactionConstants.TX_STATUS_ED);
+		return transactionRepository.findByApplicationNameAndStatus(applicationName, DTransactionConstants.TX_STATUS_ED);
 	}
 
 	@Override
@@ -157,7 +157,7 @@ public class TransactionServiceImpl implements TransactionService {
 		List<TransactionAtomic> atomics =  transactionAtomicRepository.findByTxIdAndStatusOrderBySort(txId, status);
 		if(atomics!=null&&atomics.size()>0) {
 			for(TransactionAtomic atomic:atomics) {
-				List<TransactionArg> _args = transactionArgRepository.findByParentIdAndTypeOrderBySort(atomic.getId(), TransactionConstants.ARG_TYPE_ATOMIC);
+				List<TransactionArg> _args = transactionArgRepository.findByParentIdAndTypeOrderBySort(atomic.getId(), DTransactionConstants.ARG_TYPE_ATOMIC);
 				if(_args!=null&&_args.size()>0) {
 					Class<?>[] parameterTypes = new Class<?>[_args.size()];
 					Object[] args = new Object[_args.size()];
