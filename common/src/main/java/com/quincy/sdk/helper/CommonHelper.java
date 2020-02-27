@@ -395,8 +395,7 @@ public class CommonHelper {
         char[] cArray = arg.toCharArray();
         for(char c:cArray) {
         		if(c>=19968&&c<=171941) {//汉字范围 \u4e00-\u9fa5 (中文)
-        			sb.append("\\u");
-        			sb.append(Integer.toHexString(c));
+        			sb.append("\\u").append(Integer.toHexString(c));
         		} else
         			sb.append(c);
         }
@@ -404,10 +403,10 @@ public class CommonHelper {
     }
 
 	public static String fullMethodPath(Class<?> clazz, MethodSignature methodSignature, Method method, Object[] args, String _separator0, String _separator1, String _separator2) throws NoSuchMethodException, SecurityException {
-		StringBuilder sb = new StringBuilder(100);
-		sb.append(clazz.getName());
-		sb.append(trim(_separator0));
-		sb.append(methodSignature.getName());
+		StringBuilder sb = new StringBuilder(100)
+				.append(clazz.getName())
+				.append(trim(_separator0))
+				.append(methodSignature.getName());
 		String separator1 = trim(_separator1);
 		String separator2 = trim(_separator2);
 		if(separator1!=null&&separator2!=null) {
@@ -417,10 +416,10 @@ public class CommonHelper {
 			if(args!=null&&args.length>0) {
 				for(int i=0;i<args.length;i++) {
 					Object arg = args[i];
-					sb.append(separator1);
-					sb.append(clazzes[i].getName());
-					sb.append(separator2);
-					sb.append(arg==null?"null":arg.toString().trim());
+					sb.append(separator1)
+					.append(clazzes[i].getName())
+					.append(separator2)
+					.append(arg==null?"null":arg.toString().trim());
 				}
 			}
 		}

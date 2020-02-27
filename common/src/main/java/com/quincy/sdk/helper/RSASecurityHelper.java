@@ -178,17 +178,16 @@ public class RSASecurityHelper {
 	private static final char[] HEX_CHAR = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
 	public static String byteArrayToString(byte[] data) {
-		StringBuilder stringBuilder = new StringBuilder();
+		StringBuilder sb = new StringBuilder();
     	for(int i=0;i<data.length;i++) {
 			// 取出字节的高四位 作为索引得到相应的十六进制标识符 注意无符号右移 
-			stringBuilder.append(HEX_CHAR[(data[i] & 0xf0) >>> 4]);
+			sb.append(HEX_CHAR[(data[i] & 0xf0) >>> 4]);
 			// 取出字节的低四位 作为索引得到相应的十六进制标识符 
-			stringBuilder.append(HEX_CHAR[(data[i] & 0x0f)]);
-			if(i<data.length-1) {
-				stringBuilder.append(' ');
-			}
+			sb.append(HEX_CHAR[(data[i] & 0x0f)]);
+			if(i<data.length-1)
+				sb.append(' ');
 		}
-		return stringBuilder.toString(); 
+		return sb.toString(); 
 	}
 
 	private static String sign(PrivateKey privateKey, String algorithms, byte[] content) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, SignatureException, IOException {

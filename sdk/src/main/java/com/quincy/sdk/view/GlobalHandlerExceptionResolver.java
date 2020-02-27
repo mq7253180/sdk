@@ -36,20 +36,19 @@ public class GlobalHandlerExceptionResolver implements HandlerExceptionResolver 
 
 	private String getExceptionStackTrace(Exception e, String lineBreak, String spaceSymbol) {
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		StringBuilder msg = new StringBuilder("*************");
-		msg.append(df.format(new Date()));
-		msg.append("*************");
-		msg.append(lineBreak);
-		msg.append(e.toString());
+		StringBuilder msg = new StringBuilder(1000)
+				.append("*************")
+				.append(df.format(new Date()))
+				.append("*************")
+				.append(lineBreak)
+				.append(e.toString());
 		StackTraceElement[] elements = e.getStackTrace();
 		for(int i=0;i<elements.length;i++) {
 			msg.append(lineBreak);
 			for(int j=0;j<10;j++) {
 				msg.append(spaceSymbol);
 			}
-			msg.append("at");
-			msg.append(spaceSymbol);
-			msg.append(elements[i].toString());
+			msg.append("at").append(spaceSymbol).append(elements[i].toString());
 		}
 		return msg.toString();
 	}
