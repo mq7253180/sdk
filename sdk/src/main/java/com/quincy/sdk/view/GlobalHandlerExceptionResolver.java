@@ -40,14 +40,12 @@ public class GlobalHandlerExceptionResolver implements HandlerExceptionResolver 
 				.append("*************")
 				.append(df.format(new Date()))
 				.append("*************")
-				.append(lineBreak)
-				.append(e.toString());
+				.append(lineBreak).append(e.toString());
 		StackTraceElement[] elements = e.getStackTrace();
 		for(int i=0;i<elements.length;i++) {
 			msg.append(lineBreak);
-			for(int j=0;j<10;j++) {
+			for(int j=0;j<10;j++)
 				msg.append(spaceSymbol);
-			}
 			msg.append("at").append(spaceSymbol).append(elements[i].toString());
 		}
 		return msg.toString();
