@@ -41,7 +41,7 @@ public class AliyunDNTXTUpdate {
 		String _timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(c.getTime());
 		String timestamp = _timestamp.replaceAll("\\s+", "T")+"Z";
 		timestamp = URLEncoder.encode(timestamp, CHARSET_UTF8);
-		StringBuilder params = new StringBuilder(500);
+		StringBuilder params = new StringBuilder(1000);
 		params.append("AccessKeyId=");
 		params.append(id);
 		params.append("&Action=");
@@ -53,8 +53,7 @@ public class AliyunDNTXTUpdate {
 		params.append("&Format=JSON");
 		if(ACTION_UPDATE.equals(action)) {
 			String recordId = args[3];
-			params.append("&RR=%2A");
-			params.append("&RecordId=");
+			params.append("&RR=%2A&RecordId=");
 			params.append(recordId);
 		}
 		params.append("&SignatureMethod=HMAC-SHA1");
