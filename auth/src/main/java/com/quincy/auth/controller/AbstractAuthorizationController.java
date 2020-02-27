@@ -55,10 +55,7 @@ public abstract class AbstractAuthorizationController {
 	public ModelAndView logout(HttpServletRequest request) throws Exception {
 		authorizationService.logout(request);
 		RequestContext requestContext = new RequestContext(request);
-		ModelAndView mv = new ModelAndView("/result");
-		mv.addObject("status", 1);
-		mv.addObject("msg", requestContext.getMessage("status.success"));
-		return mv;
+		return new ModelAndView("/result").addObject("status", 1).addObject("msg", requestContext.getMessage("status.success"));
 	}
 	/**
 	 * 点超链接没权限要进入的页面
@@ -83,19 +80,17 @@ public abstract class AbstractAuthorizationController {
 		} else {
 			if(result.getStatus()==1)
 				mv = new ModelAndView("redirect:/index");
-			else {
+			else
 				mv = this.createModelAndView(result);
-			}
 		}
 		return mv;
 	}
 
 	private ModelAndView createModelAndView(Result result) throws JsonProcessingException {
-		ModelAndView mv = new ModelAndView("/result");
-		mv.addObject("status", result.getStatus());
-		mv.addObject("msg", result.getMsg());
-		mv.addObject("data", new ObjectMapper().writeValueAsString(result.getData()));
-		return mv;
+		return new ModelAndView("/result")
+				.addObject("status", result.getStatus())
+				.addObject("msg", result.getMsg())
+				.addObject("data", new ObjectMapper().writeValueAsString(result.getData()));
 	}
 
 	private Result login(HttpServletRequest request, String _username, String _password) throws Exception {

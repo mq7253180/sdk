@@ -29,9 +29,7 @@ public class RegionController {
 		log.info("this.getClass().getClassLoader().getResource--------"+this.getClass().getClassLoader().getResource("").getPath());
 		if(Constants.ENV_DEV.equals(env))
 			log.info("ClassLoader.getSystemResource--------"+ClassLoader.getSystemResource("").getPath());*/
-		ModelAndView mv = new ModelAndView("/content/region");
-		mv.addObject("regions", regionService.findAll());
-		return mv;
+		return new ModelAndView("/content/region").addObject("regions", regionService.findAll());
 	}
 
 	@GetMapping(value = "/all2")

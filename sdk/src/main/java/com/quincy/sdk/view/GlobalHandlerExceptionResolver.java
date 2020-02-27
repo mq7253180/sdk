@@ -28,10 +28,9 @@ public class GlobalHandlerExceptionResolver implements HandlerExceptionResolver 
 		String clientType = CommonHelper.clientType(request, handler);
 		String exception = Constants.CLIENT_TYPE_J.equals(clientType)?e.toString().replaceAll("\n", "").replaceAll("\r", "").replaceAll("\\\\", "/"):this.getExceptionStackTrace(e, "<br/>", "&nbsp;");
 		RequestContext requestContext = new RequestContext(request);
-		ModelAndView mv = new ModelAndView("/error_"+clientType);
-		mv.addObject("msg", requestContext.getMessage(Result.I18N_KEY_EXCEPTION));
-		mv.addObject("exception", exception);
-		return mv;
+		return new ModelAndView("/error_"+clientType)
+				.addObject("msg", requestContext.getMessage(Result.I18N_KEY_EXCEPTION))
+				.addObject("exception", exception);
 	}
 
 	private String getExceptionStackTrace(Exception e, String lineBreak, String spaceSymbol) {
