@@ -46,9 +46,8 @@ public abstract class AuthorizationAbstract implements AuthorizationService {
 	public void vcode(HttpServletRequest request, HttpServletResponse response, int length) throws Exception {
 		Random random = new Random();
 		StringBuilder sb = new StringBuilder(length);
-		for(int i=0;i<length;i++) {
+		for(int i=0;i<length;i++)
 			sb.append(VCODE_COMBINATION_FROM.charAt(random.nextInt(VCODE_COMBINATION_FROM.length())));
-		}
 		String vcode = sb.toString();
 		this.saveVcode(request, vcode);
 		OutputStream out = null;
@@ -67,9 +66,8 @@ public abstract class AuthorizationAbstract implements AuthorizationService {
 		Graphics g = image.getGraphics();
 		g.fillRect(0, 0, width, height);
 		g.setColor(new Color(random.nextInt(255), random.nextInt(255), random.nextInt(255)));
-		for(int i=0;i<lines;i++) {
+		for(int i=0;i<lines;i++)
 			g.drawLine(random.nextInt(width), random.nextInt(height), random.nextInt(width), random.nextInt(height));
-		}
 		Font font = new Font("Times New Roman", Font.ROMAN_BASELINE, 25);
 		g.setFont(font);
 		g.setColor(new Color(random.nextInt(101), random.nextInt(111), random.nextInt(121)));
@@ -86,18 +84,16 @@ public abstract class AuthorizationAbstract implements AuthorizationService {
 		//角色
 		List<Role> roleList = authMapper.findRolesByUserId(userId);
 		Map<Long, String> roleMap = new HashMap<Long, String>(roleList.size());
-		for(Role role:roleList) {//去重
+		for(Role role:roleList)//去重
 			roleMap.put(role.getId(), role.getName());
-		}
 		List<String> roles = new ArrayList<String>(roleMap.size());
 		roles.addAll(roleMap.values());
 		session.setRoles(roles);
 		//权限
 		List<Permission> permissionList = authMapper.findPermissionsByUserId(userId);
 		Map<Long, String> permissionMap = new HashMap<Long, String>(permissionList.size());
-		for(Permission permission:permissionList) {//去重
+		for(Permission permission:permissionList)//去重
 			permissionMap.put(permission.getId(), permission.getName());
-		}
 		List<String> permissions = new ArrayList<String>(permissionMap.size());
 		permissions.addAll(permissionMap.values());
 		session.setPermissions(permissions);
@@ -116,9 +112,8 @@ public abstract class AuthorizationAbstract implements AuthorizationService {
 	private List<Menu> findMenusByUserId(Long userId) {
 		List<Menu> allMenus = authMapper.findMenusByUserId(userId);
 		Map<Long, Menu> duplicateRemovedMenus = new HashMap<Long, Menu>(allMenus.size());
-		for(Menu menu:allMenus) {
+		for(Menu menu:allMenus)
 			duplicateRemovedMenus.put(menu.getId(), menu);
-		}
 		List<Menu> rootMenus = new ArrayList<Menu>(duplicateRemovedMenus.size());
 		Set<Entry<Long, Menu>> entrySet = duplicateRemovedMenus.entrySet();
 		for(Entry<Long, Menu> entry:entrySet) {
@@ -141,9 +136,8 @@ public abstract class AuthorizationAbstract implements AuthorizationService {
 			}
 		}
 		if(parent.getChildren()!=null&&parent.getChildren().size()>0) {
-			for(Menu child:parent.getChildren()) {
+			for(Menu child:parent.getChildren())
 				this.loadChildrenMenus(child, entrySet);
-			}
 		}
 	}
 }

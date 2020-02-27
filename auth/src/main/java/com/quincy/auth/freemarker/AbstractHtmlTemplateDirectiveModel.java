@@ -19,6 +19,7 @@ import freemarker.template.TemplateModel;
 
 public abstract class AbstractHtmlTemplateDirectiveModel implements TemplateDirectiveModel {
 	protected abstract String realExecute(Map params, TemplateModel[] loopVars, TemplateDirectiveBody body) throws IOException;
+
 	@Override
 	public void execute(Environment env, Map params, TemplateModel[] loopVars, TemplateDirectiveBody body)
 			throws TemplateException, IOException {
@@ -35,17 +36,15 @@ public abstract class AbstractHtmlTemplateDirectiveModel implements TemplateDire
 					break;
 				}
 			}
-		} else {
+		} else
 			output = true;
-		}
 		if(output) {
 			String html = this.realExecute(params, loopVars, body);
 			if(html!=null) {
 				if(body!=null) {
 					body.render(new PlaceHolderWriter(env.getOut(), html));
-				} else {
+				} else
 					env.getOut().write(html);
-				}
 			}
 		}
 	}
@@ -62,9 +61,9 @@ public abstract class AbstractHtmlTemplateDirectiveModel implements TemplateDire
 		@Override
 		public void write(char[] cbuf, int off, int len) throws IOException {
 			int index = html.indexOf("</");
-			StringBuilder sb = new StringBuilder(html.substring(0, index));
-			sb.append(cbuf);
-			sb.append(html.substring(index, html.length()));
+			StringBuilder sb = new StringBuilder(html.substring(0, index))
+					.append(cbuf)
+					.append(html.substring(index, html.length()));
 			out.write(sb.toString());
 		}
 

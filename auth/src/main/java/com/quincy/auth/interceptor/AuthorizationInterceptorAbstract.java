@@ -60,23 +60,15 @@ public abstract class AuthorizationInterceptorAbstract extends HandlerIntercepto
 		if(Constants.CLIENT_TYPE_J.equals(clientType)) {
 			output(response, status, msg);
 		} else {
-			StringBuilder uri = new StringBuilder(200);
-			uri.append(redirectTo);
+			StringBuilder uri = new StringBuilder(200).append(redirectTo);
 			String locale = CommonHelper.trim(request.getParameter(Constants.KEY_LOCALE));
-			if(locale!=null) {
-				uri.append("?");
-				uri.append(Constants.KEY_LOCALE);
-				uri.append("=");
-				uri.append(locale);
-			}
+			if(locale!=null)
+				uri.append("?").append(Constants.KEY_LOCALE).append("=").append(locale);
 			String requestURI = HttpClientHelper.getRequestURIOrURL(request, "URI");
 			if(requestURI.indexOf("/index")>=0)
 				requestURI = CommonHelper.trim(request.getParameter("back"));
-			if(requestURI!=null) {
-				uri.append(uri.indexOf("?")>=0?"&":"?");
-				uri.append("back=");
-				uri.append(URLEncoder.encode(requestURI, "UTF-8"));
-			}
+			if(requestURI!=null)
+				uri.append(uri.indexOf("?")>=0?"&":"?").append("back=").append(URLEncoder.encode(requestURI, "UTF-8"));
 			request.getRequestDispatcher(uri.toString()).forward(request, response);
 		}
 	}
@@ -92,9 +84,8 @@ public abstract class AuthorizationInterceptorAbstract extends HandlerIntercepto
 			out.println(outputContent);
 			out.flush();
 		} finally {
-			if(out!=null) {
+			if(out!=null)
 				out.close();
-			}
 		}
 	}
 }

@@ -14,34 +14,17 @@ public class ButtonTemplateDirectiveModelBean extends AbstractHtmlTemplateDirect
 		Object clazz = params.get("class");
 		Object dataToggle = params.get("dataToggle");
 		Object dataTarget = params.get("dataTarget");
-		StringBuilder html = new StringBuilder(200);
-		html.append("<button");
-		if(id!=null) {
-			html.append(" id=\"");
-			html.append(id.toString());
-			html.append("\"");
-		}
-		if(name!=null) {
-			html.append(" name=\"");
-			html.append(name.toString());
-			html.append("\"");
-		}
-		if(clazz!=null) {
-			html.append(" class=\"");
-			html.append(clazz.toString());
-			html.append("\"");
-		}
-		if(dataToggle!=null) {
-			html.append(" data-toggle=\"");
-			html.append(dataToggle.toString());
-			html.append("\"");
-		}
-		if(dataTarget!=null) {
-			html.append(" data-target=\"");
-			html.append(dataTarget.toString());
-			html.append("\"");
-		}
-		html.append("></button>");
-		return html.toString();
+		StringBuilder html = new StringBuilder(200).append("<button");
+		if(id!=null)
+			html.append(" id=\"").append(id.toString()).append("\"");
+		if(name!=null)
+			html.append(" name=\"").append(name.toString()).append("\"");
+		if(clazz!=null)
+			html.append(" class=\"").append(clazz.toString()).append("\"");
+		if(dataToggle!=null)
+			html.append(" data-toggle=\"").append(dataToggle.toString()).append("\"");
+		if(dataTarget!=null)
+			html.append(" data-target=\"").append(dataTarget.toString()).append("\"");
+		return html.append("></button>").toString();
 	}
 }

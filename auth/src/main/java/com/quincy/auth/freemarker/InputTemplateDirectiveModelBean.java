@@ -14,34 +14,17 @@ public class InputTemplateDirectiveModelBean extends AbstractHtmlTemplateDirecti
 		Object name = params.get("name");
 		Object clazz = params.get("class");
 		Object value = params.get("value");
-		StringBuilder html = new StringBuilder(200);
-		html.append("<input");
-		if(type!=null) {
-			html.append(" type=\"");
-			html.append(type.toString());
-			html.append("\"");
-		}
-		if(id!=null) {
-			html.append(" id=\"");
-			html.append(id.toString());
-			html.append("\"");
-		}
-		if(name!=null) {
-			html.append(" name=\"");
-			html.append(name.toString());
-			html.append("\"");
-		}
-		if(clazz!=null) {
-			html.append(" class=\"");
-			html.append(clazz.toString());
-			html.append("\"");
-		}
-		if(value!=null) {
-			html.append(" value=\"");
-			html.append(value.toString());
-			html.append("\"");
-		}
-		html.append(" />");
-		return html.toString();
+		StringBuilder html = new StringBuilder(200).append("<input");
+		if(type!=null)
+			html.append(" type=\"").append(type.toString()).append("\"");
+		if(id!=null)
+			html.append(" id=\"").append(id.toString()).append("\"");
+		if(name!=null)
+			html.append(" name=\"").append(name.toString()).append("\"");
+		if(clazz!=null)
+			html.append(" class=\"").append(clazz.toString()).append("\"");
+		if(value!=null)
+			html.append(" value=\"").append(value.toString()).append("\"");
+		return html.append(" />").toString();
 	}
 }

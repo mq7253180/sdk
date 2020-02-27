@@ -15,39 +15,19 @@ public class HyperlinkTemplateDirectiveModelBean extends AbstractHtmlTemplateDir
 		Object href = params.get("href");
 		Object target = params.get("target");
 		Object value = params.get("value");
-		StringBuilder html = new StringBuilder(200);
-		html.append("<a");
-		if(id!=null) {
-			html.append(" id=\"");
-			html.append(id.toString());
-			html.append("\"");
-		}
-		if(name!=null) {
-			html.append(" name=\"");
-			html.append(name.toString());
-			html.append("\"");
-		}
-		if(clazz!=null) {
-			html.append(" class=\"");
-			html.append(clazz.toString());
-			html.append("\"");
-		}
-		if(href!=null) {
-			html.append(" href=\"");
-			html.append(href.toString());
-			html.append("\"");
-		}
-		if(target!=null) {
-			html.append(" target=\"");
-			html.append(target.toString());
-			html.append("\"");
-		}
-		if(value!=null) {
-			html.append(" value=\"");
-			html.append(value.toString());
-			html.append("\"");
-		}
-		html.append("></a>");
-		return html.toString();
+		StringBuilder html = new StringBuilder(200).append("<a");
+		if(id!=null)
+			html.append(" id=\"").append(id.toString()).append("\"");
+		if(name!=null)
+			html.append(" name=\"").append(name.toString()).append("\"");
+		if(clazz!=null)
+			html.append(" class=\"").append(clazz.toString()).append("\"");
+		if(href!=null)
+			html.append(" href=\"").append(href.toString()).append("\"");
+		if(target!=null)
+			html.append(" target=\"").append(target.toString()).append("\"");
+		if(value!=null)
+			html.append(" value=\"").append(value.toString()).append("\"");
+		return html.append("></a>").toString();
 	}
 }

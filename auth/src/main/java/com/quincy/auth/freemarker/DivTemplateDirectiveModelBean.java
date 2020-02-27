@@ -12,24 +12,13 @@ public class DivTemplateDirectiveModelBean extends AbstractHtmlTemplateDirective
 		Object id = params.get("id");
 		Object name = params.get("name");
 		Object clazz = params.get("class");
-		StringBuilder html = new StringBuilder(200);
-		html.append("<div");
-		if(id!=null) {
-			html.append(" id=\"");
-			html.append(id.toString());
-			html.append("\"");
-		}
-		if(name!=null) {
-			html.append(" name=\"");
-			html.append(name.toString());
-			html.append("\"");
-		}
-		if(clazz!=null) {
-			html.append(" class=\"");
-			html.append(clazz.toString());
-			html.append("\"");
-		}
-		html.append("></div>");
-		return html.toString();
+		StringBuilder html = new StringBuilder(200).append("<div");
+		if(id!=null)
+			html.append(" id=\"").append(id.toString()).append("\"");
+		if(name!=null)
+			html.append(" name=\"").append(name.toString()).append("\"");
+		if(clazz!=null)
+			html.append(" class=\"").append(clazz.toString()).append("\"");
+		return html.append("></div>").toString();
 	}
 }
