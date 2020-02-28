@@ -403,7 +403,7 @@ public class CommonHelper {
     }
 
 	public static String fullMethodPath(Class<?> clazz, MethodSignature methodSignature, Method method, Object[] args, String _separator0, String _separator1, String _separator2) throws NoSuchMethodException, SecurityException {
-		StringBuilder sb = new StringBuilder(300).append(clazz.getName()).append(trim(_separator0)).append(methodSignature.getName());
+		StringBuilder sb = new StringBuilder(200).append(clazz.getName()).append(trim(_separator0)).append(methodSignature.getName());
 		String separator1 = trim(_separator1);
 		String separator2 = trim(_separator2);
 		if(separator1!=null&&separator2!=null) {
