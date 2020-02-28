@@ -41,7 +41,7 @@ public class AliyunDNTXTUpdate {
 		String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(c.getTime());
 		timestamp = timestamp.replaceAll("\\s+", "T")+"Z";
 		timestamp = URLEncoder.encode(timestamp, CHARSET_UTF8);
-		StringBuilder params = new StringBuilder(1000).append("AccessKeyId=").append(id).append("&Action=").append(action);
+		StringBuilder params = new StringBuilder(500).append("AccessKeyId=").append(id).append("&Action=").append(action);
 		if("DescribeDomainRecords".equals(action))
 			params.append("&DomainName=").append(domain);
 		params.append("&Format=JSON");

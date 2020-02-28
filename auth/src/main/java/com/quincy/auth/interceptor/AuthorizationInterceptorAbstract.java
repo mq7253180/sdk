@@ -60,7 +60,7 @@ public abstract class AuthorizationInterceptorAbstract extends HandlerIntercepto
 		if(Constants.CLIENT_TYPE_J.equals(clientType)) {
 			output(response, status, msg);
 		} else {
-			StringBuilder uri = new StringBuilder(200).append(redirectTo);
+			StringBuilder uri = new StringBuilder(250).append(redirectTo);
 			String locale = CommonHelper.trim(request.getParameter(Constants.KEY_LOCALE));
 			if(locale!=null)
 				uri.append("?").append(Constants.KEY_LOCALE).append("=").append(locale);

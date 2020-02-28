@@ -61,7 +61,7 @@ public abstract class AbstractHtmlTemplateDirectiveModel implements TemplateDire
 		@Override
 		public void write(char[] cbuf, int off, int len) throws IOException {
 			int index = html.indexOf("</");
-			StringBuilder sb = new StringBuilder(html.substring(0, index)).append(cbuf).append(html.substring(index, html.length()));
+			StringBuilder sb = new StringBuilder(200).append(html.substring(0, index)).append(cbuf).append(html.substring(index, html.length()));
 			out.write(sb.toString());
 		}
 

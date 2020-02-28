@@ -35,7 +35,7 @@ public class GlobalHandlerExceptionResolver implements HandlerExceptionResolver 
 
 	private String getExceptionStackTrace(Exception e, String lineBreak, String spaceSymbol) {
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		StringBuilder msg = new StringBuilder(1000)
+		StringBuilder msg = new StringBuilder(500)
 				.append("*************")
 				.append(df.format(new Date()))
 				.append("*************")
