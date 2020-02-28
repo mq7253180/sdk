@@ -216,22 +216,16 @@ public class DistributedTransactionAop implements DTransactionContext {
 				int retries = tx.getVersion()+1;
 				if(retries>=retriesBeforeInform) {
 					List<TransactionArg> args = transactionService.findArgs(tx.getId(), DTransactionConstants.ARG_TYPE_TX);
-					StringBuilder message = new StringBuilder(350)
-							.append(tx.getApplicationName())
-							.append(".");
+					StringBuilder message = new StringBuilder(350).append(tx.getApplicationName()).append(".");
 					this.appendMethodAndArgs(message, tx.getBeanName(), tx.getMethodName(), args)
-					.append("\r\n创建时间: ")
-					.append(tx.getCreationTime()==null?"":df.format(tx.getCreationTime()))
-					.append("\r\n最后执行时间: ")
-					.append(txPo.getLastExecuted()==null?"":df.format(txPo.getLastExecuted()))
-					.append("\r\n已执行了: ")
-					.append(retries).append("次");
+					.append("\r\n创建时间: ").append(tx.getCreationTime()==null?"":df.format(tx.getCreationTime()))
+					.append("\r\n最后执行时间: ").append(txPo.getLastExecuted()==null?"":df.format(txPo.getLastExecuted()))
+					.append("\r\n已执行了: ").append(retries).append("次");
 					for(TransactionAtomic atomic:failureAtomics) {
 						args = atomic.getArgList();
 						message.append("\r\n\t");
 						this.appendMethodAndArgs(message, atomic.getBeanName(), atomic.getMethodName(), args)
-						.append(": ")
-						.append(atomic.getMsg());
+						.append(": ").append(atomic.getMsg());
 					}
 					threadPoolExecutor.execute(new Runnable() {
 						@Override
@@ -256,10 +250,7 @@ public class DistributedTransactionAop implements DTransactionContext {
 	private StringBuilder appendMethodAndArgs(StringBuilder message, String beanName, String methodName, List<TransactionArg> args) {
 		if(args==null)
 			args = new ArrayList<TransactionArg>(0);
-		message.append(beanName)
-		.append(".")
-		.append(methodName)
-		.append("(");
+		message.append(beanName).append(".").append(methodName).append("(");
 		int appendComma = args.size()-1;
 		for(int i=0;i<args.size();i++) {
 			TransactionArg arg = args.get(i);

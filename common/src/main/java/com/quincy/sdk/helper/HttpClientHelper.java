@@ -142,18 +142,15 @@ public class HttpClientHelper {
 	}
 
 	public static String getRequestURIOrURL(HttpServletRequest request, String type) {
-		StringBuffer url = "URI".equalsIgnoreCase(type)?new StringBuffer(request.getRequestURI()):request.getRequestURL();
+		StringBuffer url = "URI".equalsIgnoreCase(type)?new StringBuffer(300).append(request.getRequestURI()):request.getRequestURL();
 		String s = null;
 		Map<String, String[]> map = request.getParameterMap();
 		if(map!=null&&map.size()>0) {
 			Set<Entry<String, String[]>> set = map.entrySet();
 			url.append("?");
 			for(Entry<String, String[]> entry:set) {
-				url.append(entry.getKey());
-				url.append("=");
 				String[] values = entry.getValue();
-				url.append((values!=null&&values.length>0)?values[0]:"");
-				url.append("&");
+				url.append(entry.getKey()).append("=").append((values!=null&&values.length>0)?values[0]:"").append("&");
 			}
 			s = url.substring(0, url.length()-1);
 		} else

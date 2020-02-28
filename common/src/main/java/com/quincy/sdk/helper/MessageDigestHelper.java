@@ -100,11 +100,10 @@ public class MessageDigestHelper {
         return stringbuffer.toString();
     }
 
-    private static void appendHexPair(byte bt, StringBuffer stringbuffer) {
+    private static void appendHexPair(byte bt, StringBuffer sb) {
         char c0 = hexDigits[(bt & 0xf0) >> 4];
         char c1 = hexDigits[bt & 0xf];
-        stringbuffer.append(c0);
-        stringbuffer.append(c1);
+        sb.append(c0).append(c1);
     }
 
     public static byte[] sign(PrivateKey privateKey, byte[] data) throws GeneralSecurityException {

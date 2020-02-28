@@ -187,7 +187,7 @@ public class RSASecurityHelper {
 			if(i<data.length-1)
 				sb.append(' ');
 		}
-		return sb.toString(); 
+		return sb.toString();
 	}
 
 	private static String sign(PrivateKey privateKey, String algorithms, byte[] content) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, SignatureException, IOException {
