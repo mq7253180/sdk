@@ -83,5 +83,12 @@
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+			<!-- 脱离springboot加载jpa抛异常: java.lang.ArrayStoreException: sun.reflect.annotation.TypeNotPresentExceptionProxy -->
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aspects</artifactId>
+			<version>5.1.6.RELEASE</version>
+			<scope>compile</scope>
+		</dependency>
     </dependencies>
 </project>
