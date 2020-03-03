@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+//import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -36,7 +36,7 @@ import com.quincy.sdk.view.freemarker.PropertiesTemplateDirectiveModelBean;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Configuration
+//@Configuration
 public class WebMvcConfiguration extends WebMvcConfigurationSupport implements InitializingBean {
 	@Autowired
     private RequestMappingHandlerAdapter adapter;
@@ -54,7 +54,7 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport implements I
 		registry.addInterceptor(new I18NInterceptor()).addPathPatterns("/**");
 		String interceptorImpl = CommonHelper.trim(properties.getProperty("impl.auth.interceptor"));
 		if(interceptorImpl!=null) {
-			HandlerInterceptorAdapter handlerInterceptorAdapter = applicationContext.getBean("interceptorImpl", HandlerInterceptorAdapter.class);
+			HandlerInterceptorAdapter handlerInterceptorAdapter = applicationContext.getBean(interceptorImpl, HandlerInterceptorAdapter.class);
 			registry.addInterceptor(handlerInterceptorAdapter).addPathPatterns("/**");
 		}
 	}
