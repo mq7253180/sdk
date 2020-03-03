@@ -16,6 +16,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
@@ -293,8 +294,14 @@ public class DistributedTransactionAop implements DTransactionContext {
 				return annotation==null?null:annotation.value();
 			}
 		};
-		serviceSupport.setNext(componentSupport).setNext(controllerSupport).setNext(repositorySupport);
-		chainHead = serviceSupport;
+		Support configurationSupport = new Support() {
+			@Override
+			protected String resolve(Class<?> clazz) {
+				Configuration annotation = clazz.getDeclaredAnnotation(Configuration.class);
+				return annotation==null?null:annotation.value();
+			}
+		};
+		chainHead = serviceSupport.setNext(componentSupport).setNext(controllerSupport).setNext(repositorySupport).setNext(configurationSupport);
 	}
 
 	private static abstract class Support {
