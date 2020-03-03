@@ -8,6 +8,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -22,6 +23,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor;
 
 import com.quincy.sdk.Constants;
+import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.view.GlobalHandlerMethodReturnValueHandler;
 import com.quincy.sdk.view.GlobalLocaleResolver;
 import com.quincy.sdk.view.I18NInterceptor;
@@ -31,25 +33,30 @@ import com.quincy.sdk.view.freemarker.I18NTemplateDirectiveModelBean;
 import com.quincy.sdk.view.freemarker.LocaleTemplateDirectiveModelBean;
 import com.quincy.sdk.view.freemarker.PropertiesTemplateDirectiveModelBean;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Configuration
 public class WebMvcConfiguration extends WebMvcConfigurationSupport implements InitializingBean {
 	@Autowired
     private RequestMappingHandlerAdapter adapter;
 	@Autowired
 	private ApplicationContext applicationContext;
-	@Resource(name = "${impl.auth.interceptor}")
-	private HandlerInterceptorAdapter handlerInterceptorAdapter;
+	@Resource(name = Constants.BEAN_NAME_PROPERTIES)
+    private Properties properties;
 	@Value("${env}")
 	private String env;
-	@Value("${server.port}")
-	private String cluster;
 
 	@Override
 	protected void addInterceptors(InterceptorRegistry registry) {
 		if(Constants.ENV_DEV.equals(env))
 			registry.addInterceptor(new StaticInterceptor()).addPathPatterns("/static/**");
 		registry.addInterceptor(new I18NInterceptor()).addPathPatterns("/**");
-		registry.addInterceptor(handlerInterceptorAdapter).addPathPatterns("/**");
+		String interceptorImpl = CommonHelper.trim(properties.getProperty("impl.auth.interceptor"));
+		if(interceptorImpl!=null) {
+			HandlerInterceptorAdapter handlerInterceptorAdapter = applicationContext.getBean("interceptorImpl", HandlerInterceptorAdapter.class);
+			registry.addInterceptor(handlerInterceptorAdapter).addPathPatterns("/**");
+		}
 	}
 
     @Override
@@ -63,6 +70,7 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport implements I
     private void decorateHandlers(List<HandlerMethodReturnValueHandler> handlers) {
         for(HandlerMethodReturnValueHandler handler:handlers) {
             if(handler instanceof RequestResponseBodyMethodProcessor) {
+            	String cluster = CommonHelper.trim(properties.getProperty("impl.auth.interceptor"));
             	HandlerMethodReturnValueHandler decorator = new GlobalHandlerMethodReturnValueHandler(handler, applicationContext, cluster);
                 int index = handlers.indexOf(handler);
                 handlers.set(index, decorator);
@@ -76,17 +84,20 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport implements I
         return new GlobalLocaleResolver();
     }
 
-    @Resource(name = Constants.BEAN_NAME_PROPERTIES)
-    private Properties properties;
-    @Autowired
-    private freemarker.template.Configuration configuration;
-
     @PostConstruct
     public void freeMarkerConfigurer() {
-    	configuration.setSharedVariable("attr", new AttributeTemplateDirectiveModelBean());
-    	configuration.setSharedVariable("i18n", new I18NTemplateDirectiveModelBean(properties));
-    	configuration.setSharedVariable("property", new PropertiesTemplateDirectiveModelBean(properties));
-    	configuration.setSharedVariable("locale", new LocaleTemplateDirectiveModelBean());
+    	freemarker.template.Configuration configuration = null;
+    	try {
+    		configuration = applicationContext.getBean(freemarker.template.Configuration.class);
+    	} catch(NoSuchBeanDefinitionException e) {
+    		log.warn("===================NO_FREEMARKER");
+    	}
+    	if(configuration!=null) {
+    		configuration.setSharedVariable("attr", new AttributeTemplateDirectiveModelBean());
+        	configuration.setSharedVariable("i18n", new I18NTemplateDirectiveModelBean(properties));
+        	configuration.setSharedVariable("property", new PropertiesTemplateDirectiveModelBean(properties));
+        	configuration.setSharedVariable("locale", new LocaleTemplateDirectiveModelBean());
+    	}
     }
 
     /*@Bean
