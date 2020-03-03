@@ -10,14 +10,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.quincy.core.sftp.ChannelSftpSource;
-import com.quincy.core.sftp.PoolableChannelSftp;
 import com.quincy.core.sftp.PoolableChannelSftpFactory;
 import com.quincy.core.sftp.impl.ChannelSftpSourceImpl;
 
 @Configuration
 public class SFTPApplicationContext {
 	@Autowired
-	private GenericObjectPoolConfig<?> poolCfg;
+	private GenericObjectPoolConfig poolCfg;
 	@Autowired
 	private AbandonedConfig abandonedCfg;
 	@Value("${sftp.host}")
@@ -31,29 +30,8 @@ public class SFTPApplicationContext {
 
 	@Bean
 	public ChannelSftpSource createChannelSftpSource() {
-		GenericObjectPoolConfig<PoolableChannelSftp> cfg = new GenericObjectPoolConfig<PoolableChannelSftp>();
-		cfg.setMaxTotal(poolCfg.getMaxTotal());
-		cfg.setMaxIdle(poolCfg.getMaxIdle());
-		cfg.setMinIdle(poolCfg.getMinIdle());
-		cfg.setMaxWaitMillis(poolCfg.getMaxWaitMillis());
-		cfg.setMinEvictableIdleTimeMillis(poolCfg.getMinEvictableIdleTimeMillis());
-		cfg.setTimeBetweenEvictionRunsMillis(poolCfg.getTimeBetweenEvictionRunsMillis());
-		cfg.setNumTestsPerEvictionRun(poolCfg.getNumTestsPerEvictionRun());
-		cfg.setBlockWhenExhausted(poolCfg.getBlockWhenExhausted());
-		cfg.setTestOnBorrow(poolCfg.getTestOnBorrow());
-		cfg.setTestOnCreate(poolCfg.getTestOnCreate());
-		cfg.setTestOnReturn(poolCfg.getTestOnReturn());
-		cfg.setTestWhileIdle(poolCfg.getTestWhileIdle());
-		cfg.setFairness(poolCfg.getFairness());
-		cfg.setLifo(poolCfg.getLifo());
-		cfg.setEvictionPolicyClassName(poolCfg.getEvictionPolicyClassName());
-		cfg.setEvictorShutdownTimeoutMillis(poolCfg.getEvictorShutdownTimeoutMillis());
-		cfg.setSoftMinEvictableIdleTimeMillis(poolCfg.getSoftMinEvictableIdleTimeMillis());
-		cfg.setJmxEnabled(poolCfg.getJmxEnabled());
-		cfg.setJmxNameBase(poolCfg.getJmxNameBase());
-		cfg.setJmxNamePrefix(poolCfg.getJmxNamePrefix());
 		PoolableChannelSftpFactory f = new PoolableChannelSftpFactory(host, port, username, privateKey);
-		ChannelSftpSource s = new ChannelSftpSourceImpl(f, cfg, abandonedCfg);
+		ChannelSftpSource s = new ChannelSftpSourceImpl(f, poolCfg, abandonedCfg);
 		return s;
 	}
 

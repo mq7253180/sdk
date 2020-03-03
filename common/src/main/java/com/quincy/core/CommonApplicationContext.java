@@ -121,7 +121,7 @@ public class CommonApplicationContext {//implements TransactionManagementConfigu
 	private Properties properties;
 
 	@Bean
-	public GenericObjectPoolConfig<?> genericObjectPoolConfig() {
+	public GenericObjectPoolConfig genericObjectPoolConfig() {
 		String maxTotal = CommonHelper.trim(properties.getProperty("pool.maxTotal"));
 		String maxIdle = CommonHelper.trim(properties.getProperty("pool.maxIdle"));
 		String minIdle = CommonHelper.trim(properties.getProperty("pool.minIdle"));
@@ -142,7 +142,7 @@ public class CommonApplicationContext {//implements TransactionManagementConfigu
 		String jmxEnabled = CommonHelper.trim(properties.getProperty("pool.jmxEnabled"));
 		String jmxNameBase = CommonHelper.trim(properties.getProperty("pool.jmxNameBase"));
 		String jmxNamePrefix = CommonHelper.trim(properties.getProperty("pool.jmxNamePrefix"));
-		GenericObjectPoolConfig<?> poolParams = new GenericObjectPoolConfig<Object>();
+		GenericObjectPoolConfig poolParams = new GenericObjectPoolConfig();
 		if(maxTotal!=null)
 			poolParams.setMaxTotal(Integer.parseInt(maxTotal));
 		if(maxIdle!=null)
@@ -193,7 +193,7 @@ public class CommonApplicationContext {//implements TransactionManagementConfigu
 		String removeAbandonedTimeout = CommonHelper.trim(properties.getProperty("pool.removeAbandonedTimeout"));
 		String logAbandoned = CommonHelper.trim(properties.getProperty("pool.logAbandoned"));
 		String useUsageTracking = CommonHelper.trim(properties.getProperty("pool.useUsageTracking"));
-		String requireFullStackTrace = CommonHelper.trim(properties.getProperty("pool.requireFullStackTrace"));
+//		String requireFullStackTrace = CommonHelper.trim(properties.getProperty("pool.requireFullStackTrace"));
 		AbandonedConfig ac = new AbandonedConfig();
 		if(removeAbandonedOnMaintenance!=null)
 			ac.setRemoveAbandonedOnMaintenance(Boolean.parseBoolean(removeAbandonedOnMaintenance));//在Maintenance的时候检查是否有泄漏
@@ -205,8 +205,8 @@ public class CommonApplicationContext {//implements TransactionManagementConfigu
 			ac.setLogAbandoned(Boolean.parseBoolean(logAbandoned));
 		if(useUsageTracking!=null)
 			ac.setUseUsageTracking(Boolean.parseBoolean(useUsageTracking));
-		if(requireFullStackTrace!=null)
-			ac.setRequireFullStackTrace(Boolean.parseBoolean(requireFullStackTrace));
+		/*if(requireFullStackTrace!=null)
+			ac.setRequireFullStackTrace(Boolean.parseBoolean(requireFullStackTrace));*/
 //		ac.setLogWriter(logWriter);
 		return ac;
 	}

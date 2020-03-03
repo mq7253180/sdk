@@ -42,7 +42,7 @@ public class RedisApplicationContext {
 	@Resource(name = Constants.BEAN_NAME_PROPERTIES)
 	private Properties properties;
 	@Autowired
-	private GenericObjectPoolConfig<?> poolCfg;
+	private GenericObjectPoolConfig poolCfg;
 
 	private static Pool<Jedis> pool;
 	private static QuincyJedis quincyJedis;

@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ZooKeeperSourceImpl implements ZooKeeperSource {
 	private ObjectPool<PoolableZooKeeper> pool;
 
-	public ZooKeeperSourceImpl(PoolableZooKeeperFactory f, GenericObjectPoolConfig<PoolableZooKeeper> pc, AbandonedConfig ac) {
+	public ZooKeeperSourceImpl(PoolableZooKeeperFactory f, GenericObjectPoolConfig pc, AbandonedConfig ac) {
 		GenericObjectPool<PoolableZooKeeper> pool = new GenericObjectPool<PoolableZooKeeper>(f, pc, ac);
 		pool.setSwallowedExceptionListener(new SwallowedExceptionListener() {
 			@Override

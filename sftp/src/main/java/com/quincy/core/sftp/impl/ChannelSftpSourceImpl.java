@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ChannelSftpSourceImpl implements ChannelSftpSource {
 	private ObjectPool<PoolableChannelSftp> pool;
 
-	public ChannelSftpSourceImpl(PoolableChannelSftpFactory f, GenericObjectPoolConfig<PoolableChannelSftp> pc, AbandonedConfig ac) {
+	public ChannelSftpSourceImpl(PoolableChannelSftpFactory f, GenericObjectPoolConfig pc, AbandonedConfig ac) {
 		GenericObjectPool<PoolableChannelSftp> pool = new GenericObjectPool<PoolableChannelSftp>(f, pc, ac);
 		pool.setSwallowedExceptionListener(new SwallowedExceptionListener() {
 			@Override

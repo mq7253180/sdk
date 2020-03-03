@@ -153,7 +153,7 @@ public class CoreApplicationContext {//implements TransactionManagementConfigure
 	}
 
 	@Autowired
-	private GenericObjectPoolConfig<?> poolCfg;
+	private GenericObjectPoolConfig poolCfg;
 	@Autowired
 	private AbandonedConfig abandonedCfg;
 	@Autowired

@@ -17,7 +17,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.quincy.core.zookeeper.ContextConstants;
-import com.quincy.core.zookeeper.PoolableZooKeeper;
 import com.quincy.core.zookeeper.PoolableZooKeeperFactory;
 import com.quincy.core.zookeeper.ZooKeeperSource;
 import com.quincy.core.zookeeper.impl.ZooKeeperSourceImpl;
@@ -36,36 +35,15 @@ public class ZooKeeperApplicationContext implements Context {
 	@Value("#{'${zk.distributedLock.keys}'.split(',')}")
 	private String[] distributedLockKeys;
 	@Autowired
-	private GenericObjectPoolConfig<?> poolCfg;
+	private GenericObjectPoolConfig poolCfg;
 	@Autowired
 	private AbandonedConfig abandonedCfg;
 
 	@Bean
 	public ZooKeeperSource zkeeperSource() throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 	    Class<?> clazz = Class.forName(watcher);
-		GenericObjectPoolConfig<PoolableZooKeeper> cfg = new GenericObjectPoolConfig<PoolableZooKeeper>();
-		cfg.setMaxTotal(poolCfg.getMaxTotal());
-		cfg.setMaxIdle(poolCfg.getMaxIdle());
-		cfg.setMinIdle(poolCfg.getMinIdle());
-		cfg.setMaxWaitMillis(poolCfg.getMaxWaitMillis());
-		cfg.setMinEvictableIdleTimeMillis(poolCfg.getMinEvictableIdleTimeMillis());
-		cfg.setTimeBetweenEvictionRunsMillis(poolCfg.getTimeBetweenEvictionRunsMillis());
-		cfg.setNumTestsPerEvictionRun(poolCfg.getNumTestsPerEvictionRun());
-		cfg.setBlockWhenExhausted(poolCfg.getBlockWhenExhausted());
-		cfg.setTestOnBorrow(poolCfg.getTestOnBorrow());
-		cfg.setTestOnCreate(poolCfg.getTestOnCreate());
-		cfg.setTestOnReturn(poolCfg.getTestOnReturn());
-		cfg.setTestWhileIdle(poolCfg.getTestWhileIdle());
-		cfg.setFairness(poolCfg.getFairness());
-		cfg.setLifo(poolCfg.getLifo());
-		cfg.setEvictionPolicyClassName(poolCfg.getEvictionPolicyClassName());
-		cfg.setEvictorShutdownTimeoutMillis(poolCfg.getEvictorShutdownTimeoutMillis());
-		cfg.setSoftMinEvictableIdleTimeMillis(poolCfg.getSoftMinEvictableIdleTimeMillis());
-		cfg.setJmxEnabled(poolCfg.getJmxEnabled());
-		cfg.setJmxNameBase(poolCfg.getJmxNameBase());
-		cfg.setJmxNamePrefix(poolCfg.getJmxNamePrefix());
 		PoolableZooKeeperFactory f = new PoolableZooKeeperFactory(url, timeout, (Watcher)clazz.newInstance());
-		ZooKeeperSource s = new ZooKeeperSourceImpl(f, cfg, abandonedCfg);
+		ZooKeeperSource s = new ZooKeeperSourceImpl(f, poolCfg, abandonedCfg);
 		return s;
 	}
 
