@@ -94,12 +94,9 @@ public class ZooKeeperApplicationContext implements Context {
 		return zookeeperSynchronizationNode;
 	}
 
-	@Autowired
-	private ZooKeeperSource zkSource;
-
 	@PreDestroy
 	public void destroy() {
-		if(zkSource!=null)
-			zkSource.close();
+		if(zooKeeperSource!=null)
+			zooKeeperSource.close();
 	}
 }
