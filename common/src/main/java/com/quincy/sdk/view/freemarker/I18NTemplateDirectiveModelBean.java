@@ -30,9 +30,8 @@ public class I18NTemplateDirectiveModelBean implements TemplateDirectiveModel {
 		String msg = requestContext.getMessage(params.get("key").toString());
 		if(body!=null) {
 			body.render(new PlaceHolderWriter(env.getOut(), requestContext, properties, msg));
-		} else {
+		} else
 			env.getOut().write(msg);
-		}
 	}
 
 	private static class PlaceHolderWriter extends Writer {
@@ -57,16 +56,15 @@ public class I18NTemplateDirectiveModelBean implements TemplateDirectiveModel {
 				String[] placeholderValue = s.split(":");
 				String type = null;
 				String value = null;
-				if(placeholderValue.length>1) {
+				if(placeholderValue.length==1) {
+					args[i] = placeholderValue[0];
+				} else if(placeholderValue.length>1) {
 					type = placeholderValue[0].trim();
 					value = placeholderValue.length>1?placeholderValue[1].trim():type;
 					if("property".equals(type)) {
 						args[i] = properties.getProperty(value);
-					} else if("i18n".equals(type)) {
+					} else if("i18n".equals(type))
 						args[i] = requestContext.getMessage(value);
-					}
-				} else if(placeholderValue.length==1) {
-					args[i] = placeholderValue[0];
 				}
 			}
 			out.write(MessageFormat.format(msg, args));
@@ -89,5 +87,4 @@ public class I18NTemplateDirectiveModelBean implements TemplateDirectiveModel {
 	public void setProperties(Properties properties) {
 		this.properties = properties;
 	}
-
 }
