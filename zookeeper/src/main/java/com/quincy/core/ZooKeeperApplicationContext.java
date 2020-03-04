@@ -40,7 +40,7 @@ public class ZooKeeperApplicationContext implements Context {
 	private AbandonedConfig abandonedCfg;
 
 	@Bean
-	public ZooKeeperSource zkeeperSource() throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+	public ZooKeeperSource zkSource() throws InstantiationException, IllegalAccessException, ClassNotFoundException {
 	    Class<?> clazz = Class.forName(watcher);
 		PoolableZooKeeperFactory f = new PoolableZooKeeperFactory(url, timeout, (Watcher)clazz.newInstance());
 		ZooKeeperSource s = new ZooKeeperSourceImpl(f, poolCfg, abandonedCfg);
