@@ -7,7 +7,6 @@ import javax.annotation.Resource;
 import org.apache.commons.pool2.impl.AbandonedConfig;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
@@ -17,9 +16,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.quincy.core.zookeeper.ContextConstants;
-import com.quincy.core.zookeeper.PoolableZooKeeperFactory;
 import com.quincy.core.zookeeper.ZooKeeperSource;
-import com.quincy.core.zookeeper.impl.ZooKeeperSourceImpl;
+import com.quincy.core.zookeeper.ZooKeeperSourceBean;
 import com.quincy.sdk.zookeeper.Context;
 
 @Configuration
@@ -40,11 +38,8 @@ public class ZooKeeperApplicationContext implements Context {
 	private AbandonedConfig abandonedCfg;
 
 	@Bean
-	public ZooKeeperSource zkSource() throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-	    Class<?> clazz = Class.forName(watcher);
-		PoolableZooKeeperFactory f = new PoolableZooKeeperFactory(url, timeout, (Watcher)clazz.newInstance());
-		ZooKeeperSource s = new ZooKeeperSourceImpl(f, poolCfg, abandonedCfg);
-		return s;
+	public ZooKeeperSourceBean zkSourceBean() throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+		return new ZooKeeperSourceBean(url, timeout, watcher, poolCfg, abandonedCfg);
 	}
 
 	@Autowired
