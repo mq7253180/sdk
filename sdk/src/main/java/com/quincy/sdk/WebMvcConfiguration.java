@@ -1,4 +1,4 @@
-package com.quincy.core;
+package com.quincy.sdk;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,7 +70,7 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport implements I
     private void decorateHandlers(List<HandlerMethodReturnValueHandler> handlers) {
         for(HandlerMethodReturnValueHandler handler:handlers) {
             if(handler instanceof RequestResponseBodyMethodProcessor) {
-            	String cluster = CommonHelper.trim(properties.getProperty("impl.auth.interceptor"));
+            	String cluster = CommonHelper.trim(properties.getProperty("server.port"));
             	HandlerMethodReturnValueHandler decorator = new GlobalHandlerMethodReturnValueHandler(handler, applicationContext, cluster);
                 int index = handlers.indexOf(handler);
                 handlers.set(index, decorator);
