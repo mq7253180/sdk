@@ -38,8 +38,10 @@ public class ZooKeeperApplicationContext implements Context {
 	private AbandonedConfig abandonedCfg;
 
 	@Bean
-	public ZooKeeperSourceBean zkSourceBean() {
-		return new ZooKeeperSourceBean(url, timeout, watcher, poolCfg, abandonedCfg);
+	public ZooKeeperSourceBean zkSourceBean() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+		ZooKeeperSourceBean b = new ZooKeeperSourceBean(url, timeout, watcher, poolCfg, abandonedCfg);
+		b.afterPropertiesSet();
+		return b;
 	}
 
 	@Autowired
