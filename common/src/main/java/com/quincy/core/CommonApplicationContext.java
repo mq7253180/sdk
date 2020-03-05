@@ -70,7 +70,6 @@ public class CommonApplicationContext {//implements TransactionManagementConfigu
 		PropertiesFactoryBean bean = new PropertiesFactoryBean();
 		bean.setLocations(locations);
 		bean.afterPropertiesSet();
-		log.warn("====================PROPERTIES_FACTORY_BEAN_CREATED");
 		return bean;
 	}
 
