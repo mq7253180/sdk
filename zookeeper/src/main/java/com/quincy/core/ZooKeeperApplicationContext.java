@@ -7,17 +7,20 @@ import javax.annotation.Resource;
 import org.apache.commons.pool2.impl.AbandonedConfig;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.quincy.core.zookeeper.ContextConstants;
 import com.quincy.core.zookeeper.ZooKeeperSource;
 import com.quincy.core.zookeeper.ZooKeeperSourceBean;
+import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.zookeeper.Context;
 
 @Configuration
@@ -36,6 +39,8 @@ public class ZooKeeperApplicationContext implements Context {
 	private GenericObjectPoolConfig poolCfg;
 	@Autowired
 	private AbandonedConfig abandonedCfg;
+	@Autowired
+	private ApplicationContext applicationContext;
 
 	/**
 	 * 防止脱离Spring Boot启动时抛异常: Requested bean is currently in creation: Is there an unresolvable circular reference?
@@ -47,7 +52,8 @@ public class ZooKeeperApplicationContext implements Context {
 
 	@Bean
 	public ZooKeeperSourceBean zkSourceBean() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-		ZooKeeperSourceBean b = new ZooKeeperSourceBean(url, timeout, watcher, poolCfg, abandonedCfg);
+		Watcher w = applicationContext.getBean(CommonHelper.trim(watcher), Watcher.class);
+		ZooKeeperSourceBean b = new ZooKeeperSourceBean(url, timeout, w, poolCfg, abandonedCfg);
 		b.afterPropertiesSet();
 		return b;
 	}
