@@ -27,9 +27,6 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import com.quincy.sdk.Constants;
 import com.quincy.sdk.helper.CommonHelper;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 @Configuration
 public class CommonApplicationContext {//implements TransactionManagementConfigurer {
 	@Bean
@@ -95,9 +92,6 @@ public class CommonApplicationContext {//implements TransactionManagementConfigu
 	@PostConstruct
 	public void init() {
 		CommonHelper.SUPPORTED_LOCALES = supportedLocales;
-		for(String l:supportedLocales) {
-			log.warn("SUPPORTED_LOCALE--------------{}", l);
-		}
 	}
 
 	@Value("${threadPool.corePoolSize}")
