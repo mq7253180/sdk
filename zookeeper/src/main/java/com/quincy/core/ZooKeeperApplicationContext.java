@@ -37,6 +37,14 @@ public class ZooKeeperApplicationContext implements Context {
 	@Autowired
 	private AbandonedConfig abandonedCfg;
 
+	/**
+	 * 防止脱离Spring Boot启动时抛异常: Requested bean is currently in creation: Is there an unresolvable circular reference?
+	 */
+	@Bean
+	public Object xxxObjZk() {
+		return new Object();
+	}
+
 	@Bean
 	public ZooKeeperSourceBean zkSourceBean() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 		ZooKeeperSourceBean b = new ZooKeeperSourceBean(url, timeout, watcher, poolCfg, abandonedCfg);

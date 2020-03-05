@@ -28,6 +28,14 @@ public class SFTPApplicationContext {
 	@Value("${sftp.privateKey}")
 	private String privateKey;
 
+	/**
+	 * 防止脱离Spring Boot启动时抛异常: Requested bean is currently in creation: Is there an unresolvable circular reference?
+	 */
+	@Bean
+	public Object xxxObjSftp() {
+		return new Object();
+	}
+
 	@Bean
 	public ChannelSftpSource createChannelSftpSource() {
 		PoolableChannelSftpFactory f = new PoolableChannelSftpFactory(host, port, username, privateKey);
