@@ -24,14 +24,14 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBody
 
 import com.quincy.sdk.Constants;
 import com.quincy.sdk.helper.CommonHelper;
-import com.quincy.sdk.view.GlobalHandlerMethodReturnValueHandler;
-import com.quincy.sdk.view.GlobalLocaleResolver;
-import com.quincy.sdk.view.I18NInterceptor;
-import com.quincy.sdk.view.StaticInterceptor;
-import com.quincy.sdk.view.freemarker.AttributeTemplateDirectiveModelBean;
-import com.quincy.sdk.view.freemarker.I18NTemplateDirectiveModelBean;
-import com.quincy.sdk.view.freemarker.LocaleTemplateDirectiveModelBean;
-import com.quincy.sdk.view.freemarker.PropertiesTemplateDirectiveModelBean;
+import com.quincy.sdk.web.GlobalHandlerMethodReturnValueHandler;
+import com.quincy.sdk.web.GlobalLocaleResolver;
+import com.quincy.sdk.web.I18NInterceptor;
+import com.quincy.sdk.web.StaticInterceptor;
+import com.quincy.sdk.web.freemarker.AttributeTemplateDirectiveModelBean;
+import com.quincy.sdk.web.freemarker.I18NTemplateDirectiveModelBean;
+import com.quincy.sdk.web.freemarker.LocaleTemplateDirectiveModelBean;
+import com.quincy.sdk.web.freemarker.PropertiesTemplateDirectiveModelBean;
 
 import lombok.extern.slf4j.Slf4j;
 

@@ -1,4 +1,4 @@
-package com.quincy.sdk.view;
+package com.quincy.sdk.web;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

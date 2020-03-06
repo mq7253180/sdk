@@ -1,4 +1,4 @@
-package com.quincy.sdk.view.freemarker;
+package com.quincy.sdk.web.freemarker;
 
 import java.io.IOException;
 import java.io.Writer;

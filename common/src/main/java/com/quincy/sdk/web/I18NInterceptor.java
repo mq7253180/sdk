@@ -1,4 +1,4 @@
-package com.quincy.sdk.view;
+package com.quincy.sdk.web;
 
 import java.util.Locale;
 
@@ -10,7 +10,6 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import com.quincy.core.Sync;
-import com.quincy.sdk.Constants;
 import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.helper.HttpClientHelper;
 
@@ -22,10 +21,10 @@ public class I18NInterceptor extends HandlerInterceptorAdapter {
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 		log.warn(HttpClientHelper.getRequestURIOrURL(request, "URL"));
 //		response.setHeader("Access-Control-Allow-Origin", domain);
-		response.setHeader("Access-Control-Allow-Credentials", "true");
-        response.setHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
-        response.setHeader("Access-Control-Max-Age", "3600");
-        response.setHeader("Access-Control-Allow-Headers", "accept, Accept, Origin, x-requested-with, XRequestedWith, XMLHttpRequest, Content-Type, contentType, LastModified, "+Constants.CLIENT_TOKEN);
+//		response.setHeader("Access-Control-Allow-Credentials", "true");
+//		response.setHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
+//		response.setHeader("Access-Control-Max-Age", "3600");
+//		response.setHeader("Access-Control-Allow-Headers", "accept, Accept, Origin, x-requested-with, XRequestedWith, XMLHttpRequest, Content-Type, contentType, LastModified, "+Constants.CLIENT_TOKEN);
 		Locale locale = StringUtils.parseLocaleString(CommonHelper.getLocale(request));
 		/*
 		 * 普通springmvc这样设置, spring-boot抛异常, spring-boot要通过实现LocaleResolver接口的bean实现
