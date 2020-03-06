@@ -1,4 +1,4 @@
-package com.quincy.sdk.web;
+package com.quincy.core.web;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;

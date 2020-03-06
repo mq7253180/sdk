@@ -1,4 +1,4 @@
-package com.quincy.sdk.web;
+package com.quincy.core.web;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.MethodParameter;

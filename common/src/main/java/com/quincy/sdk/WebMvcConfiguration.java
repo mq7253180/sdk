@@ -15,6 +15,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 //import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
@@ -22,12 +23,13 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor;
 
+import com.quincy.core.web.GlobalHandlerExceptionResolver;
+import com.quincy.core.web.GlobalHandlerMethodReturnValueHandler;
+import com.quincy.core.web.GlobalLocaleResolver;
+import com.quincy.core.web.I18NInterceptor;
+import com.quincy.core.web.StaticInterceptor;
 import com.quincy.sdk.Constants;
 import com.quincy.sdk.helper.CommonHelper;
-import com.quincy.sdk.web.GlobalHandlerMethodReturnValueHandler;
-import com.quincy.sdk.web.GlobalLocaleResolver;
-import com.quincy.sdk.web.I18NInterceptor;
-import com.quincy.sdk.web.StaticInterceptor;
 import com.quincy.sdk.web.freemarker.AttributeTemplateDirectiveModelBean;
 import com.quincy.sdk.web.freemarker.I18NTemplateDirectiveModelBean;
 import com.quincy.sdk.web.freemarker.LocaleTemplateDirectiveModelBean;
@@ -82,6 +84,11 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport implements I
     @Bean
     public LocaleResolver localeResolver() {
         return new GlobalLocaleResolver();
+    }
+
+    @Bean
+    public HandlerExceptionResolver handlerExceptionResolver() {
+    	return new GlobalHandlerExceptionResolver();
     }
 
     @PostConstruct

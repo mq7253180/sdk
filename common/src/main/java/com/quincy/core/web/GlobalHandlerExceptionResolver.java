@@ -1,4 +1,4 @@
-package com.quincy.sdk.web;
+package com.quincy.core.web;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -7,7 +7,6 @@ import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContext;
@@ -20,7 +19,6 @@ import com.quincy.sdk.helper.HttpClientHelper;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Component
 public class GlobalHandlerExceptionResolver implements HandlerExceptionResolver {
 	@Override
 	public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object handler, Exception e) {
