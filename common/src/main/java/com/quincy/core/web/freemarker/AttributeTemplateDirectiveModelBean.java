@@ -1,4 +1,4 @@
-package com.quincy.sdk.web.freemarker;
+package com.quincy.core.web.freemarker;
 
 import java.io.IOException;
 import java.util.HashMap;
