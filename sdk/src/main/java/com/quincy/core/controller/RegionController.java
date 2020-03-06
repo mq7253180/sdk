@@ -1,4 +1,4 @@
-package com.quincy.sdk.controller;
+package com.quincy.core.controller;
 
 import java.util.List;
 
