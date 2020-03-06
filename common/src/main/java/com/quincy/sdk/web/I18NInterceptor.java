@@ -45,13 +45,9 @@ public class I18NInterceptor extends HandlerInterceptorAdapter {
 	public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
 			ModelAndView modelAndView) throws Exception {
 		if(modelAndView!=null) {
-			String viewName = modelAndView.getViewName();
-			if(viewName!=null) {
-				viewName = viewName.trim();
-				if(!viewName.startsWith("redirect")&&!viewName.startsWith("forward")) {
-					modelAndView.setViewName(modelAndView.getViewName()+"_"+CommonHelper.clientType(request, handler));
-				}
-			}
+			String viewName = CommonHelper.trim(modelAndView.getViewName());
+			if(viewName!=null&&!viewName.startsWith("redirect")&&!viewName.startsWith("forward"))
+				modelAndView.setViewName(modelAndView.getViewName()+"_"+CommonHelper.clientType(request, handler));
 		}
 	}
 }
