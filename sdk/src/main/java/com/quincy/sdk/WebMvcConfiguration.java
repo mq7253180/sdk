@@ -93,6 +93,7 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport implements I
     		log.warn("===================NO_FREEMARKER");
     	}
     	if(configuration!=null) {
+    		log.warn("===================WITH_FREEMARKER");
     		configuration.setSharedVariable("attr", new AttributeTemplateDirectiveModelBean());
         	configuration.setSharedVariable("i18n", new I18NTemplateDirectiveModelBean(properties));
         	configuration.setSharedVariable("property", new PropertiesTemplateDirectiveModelBean(properties));
