@@ -130,7 +130,6 @@ public class CommonApplicationContext {//implements TransactionManagementConfigu
 		String fairness = CommonHelper.trim(properties.getProperty("pool.fairness"));
 		String lifo = CommonHelper.trim(properties.getProperty("pool.lifo"));
 		String evictionPolicyClassName = CommonHelper.trim(properties.getProperty("pool.evictionPolicyClassName"));
-		String evictorShutdownTimeoutMillis = CommonHelper.trim(properties.getProperty("pool.evictorShutdownTimeoutMillis"));
 		String softMinEvictableIdleTimeMillis = CommonHelper.trim(properties.getProperty("pool.softMinEvictableIdleTimeMillis"));
 		String jmxEnabled = CommonHelper.trim(properties.getProperty("pool.jmxEnabled"));
 		String jmxNameBase = CommonHelper.trim(properties.getProperty("pool.jmxNameBase"));
@@ -166,8 +165,6 @@ public class CommonApplicationContext {//implements TransactionManagementConfigu
 			poolParams.setLifo(Boolean.parseBoolean(lifo));
 		if(evictionPolicyClassName!=null)
 			poolParams.setEvictionPolicyClassName(evictionPolicyClassName);
-		if(evictorShutdownTimeoutMillis!=null)
-			poolParams.setEvictorShutdownTimeoutMillis(Long.parseLong(evictorShutdownTimeoutMillis));
 		if(softMinEvictableIdleTimeMillis!=null)
 			poolParams.setSoftMinEvictableIdleTimeMillis(Long.parseLong(softMinEvictableIdleTimeMillis));
 		if(jmxEnabled!=null)

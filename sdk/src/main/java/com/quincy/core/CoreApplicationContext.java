@@ -98,7 +98,6 @@ public class CoreApplicationContext {//implements TransactionManagementConfigure
 		private boolean fastFailValidation;
 		private Collection<String> disconnectionSqlCodes;
 		private String defaultCatalog;
-		private String defaultSchema;
 		private boolean accessToUnderlyingConnectionAllowed;
 	}
 
@@ -119,7 +118,6 @@ public class CoreApplicationContext {//implements TransactionManagementConfigure
 		String fastFailValidation = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.fastFailValidation"));
 		String _disconnectionSqlCodes = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.disconnectionSqlCodes"));
 		String defaultCatalog = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.defaultCatalog"));
-		String defaultSchema = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.defaultSchema"));
 		String accessToUnderlyingConnectionAllowed = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.accessToUnderlyingConnectionAllowed"));
 		BasicDataSource ds = new BasicDataSource();
 		DBConnPoolParams p = new DBConnPoolParams();
@@ -136,7 +134,6 @@ public class CoreApplicationContext {//implements TransactionManagementConfigure
 		p.setConnectionProperties(connectionProperties);
 		p.setFastFailValidation(fastFailValidation==null?ds.getFastFailValidation():Boolean.parseBoolean(fastFailValidation));
 		p.setDefaultCatalog(defaultCatalog);
-		p.setDefaultSchema(defaultSchema);
 		p.setAccessToUnderlyingConnectionAllowed(accessToUnderlyingConnectionAllowed==null?ds.isAccessToUnderlyingConnectionAllowed():Boolean.parseBoolean(accessToUnderlyingConnectionAllowed));
 		if(_connectionInitSqls!=null) {
 			String[] connectionInitSqls = _connectionInitSqls.split(";");
@@ -196,7 +193,6 @@ public class CoreApplicationContext {//implements TransactionManagementConfigure
 		ds.setFastFailValidation(dbConnPoolParams.isFastFailValidation());
 		ds.setDisconnectionSqlCodes(dbConnPoolParams.getDisconnectionSqlCodes());
 		ds.setDefaultCatalog(dbConnPoolParams.getDefaultCatalog());
-		ds.setDefaultSchema(dbConnPoolParams.getDefaultSchema());
 		if(dbConnPoolParams.getConnectionProperties()!=null)
 			ds.setConnectionProperties(dbConnPoolParams.getConnectionProperties());
 		ds.setAccessToUnderlyingConnectionAllowed(dbConnPoolParams.isAccessToUnderlyingConnectionAllowed());//PoolGuard是否可以获取底层连接
