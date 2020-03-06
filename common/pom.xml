@@ -22,6 +22,7 @@
 		    <groupId>javax.servlet</groupId>
 		    <artifactId>javax.servlet-api</artifactId>
 		    <version>4.0.1</version>
+			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<!-- org.springframework.web.servlet.LocaleResolver -->
@@ -37,7 +38,15 @@
 		<dependency>
 		    <groupId>org.apache.httpcomponents</groupId>
 		    <artifactId>httpclient</artifactId>
-		    <version>4.5.8</version>
+		    <version>4.5.7</version>
+		    <scope>compile</scope>
+			<exclusions>
+				<exclusion>
+					<artifactId>commons-logging</artifactId>
+					<groupId>commons-logging</groupId>
+				</exclusion>
+			</exclusions>
+			<optional>true</optional>
 		</dependency>
 		<!-- <dependency>
 		    <groupId>commons-httpclient</groupId>

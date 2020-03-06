@@ -1,9 +1,8 @@
 package com.quincy.sdk;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
+import java.io.IOException;
 
 public interface DTransactionContext {
 	public void setTransactionFailure(DTransactionFailure transactionFailure);
-	public void compensate() throws JsonMappingException, ClassNotFoundException, JsonProcessingException, NoSuchMethodException, SecurityException;
+	public void compensate() throws ClassNotFoundException, NoSuchMethodException, SecurityException, IOException;
 }

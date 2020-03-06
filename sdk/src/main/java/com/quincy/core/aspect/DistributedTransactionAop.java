@@ -1,5 +1,6 @@
 package com.quincy.core.aspect;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -23,8 +24,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.quincy.core.DTransactionConstants;
 import com.quincy.core.entity.Transaction;
 import com.quincy.core.entity.TransactionArg;
@@ -124,7 +123,7 @@ public class DistributedTransactionAop implements DTransactionContext {
 
 //	@Scheduled(cron = "0 0/1 * * * ?")
 	@Override
-	public void compensate() throws JsonMappingException, ClassNotFoundException, JsonProcessingException, NoSuchMethodException, SecurityException {
+	public void compensate() throws ClassNotFoundException, NoSuchMethodException, SecurityException, IOException {
 		List<Transaction> failedTransactions = transactionService.findFailedTransactions(applicationName);
 		for(Transaction tx:failedTransactions) {
 			Object bean = applicationContext.getBean(tx.getBeanName());

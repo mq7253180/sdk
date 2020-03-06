@@ -18,10 +18,10 @@ public class GlobalControllerAdvice {
     @ResponseBody
 //    @ExceptionHandler(value = Exception.class)
     public Result handleGlobleException(HttpServletRequest request, Exception e) throws IOException {
-    		log.error("EXCEPTION_MSG: "+HttpClientHelper.getRequestURIOrURL(request, "URL"), e);
-    		RequestContext requestContext = new RequestContext(request);
-    		Result result = Result.newException();
-    		result.msg(requestContext.getMessage(Result.I18N_KEY_EXCEPTION)).data(e.getClass().getName()+": "+e.getMessage());
-    		return result;
+    	log.error("EXCEPTION_MSG: "+HttpClientHelper.getRequestURIOrURL(request, "URL"), e);
+    	RequestContext requestContext = new RequestContext(request);
+    	Result result = Result.newException();
+    	result.msg(requestContext.getMessage(Result.I18N_KEY_EXCEPTION)).data(e.getClass().getName()+": "+e.getMessage());
+    	return result;
     }
 }

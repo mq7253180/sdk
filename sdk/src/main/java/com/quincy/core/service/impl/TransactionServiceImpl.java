@@ -1,5 +1,6 @@
 package com.quincy.core.service.impl;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,7 +16,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.quincy.core.DTransactionConstants;
@@ -150,7 +150,7 @@ public class TransactionServiceImpl implements TransactionService {
 	}
 
 	@Override
-	public List<TransactionAtomic> findTransactionAtomics(Long txId, Integer status) throws ClassNotFoundException, JsonMappingException, JsonProcessingException {
+	public List<TransactionAtomic> findTransactionAtomics(Long txId, Integer status) throws ClassNotFoundException, IOException {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
