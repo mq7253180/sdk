@@ -10,7 +10,7 @@ import org.springframework.web.servlet.ModelAndView;
 //@ControllerAdvice
 public class GlobalControllerAdvice {
 //    @ExceptionHandler(value = Exception.class)
-    public ModelAndView handleGlobleException(HttpServletRequest request, HttpServletResponse response, Object handler, Exception e) throws IOException {
-    	return new GlobalHandlerExceptionResolver().resolveException(request, response, handler, e);
+    public ModelAndView handleGlobleException(HttpServletRequest request, HttpServletResponse response, Exception e) throws IOException {
+    	return new GlobalHandlerExceptionResolver().resolveException(request, response, null, e);
     }
 }
