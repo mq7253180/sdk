@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 public class I18NInterceptor extends HandlerInterceptorAdapter {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-		log.warn(HttpClientHelper.getRequestURIOrURL(request, "URL"));
+		log.warn(HttpClientHelper.getRequestURIOrURL(request, HttpClientHelper.FLAG_URL));
 //		response.setHeader("Access-Control-Allow-Origin", domain);
 //		response.setHeader("Access-Control-Allow-Credentials", "true");
 //		response.setHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");

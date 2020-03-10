@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 public class GlobalHandlerExceptionResolver implements HandlerExceptionResolver {
 	@Override
 	public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object handler, Exception e) {
-		log.error(HttpClientHelper.getRequestURIOrURL(request, "URL"), e);
+		log.error(HttpClientHelper.getRequestURIOrURL(request, HttpClientHelper.FLAG_URL), e);
 		String clientType = CommonHelper.clientType(request, handler);
 		String exception = InnerConstants.CLIENT_TYPE_J.equals(clientType)?e.toString().replaceAll("\n", "").replaceAll("\r", "").replaceAll("\\\\", "/"):this.getExceptionStackTrace(e, "<br/>", "&nbsp;");
 		RequestContext requestContext = new RequestContext(request);

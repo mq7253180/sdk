@@ -142,6 +142,7 @@ public class HttpClientHelper {
 	}
 
 	public final static String FLAG_URI = "URI";
+	public final static String FLAG_URL = "URL";
 
 	public static String getRequestURIOrURL(HttpServletRequest request, String type) {
 		StringBuffer url = FLAG_URI.equalsIgnoreCase(type)?new StringBuffer(300).append(request.getRequestURI()):request.getRequestURL();
