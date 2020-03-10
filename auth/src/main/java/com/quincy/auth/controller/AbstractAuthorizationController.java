@@ -31,22 +31,22 @@ public abstract class AbstractAuthorizationController {
 	 * 进登录页
 	 */
 	@RequestMapping("/signin")
-	public ModelAndView toLogin(@RequestParam(required = false, value = "back")String _back) {
+	public ModelAndView toLogin(@RequestParam(required = false, value = AuthConstants.PARAM_BACK_TO)String _backTo) {
 		ModelAndView mv = new ModelAndView("/login");
-		String back = CommonHelper.trim(_back);
-		if(back!=null)
-			mv.addObject("back", back);
+		String backTo = CommonHelper.trim(_backTo);
+		if(backTo!=null)
+			mv.addObject(AuthConstants.PARAM_BACK_TO, backTo);
 		return mv;
 	}
 	/**
 	 * 进登录跳转页
 	 */
 	@RequestMapping("/signin/broker")
-	public ModelAndView toLoginBroker(@RequestParam(required = false, value = "back")String _back) {
+	public ModelAndView toLoginBroker(@RequestParam(required = false, value = AuthConstants.PARAM_BACK_TO)String _backTo) {
 		ModelAndView mv = new ModelAndView("/login_broker");
-		String back = CommonHelper.trim(_back);
-		if(back!=null)
-			mv.addObject("back", back);
+		String backTo = CommonHelper.trim(_backTo);
+		if(backTo!=null)
+			mv.addObject(AuthConstants.PARAM_BACK_TO, backTo);
 		return mv;
 	}
 	/**
@@ -72,7 +72,7 @@ public abstract class AbstractAuthorizationController {
 	public ModelAndView doLogin(HttpServletRequest request, 
 			@RequestParam(required = false, value = "username")String _username, 
 			@RequestParam(required = false, value = "password")String _password, 
-			@RequestParam(required = false, value = "back")String _back) throws Exception {
+			@RequestParam(required = false, value = AuthConstants.PARAM_BACK_TO)String _backTo) throws Exception {
 		Result result = this.login(request, _username, _password);
 		String clientType = CommonHelper.clientType();
 		ModelAndView mv = null;
