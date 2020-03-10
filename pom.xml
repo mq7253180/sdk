@@ -127,8 +127,8 @@
  		</resources>
 	</build>
 	<modules>
-		<module>common</module>
 		<module>sdk</module>
+		<module>db</module>
 		<module>redis</module>
 		<module>zookeeper</module>
 		<module>sftp</module>
