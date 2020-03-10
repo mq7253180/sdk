@@ -18,7 +18,6 @@ import com.quincy.auth.o.DSession;
 import com.quincy.auth.service.AuthorizationService;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.helper.CommonHelper;
-import com.quincy.sdk.helper.HttpClientHelper;
 
 public abstract class AuthorizationInterceptorAbstract extends HandlerInterceptorAdapter {
 	@Autowired
@@ -59,17 +58,14 @@ public abstract class AuthorizationInterceptorAbstract extends HandlerIntercepto
 		String clientType = CommonHelper.clientType(request, handler);
 		if(InnerConstants.CLIENT_TYPE_J.equals(clientType)) {
 			output(response, status, msg);
-		} else {
-			StringBuilder uri = new StringBuilder(250).append(redirectTo);
-			String locale = CommonHelper.trim(request.getParameter(InnerConstants.KEY_LOCALE));
-			if(locale!=null)
-				uri.append("?").append(InnerConstants.KEY_LOCALE).append("=").append(locale);
-			String requestURI = HttpClientHelper.getRequestURIOrURL(request, HttpClientHelper.FLAG_URI);
-			if(requestURI!=null)
-				uri.append(uri.indexOf("?")>=0?"&":"?").append(AuthConstants.PARAM_BACK_TO).append("=").append(URLEncoder.encode(requestURI, "UTF-8"));
-			System.out.println("URI==============="+uri.toString());
-			request.getRequestDispatcher(uri.toString()).forward(request, response);
-		}
+		} else
+			request.getRequestDispatcher(new StringBuilder(250)
+					.append(redirectTo)
+					.append(redirectTo.indexOf("?")>=0?"&":"?")
+					.append(AuthConstants.PARAM_BACK_TO)
+					.append("=")
+					.append(URLEncoder.encode(request.getRequestURI()+"?"+request.getQueryString(), "UTF-8"))
+					.toString()).forward(request, response);
 	}
 
 	public static void output(HttpServletResponse response, int status, String msg) throws IOException {
