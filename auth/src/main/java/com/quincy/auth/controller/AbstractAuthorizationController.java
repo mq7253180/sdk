@@ -79,9 +79,10 @@ public abstract class AbstractAuthorizationController {
 		if(InnerConstants.CLIENT_TYPE_J.equals(clientType)) {
 			mv = this.createModelAndView(result);
 		} else {
-			if(result.getStatus()==1)
-				mv = new ModelAndView("redirect:"+AuthConstants.URI_INDEX);
-			else
+			if(result.getStatus()==1) {
+				String backTo = CommonHelper.trim(_backTo);
+				mv = new ModelAndView("redirect:"+(backTo!=null?backTo:AuthConstants.URI_INDEX));
+			} else
 				mv = this.createModelAndView(result);
 		}
 		return mv;

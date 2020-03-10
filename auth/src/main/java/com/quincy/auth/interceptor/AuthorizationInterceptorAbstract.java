@@ -65,10 +65,9 @@ public abstract class AuthorizationInterceptorAbstract extends HandlerIntercepto
 			if(locale!=null)
 				uri.append("?").append(InnerConstants.KEY_LOCALE).append("=").append(locale);
 			String requestURI = HttpClientHelper.getRequestURIOrURL(request, HttpClientHelper.FLAG_URI);
-			if(requestURI.indexOf(AuthConstants.URI_INDEX)>=0)
-				requestURI = CommonHelper.trim(request.getParameter(AuthConstants.PARAM_BACK_TO));
 			if(requestURI!=null)
 				uri.append(uri.indexOf("?")>=0?"&":"?").append(AuthConstants.PARAM_BACK_TO).append("=").append(URLEncoder.encode(requestURI, "UTF-8"));
+			System.out.println("URI==============="+uri.toString());
 			request.getRequestDispatcher(uri.toString()).forward(request, response);
 		}
 	}
