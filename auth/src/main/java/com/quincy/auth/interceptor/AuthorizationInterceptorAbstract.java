@@ -17,7 +17,6 @@ import com.quincy.auth.AuthConstants;
 import com.quincy.auth.o.DSession;
 import com.quincy.auth.service.AuthorizationService;
 import com.quincy.core.InnerConstants;
-import com.quincy.sdk.Constants;
 import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.helper.HttpClientHelper;
 
