@@ -21,7 +21,6 @@ import org.springframework.context.annotation.PropertySource;
 
 import com.quincy.core.db.DataSourceHolder;
 import com.quincy.core.db.RoutingDataSource;
-import com.quincy.sdk.Constants;
 import com.quincy.sdk.helper.CommonHelper;
 
 import lombok.Data;
@@ -47,7 +46,7 @@ public class CoreApplicationContext {//implements TransactionManagementConfigure
 	private String slavePassword;
 	@Value("${spring.datasource.pool.masterRatio}")
 	private int masterRatio;
-	@Resource(name = Constants.BEAN_NAME_PROPERTIES)
+	@Resource(name = InnerConstants.BEAN_NAME_PROPERTIES)
 	private Properties properties;
 
 	@Bean(name = "dataSource")

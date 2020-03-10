@@ -33,7 +33,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.method.HandlerMethod;
 
-import com.quincy.sdk.Constants;
+import com.quincy.core.InnerConstants;
 
 public class CommonHelper {
 	private static I18NSupport i18nChainHead;
@@ -49,19 +49,19 @@ public class CommonHelper {
 		I18NSupport headerSupport = new I18NSupport() {
 			@Override
 			protected String resolve(HttpServletRequest request) {
-				return request.getHeader(Constants.KEY_LOCALE);
+				return request.getHeader(InnerConstants.KEY_LOCALE);
 			}
 		};
 		I18NSupport cookieSupport = new I18NSupport() {
 			@Override
 			protected String resolve(HttpServletRequest request) {
-				return getValueFromCookie(request, Constants.KEY_LOCALE);
+				return getValueFromCookie(request, InnerConstants.KEY_LOCALE);
 			}
 		};
 		I18NSupport parameterSupport = new I18NSupport() {
 			@Override
 			protected String resolve(HttpServletRequest request) {
-				return request.getParameter(Constants.KEY_LOCALE);
+				return request.getParameter(InnerConstants.KEY_LOCALE);
 			}
 		};
 		I18NSupport uriSupport = new I18NSupport() {
@@ -136,16 +136,16 @@ public class CommonHelper {
 			annotation = method.getMethod().getDeclaredAnnotation(ResponseBody.class);
 		}
 		if("XMLHttpRequest".equals(request.getHeader("x-requested-with"))||isApp(request)||annotation!=null) {
-			return Constants.CLIENT_TYPE_J;
+			return InnerConstants.CLIENT_TYPE_J;
 		} else {
 			String userAgent = request.getHeader("user-agent");
 			if(userAgent!=null) {
 				for(String flag:MOBILE_USER_AGENT_FLAGS) {
 					if(userAgent.contains(flag))
-						return Constants.CLIENT_TYPE_M;
+						return InnerConstants.CLIENT_TYPE_M;
 				}
 			}
-			return Constants.CLIENT_TYPE_P;
+			return InnerConstants.CLIENT_TYPE_P;
 		}
 	}
 
@@ -174,7 +174,7 @@ public class CommonHelper {
 	}
 
 	public static String getApp(HttpServletRequest request) {
-		return CommonHelper.trim(getValue(request, Constants.CLIENT_APP));
+		return CommonHelper.trim(getValue(request, InnerConstants.CLIENT_APP));
 	}
 
 	public static boolean isApp(HttpServletRequest request) {

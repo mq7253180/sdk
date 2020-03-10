@@ -11,7 +11,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContext;
 
-import com.quincy.sdk.Constants;
+import com.quincy.core.InnerConstants;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.helper.HttpClientHelper;
@@ -24,7 +24,7 @@ public class GlobalHandlerExceptionResolver implements HandlerExceptionResolver 
 	public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object handler, Exception e) {
 		log.error(HttpClientHelper.getRequestURIOrURL(request, "URL"), e);
 		String clientType = CommonHelper.clientType(request, handler);
-		String exception = Constants.CLIENT_TYPE_J.equals(clientType)?e.toString().replaceAll("\n", "").replaceAll("\r", "").replaceAll("\\\\", "/"):this.getExceptionStackTrace(e, "<br/>", "&nbsp;");
+		String exception = InnerConstants.CLIENT_TYPE_J.equals(clientType)?e.toString().replaceAll("\n", "").replaceAll("\r", "").replaceAll("\\\\", "/"):this.getExceptionStackTrace(e, "<br/>", "&nbsp;");
 		RequestContext requestContext = new RequestContext(request);
 		return new ModelAndView("/error_"+clientType)
 				.addObject("msg", requestContext.getMessage(Result.I18N_KEY_EXCEPTION))

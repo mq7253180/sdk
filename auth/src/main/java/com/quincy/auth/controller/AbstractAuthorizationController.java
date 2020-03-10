@@ -11,11 +11,12 @@ import org.springframework.web.servlet.support.RequestContext;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.quincy.auth.AuthConstants;
 import com.quincy.auth.o.DSession;
 import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthCallback;
 import com.quincy.auth.service.AuthorizationService;
-import com.quincy.sdk.Constants;
+import com.quincy.core.InnerConstants;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.helper.CommonHelper;
 
@@ -75,11 +76,11 @@ public abstract class AbstractAuthorizationController {
 		Result result = this.login(request, _username, _password);
 		String clientType = CommonHelper.clientType();
 		ModelAndView mv = null;
-		if(Constants.CLIENT_TYPE_J.equals(clientType)) {
+		if(InnerConstants.CLIENT_TYPE_J.equals(clientType)) {
 			mv = this.createModelAndView(result);
 		} else {
 			if(result.getStatus()==1)
-				mv = new ModelAndView("redirect:/index");
+				mv = new ModelAndView("redirect:"+AuthConstants.URI_INDEX);
 			else
 				mv = this.createModelAndView(result);
 		}

@@ -12,14 +12,14 @@ import com.quincy.auth.AuthConstants;
 import com.quincy.auth.o.DSession;
 import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthCallback;
-import com.quincy.sdk.Constants;
+import com.quincy.core.InnerConstants;
 
 @Service("authorizationSessionServiceImpl")
 public class AuthorizationSessionServiceImpl extends AuthorizationAbstract {
 	@Override
 	protected Object getUserObject(HttpServletRequest request) {
 		HttpSession session = request.getSession(false);
-		return session==null?null:session.getAttribute(Constants.ATTR_SESSION);
+		return session==null?null:session.getAttribute(InnerConstants.ATTR_SESSION);
 	}
 
 	@Override
@@ -27,7 +27,7 @@ public class AuthorizationSessionServiceImpl extends AuthorizationAbstract {
 		if(originalJsessionid!=null&&originalJsessionid.length()>0) {//同一user不同客户端登录互踢
 			HttpSession httpSession = AuthConstants.SESSIONS.get(originalJsessionid);
 			if(httpSession!=null) {
-				DSession session = (DSession)httpSession.getAttribute(Constants.ATTR_SESSION);
+				DSession session = (DSession)httpSession.getAttribute(InnerConstants.ATTR_SESSION);
 				if(session.getUser().getId().equals(userId))
 					httpSession.invalidate();
 			}
@@ -37,7 +37,7 @@ public class AuthorizationSessionServiceImpl extends AuthorizationAbstract {
 		User user = callback.getUser();
 		user.setJsessionid(jsessionid);
 		DSession session = this.createSession(user);
-		httpSession.setAttribute(Constants.ATTR_SESSION, session);
+		httpSession.setAttribute(InnerConstants.ATTR_SESSION, session);
 		callback.updateLastLogined(jsessionid);
 		return session;
 	}
@@ -51,12 +51,12 @@ public class AuthorizationSessionServiceImpl extends AuthorizationAbstract {
 
 	@Override
 	protected void saveVcode(HttpServletRequest request, String vcode) {
-		request.getSession(true).setAttribute(Constants.ATTR_VCODE, vcode);
+		request.getSession(true).setAttribute(InnerConstants.ATTR_VCODE, vcode);
 	}
 
 	@Override
 	public String getCachedVcode(HttpServletRequest request) {
-		return this.getCachedStr(request, Constants.ATTR_VCODE);
+		return this.getCachedStr(request, InnerConstants.ATTR_VCODE);
 	}
 
 	private String getCachedStr(HttpServletRequest request, String attrName) {
@@ -72,7 +72,7 @@ public class AuthorizationSessionServiceImpl extends AuthorizationAbstract {
 	public void updateSession(User user) {
 		HttpSession httpSession = AuthConstants.SESSIONS.get(user.getJsessionid());
 		DSession dSession = this.createSession(user);
-		httpSession.setAttribute(Constants.ATTR_SESSION, dSession);
+		httpSession.setAttribute(InnerConstants.ATTR_SESSION, dSession);
 	}
 
 	@Override

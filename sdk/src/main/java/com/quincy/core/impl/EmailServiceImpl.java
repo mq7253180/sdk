@@ -22,7 +22,7 @@ import javax.mail.internet.MimeMultipart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.quincy.sdk.Constants;
+import com.quincy.core.InnerConstants;
 import com.quincy.sdk.EmailService;
 import com.quincy.sdk.helper.CommonHelper;
 
@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class EmailServiceImpl implements EmailService {
-	@Resource(name = Constants.BEAN_NAME_PROPERTIES)
+	@Resource(name = InnerConstants.BEAN_NAME_PROPERTIES)
     private Properties properties;
 	@Autowired
 	private ThreadPoolExecutor threadPoolExecutor;

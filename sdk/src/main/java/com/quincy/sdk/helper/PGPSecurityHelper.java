@@ -51,7 +51,7 @@ import org.bouncycastle.openpgp.operator.bc.BcPublicKeyKeyEncryptionMethodGenera
 import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder;
 import org.bouncycastle.util.io.Streams;
 
-import com.quincy.sdk.Constants;
+import com.quincy.core.InnerConstants;
 
 public class PGPSecurityHelper {
 	private final static int TYPE_DECRYPTION = 1;
@@ -63,7 +63,7 @@ public class PGPSecurityHelper {
 			InputStream verifyKeyInput = null;
 	    	try {
 				verifyKeyInput = new FileInputStream(privateKeyLocation);
-				PGPSecretKeyRingCollection pgpSec = new PGPSecretKeyRingCollection(PGPUtil.getDecoderStream(verifyKeyInput), Constants.KEY_FINGER_PRINT_CALCULATOR);
+				PGPSecretKeyRingCollection pgpSec = new PGPSecretKeyRingCollection(PGPUtil.getDecoderStream(verifyKeyInput), InnerConstants.KEY_FINGER_PRINT_CALCULATOR);
 				return pgpSec;
 			} finally {
 				if(verifyKeyInput!=null)
@@ -96,7 +96,7 @@ public class PGPSecurityHelper {
 
 			@Override
 			public Iterator<?> getKeyRings(InputStream input) throws IOException, PGPException {
-				PGPPublicKeyRingCollection pgpPub = new PGPPublicKeyRingCollection(PGPUtil.getDecoderStream(input), Constants.KEY_FINGER_PRINT_CALCULATOR);
+				PGPPublicKeyRingCollection pgpPub = new PGPPublicKeyRingCollection(PGPUtil.getDecoderStream(input), InnerConstants.KEY_FINGER_PRINT_CALCULATOR);
 				return pgpPub.getKeyRings();
 			}
 
@@ -234,7 +234,7 @@ public class PGPSecurityHelper {
 
 			@Override
 			public Iterator<?> getKeyRings(InputStream input) throws IOException, PGPException {
-				PGPSecretKeyRingCollection pgpSec = new PGPSecretKeyRingCollection(PGPUtil.getDecoderStream(input), Constants.KEY_FINGER_PRINT_CALCULATOR);
+				PGPSecretKeyRingCollection pgpSec = new PGPSecretKeyRingCollection(PGPUtil.getDecoderStream(input), InnerConstants.KEY_FINGER_PRINT_CALCULATOR);
 				return pgpSec.getKeyRings();
 			}
 

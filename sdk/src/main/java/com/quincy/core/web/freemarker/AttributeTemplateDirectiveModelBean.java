@@ -61,5 +61,4 @@ public class AttributeTemplateDirectiveModelBean implements TemplateDirectiveMod
 			}
 		});
 	}
-
 }

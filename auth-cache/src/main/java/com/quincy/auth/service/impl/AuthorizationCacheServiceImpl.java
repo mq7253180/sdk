@@ -16,8 +16,8 @@ import org.springframework.stereotype.Service;
 import com.quincy.auth.o.DSession;
 import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthCallback;
+import com.quincy.core.InnerConstants;
 import com.quincy.core.redis.JedisSource;
-import com.quincy.sdk.Constants;
 import com.quincy.sdk.helper.CommonHelper;
 
 import redis.clients.jedis.Jedis;
@@ -110,7 +110,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 		protected abstract Object run(Jedis jedis, String token) throws Exception;
 
 		public Object start(HttpServletRequest request) throws Exception {
-			String token = CommonHelper.trim(CommonHelper.getValue(request, Constants.CLIENT_TOKEN));
+			String token = CommonHelper.trim(CommonHelper.getValue(request, InnerConstants.CLIENT_TOKEN));
 			if(token!=null) {
 				Jedis jedis = null;
 				try {
@@ -126,10 +126,10 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 	}
 
 	private String createOrGetToken(HttpServletRequest request) {
-		String token = CommonHelper.trim(CommonHelper.getValue(request, Constants.CLIENT_TOKEN));
+		String token = CommonHelper.trim(CommonHelper.getValue(request, InnerConstants.CLIENT_TOKEN));
 		if(token==null) {
 			token = UUID.randomUUID().toString().replaceAll("-", "");
-			Cookie cookie = new Cookie(Constants.CLIENT_TOKEN, token);
+			Cookie cookie = new Cookie(InnerConstants.CLIENT_TOKEN, token);
 			cookie.setDomain(domain);
 			cookie.setPath("/");
 			cookie.setMaxAge(3600*12);

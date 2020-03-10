@@ -17,7 +17,6 @@ import org.springframework.context.annotation.Configuration;
 
 import com.quincy.core.redis.JedisSource;
 import com.quincy.core.redis.QuincyJedis;
-import com.quincy.sdk.Constants;
 import com.quincy.sdk.helper.CommonHelper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +38,7 @@ public class RedisApplicationContext {
 	private String redisPwd;
 	@Value("${spring.redis.timeout}")
 	private int connectionTimeout;
-	@Resource(name = Constants.BEAN_NAME_PROPERTIES)
+	@Resource(name = InnerConstants.BEAN_NAME_PROPERTIES)
 	private Properties properties;
 	@Autowired
 	private GenericObjectPoolConfig poolCfg;

@@ -16,6 +16,7 @@ import org.springframework.web.servlet.support.RequestContext;
 import com.quincy.auth.AuthConstants;
 import com.quincy.auth.o.DSession;
 import com.quincy.auth.service.AuthorizationService;
+import com.quincy.core.InnerConstants;
 import com.quincy.sdk.Constants;
 import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.helper.HttpClientHelper;
@@ -45,27 +46,27 @@ public abstract class AuthorizationInterceptorAbstract extends HandlerIntercepto
 					if(deniedPermissionName==null)
 						deniedPermissionName = permissionNeeded;
 //					authorizationService.setDeniedPermissionName(request, deniedPermissionName);
-					request.setAttribute(Constants.ATTR_DENIED_PERMISSION, deniedPermissionName);
+					request.setAttribute(InnerConstants.ATTR_DENIED_PERMISSION, deniedPermissionName);
 					this.output(request, response, handler, -1, requestContext.getMessage("status.error.403")+"["+deniedPermissionName+"]", "/auth/deny");
 					return false;
 				}
 			}
-			request.setAttribute(Constants.ATTR_SESSION, session);
+			request.setAttribute(InnerConstants.ATTR_SESSION, session);
 			return true;
 		}
 	}
 
 	private void output(HttpServletRequest request, HttpServletResponse response, Object handler, int status, String msg, String redirectTo) throws IOException, ServletException {
 		String clientType = CommonHelper.clientType(request, handler);
-		if(Constants.CLIENT_TYPE_J.equals(clientType)) {
+		if(InnerConstants.CLIENT_TYPE_J.equals(clientType)) {
 			output(response, status, msg);
 		} else {
 			StringBuilder uri = new StringBuilder(250).append(redirectTo);
-			String locale = CommonHelper.trim(request.getParameter(Constants.KEY_LOCALE));
+			String locale = CommonHelper.trim(request.getParameter(InnerConstants.KEY_LOCALE));
 			if(locale!=null)
-				uri.append("?").append(Constants.KEY_LOCALE).append("=").append(locale);
-			String requestURI = HttpClientHelper.getRequestURIOrURL(request, "URI");
-			if(requestURI.indexOf("/index")>=0)
+				uri.append("?").append(InnerConstants.KEY_LOCALE).append("=").append(locale);
+			String requestURI = HttpClientHelper.getRequestURIOrURL(request, HttpClientHelper.FLAG_URI);
+			if(requestURI.indexOf(AuthConstants.URI_INDEX)>=0)
 				requestURI = CommonHelper.trim(request.getParameter("back"));
 			if(requestURI!=null)
 				uri.append(uri.indexOf("?")>=0?"&":"?").append("back=").append(URLEncoder.encode(requestURI, "UTF-8"));

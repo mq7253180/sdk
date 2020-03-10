@@ -8,7 +8,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import com.quincy.auth.o.DSession;
-import com.quincy.sdk.Constants;
+import com.quincy.core.InnerConstants;
 import com.quincy.sdk.helper.CommonHelper;
 
 import freemarker.core.Environment;
@@ -28,7 +28,7 @@ public abstract class AbstractHtmlTemplateDirectiveModel implements TemplateDire
 		if(permission!=null) {
 			String permissionName = permission.toString();
 			HttpServletRequest request = CommonHelper.getRequest();
-			DSession session = (DSession)request.getAttribute(Constants.ATTR_SESSION);
+			DSession session = (DSession)request.getAttribute(InnerConstants.ATTR_SESSION);
 			List<String> permissions = session.getPermissions();
 			for(String p:permissions) {
 				if(p.equalsIgnoreCase(permissionName)) {

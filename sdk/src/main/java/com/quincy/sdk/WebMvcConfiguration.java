@@ -22,6 +22,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor;
 
+import com.quincy.core.InnerConstants;
 import com.quincy.core.web.GlobalHandlerExceptionResolver;
 import com.quincy.core.web.GlobalHandlerMethodReturnValueHandler;
 import com.quincy.core.web.GlobalLocaleResolver;
@@ -31,7 +32,6 @@ import com.quincy.core.web.freemarker.AttributeTemplateDirectiveModelBean;
 import com.quincy.core.web.freemarker.I18NTemplateDirectiveModelBean;
 import com.quincy.core.web.freemarker.LocaleTemplateDirectiveModelBean;
 import com.quincy.core.web.freemarker.PropertiesTemplateDirectiveModelBean;
-import com.quincy.sdk.Constants;
 import com.quincy.sdk.helper.CommonHelper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +43,7 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport implements I
     private RequestMappingHandlerAdapter adapter;
 	@Autowired
 	private ApplicationContext applicationContext;
-	@Resource(name = Constants.BEAN_NAME_PROPERTIES)
+	@Resource(name = InnerConstants.BEAN_NAME_PROPERTIES)
     private Properties properties;
 	@Value("${env}")
 	private String env;

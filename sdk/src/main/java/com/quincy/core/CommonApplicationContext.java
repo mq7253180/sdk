@@ -24,7 +24,6 @@ import org.springframework.context.support.ReloadableResourceBundleMessageSource
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
-import com.quincy.sdk.Constants;
 import com.quincy.sdk.helper.CommonHelper;
 
 @Configuration
@@ -53,7 +52,7 @@ public class CommonApplicationContext {//implements TransactionManagementConfigu
         return messageSource;
     }
 
-	@Bean(Constants.BEAN_NAME_PROPERTIES)
+	@Bean(InnerConstants.BEAN_NAME_PROPERTIES)
 	public PropertiesFactoryBean properties() throws IOException {
 		List<Resource> resourceList = new ArrayList<Resource>();
 		new ClassPathHandler() {
@@ -110,7 +109,7 @@ public class CommonApplicationContext {//implements TransactionManagementConfigu
 		return threadPoolExecutor;
 	}
 
-	@javax.annotation.Resource(name = Constants.BEAN_NAME_PROPERTIES)
+	@javax.annotation.Resource(name = InnerConstants.BEAN_NAME_PROPERTIES)
 	private Properties properties;
 
 	@Bean
