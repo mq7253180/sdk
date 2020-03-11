@@ -5,12 +5,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -159,6 +161,23 @@ public class HttpClientHelper {
 		} else
 			s = url.toString();
 		return s;
+	}
+
+	public static void output(HttpServletResponse response, String contentType, String contentTxt) throws IOException {
+		PrintWriter out = null;
+		try {
+			response.setContentType(contentType);
+			out = response.getWriter();
+			out.println(contentTxt);
+			out.flush();
+		} finally {
+			if(out!=null)
+				out.close();
+		}
+	}
+
+	public static void outputJson(HttpServletResponse response, String json) throws IOException {
+		output(response, "application/json;charset=utf-8", json);
 	}
 
 	public static void main(String[] args) throws IOException {

@@ -1,7 +1,6 @@
 package com.quincy.auth.interceptor;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.util.List;
 
@@ -18,6 +17,7 @@ import com.quincy.auth.o.DSession;
 import com.quincy.auth.service.AuthorizationService;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.helper.CommonHelper;
+import com.quincy.sdk.helper.HttpClientHelper;
 
 public abstract class AuthorizationInterceptorAbstract extends HandlerInterceptorAdapter {
 	@Autowired
@@ -57,7 +57,8 @@ public abstract class AuthorizationInterceptorAbstract extends HandlerIntercepto
 	private void output(HttpServletRequest request, HttpServletResponse response, Object handler, int status, String msg, String redirectTo) throws IOException, ServletException {
 		String clientType = CommonHelper.clientType(request, handler);
 		if(InnerConstants.CLIENT_TYPE_J.equals(clientType)) {
-			output(response, status, msg);
+			String outputContent = "{\"status\":"+status+", \"msg\":\""+msg+"\"}";
+			HttpClientHelper.outputJson(response, outputContent);
 		} else
 			request.getRequestDispatcher(new StringBuilder(250)
 					.append(redirectTo)
@@ -66,21 +67,5 @@ public abstract class AuthorizationInterceptorAbstract extends HandlerIntercepto
 					.append("=")
 					.append(URLEncoder.encode(request.getRequestURI()+"?"+request.getQueryString(), "UTF-8"))
 					.toString()).forward(request, response);
-	}
-
-	public static void output(HttpServletResponse response, int status, String msg) throws IOException {
-		String outputContent = "{\"status\":"+status+", \"msg\":\""+msg+"\"}";
-		//ServletOutputStream out = null;
-		PrintWriter out = null;
-		try {
-			//out = response.getOutputStream();
-			response.setContentType("application/json;charset=utf-8");
-			out = response.getWriter();
-			out.println(outputContent);
-			out.flush();
-		} finally {
-			if(out!=null)
-				out.close();
-		}
 	}
 }

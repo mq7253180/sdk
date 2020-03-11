@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class I18NInterceptor extends HandlerInterceptorAdapter {
 	@Override
-	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
 		log.warn(HttpClientHelper.getRequestURIOrURL(request, HttpClientHelper.FLAG_URL));
 //		response.setHeader("Access-Control-Allow-Origin", domain);
 //		response.setHeader("Access-Control-Allow-Credentials", "true");
@@ -42,8 +42,7 @@ public class I18NInterceptor extends HandlerInterceptorAdapter {
 	}
 
 	@Override
-	public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
-			ModelAndView modelAndView) throws Exception {
+	public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) {
 		if(modelAndView!=null) {
 			String viewName = CommonHelper.trim(modelAndView.getViewName());
 			if(viewName!=null&&!viewName.startsWith("redirect")&&!viewName.startsWith("forward"))

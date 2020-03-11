@@ -2,6 +2,7 @@ package com.quincy.core.web;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
@@ -13,7 +14,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 public class StaticInterceptor extends HandlerInterceptorAdapter {
 	@Override
-	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
 		if(request.getRequestURI().endsWith(".properties"))
 			response.setContentType("application/octet-stream");
 		String uri = request.getRequestURI();
@@ -27,8 +28,6 @@ public class StaticInterceptor extends HandlerInterceptorAdapter {
 			in.read(buf);
 			out = response.getOutputStream();
 			out.write(buf);
-			/*writer = response.getWriter();
-			writer.write(location);*/
 		} finally {
 			if(in!=null)
 				in.close();

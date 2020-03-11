@@ -50,25 +50,6 @@ public class AuthorizationSessionServiceImpl extends AuthorizationAbstract {
 	}
 
 	@Override
-	protected void saveVcode(HttpServletRequest request, String vcode) {
-		request.getSession(true).setAttribute(InnerConstants.ATTR_VCODE, vcode);
-	}
-
-	@Override
-	public String getCachedVcode(HttpServletRequest request) {
-		return this.getCachedStr(request, InnerConstants.ATTR_VCODE);
-	}
-
-	private String getCachedStr(HttpServletRequest request, String attrName) {
-		HttpSession session = request.getSession();
-		if(session!=null) {
-			Object obj = session.getAttribute(attrName);
-			return obj==null?null:obj.toString();
-		}
-		return null;
-	}
-
-	@Override
 	public void updateSession(User user) {
 		HttpSession httpSession = AuthConstants.SESSIONS.get(user.getJsessionid());
 		DSession dSession = this.createSession(user);
