@@ -25,7 +25,8 @@ import org.springframework.web.servlet.support.RequestContext;
 
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.RedisOperation;
-import com.quincy.sdk.RedisWebProcessor;
+import com.quincy.sdk.RedisProcessor;
+import com.quincy.sdk.RedisWebOperation;
 import com.quincy.sdk.annotation.VCodeRequired;
 import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.helper.HttpClientHelper;
@@ -33,7 +34,7 @@ import com.quincy.sdk.helper.HttpClientHelper;
 import redis.clients.jedis.Jedis;
 
 @Component
-public class WebProcessorImpl extends HandlerInterceptorAdapter implements RedisWebProcessor {
+public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements RedisProcessor {
 	@Autowired
 	private JedisSource jedisSource;
 	@Resource(name = InnerConstants.BEAN_NAME_PROPERTIES)
@@ -76,17 +77,27 @@ public class WebProcessorImpl extends HandlerInterceptorAdapter implements Redis
 	}
 
 	@Override
-	public Object opt(HttpServletRequest request, RedisOperation operation) throws Exception {
+	public Object opt(RedisOperation operation) throws Exception {
+		Jedis jedis = null;
+		try {
+			jedis = jedisSource.get();
+			return operation.run(jedis);
+		} finally {
+			if(jedis!=null)
+				jedis.close();
+		}
+	}
+
+	@Override
+	public Object opt(HttpServletRequest request, RedisWebOperation operation) throws Exception {
 		String token = CommonHelper.trim(CommonHelper.getValue(request, InnerConstants.CLIENT_TOKEN));
 		if(token!=null) {
-			Jedis jedis = null;
-			try {
-				jedis = jedisSource.get();
-				return operation.run(jedis, token);
-			} finally {
-				if(jedis!=null)
-					jedis.close();
-			}
+			return this.opt(new RedisOperation() {
+				@Override
+				public Object run(Jedis jedis) throws Exception {
+					return operation.run(jedis, token);
+				}
+			});
 		}
 		return null;
 	}
@@ -106,7 +117,7 @@ public class WebProcessorImpl extends HandlerInterceptorAdapter implements Redis
 	}
 
 	private String getCachedStr(HttpServletRequest request, String flag) throws Exception {
-		Object retVal = this.opt(request, new RedisOperation() {
+		Object retVal = this.opt(request, new RedisWebOperation() {
 			@Override
 			public Object run(Jedis jedis, String token) {
 				String key = combineAsKey(flag, token);

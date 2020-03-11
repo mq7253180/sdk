@@ -14,8 +14,8 @@ import com.quincy.auth.o.DSession;
 import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthCallback;
 import com.quincy.core.redis.JedisSource;
-import com.quincy.sdk.RedisOperation;
-import com.quincy.sdk.RedisWebProcessor;
+import com.quincy.sdk.RedisProcessor;
+import com.quincy.sdk.RedisWebOperation;
 import com.quincy.sdk.helper.CommonHelper;
 
 import redis.clients.jedis.Jedis;
@@ -25,7 +25,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 	@Autowired
 	private JedisSource jedisSource;
 	@Autowired
-	private RedisWebProcessor redisWebProcessor;
+	private RedisProcessor redisProcessor;
 	@Value("${expire.session}")
 	private int sessionExpire;
 	@Resource(name = "sessionKeyPrefix")
@@ -33,7 +33,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 
 	@Override
 	protected Object getUserObject(HttpServletRequest request) throws Exception {
-		return redisWebProcessor.opt(request, new RedisOperation() {
+		return redisProcessor.opt(request, new RedisWebOperation() {
 			@Override
 			public Object run(Jedis jedis, String token) throws ClassNotFoundException, IOException {
 				byte[] key = (sessionKeyPrefix+token).getBytes();
@@ -78,13 +78,13 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 
 	@Override
 	public DSession setSession(HttpServletRequest request, String originalJsessionid, Long userId, AuthCallback callback) throws IOException, ClassNotFoundException {
-		String jsessionid = redisWebProcessor.createOrGetToken(request);
+		String jsessionid = redisProcessor.createOrGetToken(request);
 		DSession session = this.setSession(jsessionid, originalJsessionid, userId, callback);
 		return session;
 	}
 
 	public void logout(HttpServletRequest request) throws Exception {
-		redisWebProcessor.opt(request, new RedisOperation() {
+		redisProcessor.opt(request, new RedisWebOperation() {
 			@Override
 			public Object run(Jedis jedis, String token) throws Exception {
 				jedis.del((sessionKeyPrefix+token).getBytes());
