@@ -19,16 +19,16 @@ public abstract class JedisNeededBaseAop {
 
     @Around("pointCut()")
     public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
-    		Jedis jedis = null;
-    		try {
-    			jedis = jedisSource.get();
-    			Object obj = this.before(joinPoint, jedis);
-    			Object result = joinPoint.proceed();
-    			this.after(joinPoint, jedis, obj);
-    			return result;
-    		} finally {
-    			if(jedis!=null)
-    				jedis.close();
-	    	}
+    	Jedis jedis = null;
+    	try {
+    		jedis = jedisSource.get();
+    		Object obj = this.before(joinPoint, jedis);
+    		Object result = joinPoint.proceed();
+    		this.after(joinPoint, jedis, obj);
+    		return result;
+    	} finally {
+    		if(jedis!=null)
+    			jedis.close();
+    	}
     }
 }
