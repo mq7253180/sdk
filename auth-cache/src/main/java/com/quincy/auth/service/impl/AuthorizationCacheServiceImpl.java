@@ -86,7 +86,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 	public void logout(HttpServletRequest request) throws Exception {
 		redisProcessor.opt(request, new RedisWebOperation() {
 			@Override
-			public Object run(Jedis jedis, String token) throws Exception {
+			public Object run(Jedis jedis, String token) {
 				jedis.del((sessionKeyPrefix+token).getBytes());
 				return null;
 			}
