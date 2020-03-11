@@ -35,54 +35,54 @@ public class CacheAop {
 
     @Around("pointCut()")
     public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
-    		Class<?> clazz = joinPoint.getTarget().getClass();
-    		MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
-    		Method method = clazz.getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
-    		Cache annotation = method.getAnnotation(Cache.class);
-    		String keyStr = annotation.key().trim();
-    		String _key = cacheKeyPrefix+(keyStr.length()>0?keyStr:CommonHelper.fullMethodPath(clazz, methodSignature, method, joinPoint.getArgs(), ".", "_", "#"));
-    		log.info("CACHE_KEY============================={}", _key);
-    		byte[] key = _key.getBytes();
-    		Jedis jedis = null;
-    		try {
-    			jedis = jedisSource.get();
-    			byte[] cache = jedis.get(key);
-    			if(cache==null||cache.length==0) {
-    				byte[] nxKey = (_key+"_nx").getBytes();
-    				long setNx = jedis.setnx(nxKey, nxKey);
-    				if(setNx>0) {
-    					jedis.expire(nxKey, annotation.failoverDelaySecs());
+    	Class<?> clazz = joinPoint.getTarget().getClass();
+    	MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
+    	Method method = clazz.getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
+    	Cache annotation = method.getAnnotation(Cache.class);
+    	String keyStr = annotation.key().trim();
+    	String _key = cacheKeyPrefix+(keyStr.length()>0?keyStr:CommonHelper.fullMethodPath(clazz, methodSignature, method, joinPoint.getArgs(), ".", "_", "#"));
+    	log.info("CACHE_KEY============================={}", _key);
+    	byte[] key = _key.getBytes();
+    	Jedis jedis = null;
+    	try {
+    		jedis = jedisSource.get();
+    		byte[] cache = jedis.get(key);
+    		if(cache==null||cache.length==0) {
+    			byte[] nxKey = (_key+"_nx").getBytes();
+    			long setNx = jedis.setnx(nxKey, nxKey);
+    			if(setNx>0) {
+    				jedis.expire(nxKey, annotation.failoverDelaySecs());
+    				Object retVal = this.invokeAndCache(jedis, joinPoint, annotation, key);
+    				return retVal;
+    			} else {
+    				for(int i=0;i<annotation.failoverRetries();i++) {
+    					Thread.sleep(annotation.intervalMillis());
+    					cache = jedis.get(key);
+    					if(cache!=null&&cache.length>0)
+    						break;
+    				}
+    				if((cache==null||cache.length==0)&&!annotation.returnNull()) {
     					Object retVal = this.invokeAndCache(jedis, joinPoint, annotation, key);
     					return retVal;
-    				} else {
-    					for(int i=0;i<annotation.failoverRetries();i++) {
-    						Thread.sleep(annotation.intervalMillis());
-    						cache = jedis.get(key);
-    						if(cache!=null&&cache.length>0)
-    							break;
-    					}
-    					if((cache==null||cache.length==0)&&!annotation.returnNull()) {
-    						Object retVal = this.invokeAndCache(jedis, joinPoint, annotation, key);
-    						return retVal;
-    					}
     				}
     			}
-    			Object toReturn = (cache!=null&&cache.length>0)?CommonHelper.unSerialize(cache):null;
-    			return toReturn;
-    		} finally {
-    			if(jedis!=null)
-    				jedis.close();
     		}
+    		Object toReturn = (cache!=null&&cache.length>0)?CommonHelper.unSerialize(cache):null;
+    		return toReturn;
+    	} finally {
+    		if(jedis!=null)
+    			jedis.close();
+    	}
     }
 
     private Object invokeAndCache(Jedis jedis, ProceedingJoinPoint joinPoint, Cache annotation, byte[] key) throws Throwable {
-    		Object retVal = joinPoint.proceed();
-    		if(retVal!=null) {
-    			jedis.set(key, CommonHelper.serialize(retVal));
-    			int expire = annotation.expire();
-    			if(expire>0)
-    				jedis.expire(key, expire);
-    		}
-    		return retVal;
+    	Object retVal = joinPoint.proceed();
+    	if(retVal!=null) {
+    		jedis.set(key, CommonHelper.serialize(retVal));
+    		int expire = annotation.expire();
+    		if(expire>0)
+    			jedis.expire(key, expire);
+    	}
+    	return retVal;
     }
 }

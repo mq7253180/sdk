@@ -27,28 +27,28 @@ public class JedisInjectorAop {
 
     @Around("pointCut()")
     public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
-    		MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
-    		Class<?>[] classes = methodSignature.getParameterTypes();
-    		Object[] args = joinPoint.getArgs();
-    		Jedis jedis = null;
-    		JedisCluster jedisCluster = null;
-    		try {
-    			for(int i=0;i<classes.length;i++) {
-    				if(jedis==null)
-    					jedis = jedisSource.get();
-    				String className = classes[i].getName();
-    				if(Jedis.class.getName().equals(className)) {
-    					args[i] = jedis;
-    				} else if(JedisCluster.class.getName().equals(className)) {
-    					if(jedisCluster==null)
-    						jedisCluster = ((QuincyJedis)jedis).getJedisCluster();
-    					args[i] = jedisCluster;
-    				}
+    	MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
+    	Class<?>[] classes = methodSignature.getParameterTypes();
+    	Object[] args = joinPoint.getArgs();
+    	Jedis jedis = null;
+    	JedisCluster jedisCluster = null;
+    	try {
+    		for(int i=0;i<classes.length;i++) {
+    			if(jedis==null)
+    				jedis = jedisSource.get();
+    			String className = classes[i].getName();
+    			if(Jedis.class.getName().equals(className)) {
+    				args[i] = jedis;
+    			} else if(JedisCluster.class.getName().equals(className)) {
+    				if(jedisCluster==null)
+    					jedisCluster = ((QuincyJedis)jedis).getJedisCluster();
+    				args[i] = jedisCluster;
     			}
-    			return joinPoint.proceed(args);
-    		} finally {
-    			if(jedisCluster==null&&jedis!=null)
-    				jedis.close();
     		}
+    		return joinPoint.proceed(args);
+    	} finally {
+    		if(jedisCluster==null&&jedis!=null)
+    			jedis.close();
+    	}
     }
 }
