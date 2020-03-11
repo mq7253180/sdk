@@ -6,9 +6,11 @@ import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Properties;
 import java.util.Random;
 import java.util.UUID;
 
+import javax.annotation.Resource;
 import javax.imageio.ImageIO;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -34,12 +36,10 @@ import redis.clients.jedis.Jedis;
 public class WebProcessorImpl extends HandlerInterceptorAdapter implements RedisWebProcessor {
 	@Autowired
 	private JedisSource jedisSource;
+	@Resource(name = InnerConstants.BEAN_NAME_PROPERTIES)
+	private Properties properties;
 	@Value("${spring.application.name}")
 	private String appName;
-	@Value("${expire.vcode}")
-	private int vcodeExpire;
-	@Value("${domain}")
-	private String domain;
 	private final static String FLAG_VCODE = "vcode";
 
 	@Override
@@ -98,8 +98,7 @@ public class WebProcessorImpl extends HandlerInterceptorAdapter implements Redis
 		try {
 			jedis = jedisSource.get();
 			jedis.set(key, content);
-			int seconds = vcodeExpire*60;
-			jedis.expire(key, seconds);
+			jedis.expire(key, Integer.parseInt(properties.getProperty("expire.vcode"))*60);
 		} finally {
 			if(jedis!=null)
 				jedis.close();
@@ -128,7 +127,7 @@ public class WebProcessorImpl extends HandlerInterceptorAdapter implements Redis
 		if(token==null) {
 			token = UUID.randomUUID().toString().replaceAll("-", "");
 			Cookie cookie = new Cookie(InnerConstants.CLIENT_TOKEN, token);
-			cookie.setDomain(domain);
+			cookie.setDomain(CommonHelper.trim(properties.getProperty("domain")));
 			cookie.setPath("/");
 			cookie.setMaxAge(3600*12);
 			HttpServletResponse response = CommonHelper.getResponse();
