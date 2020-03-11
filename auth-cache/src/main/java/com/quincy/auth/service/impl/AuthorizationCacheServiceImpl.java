@@ -28,6 +28,8 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 	private JedisSource jedisSource;
 	@Value("${expire.session}")
 	private int sessionExpire;
+	@Value("${expire.vcode}")
+	private int vcodeExpire;
 	@Value("${domain}")
 	private String domain;
 	private final static String FLAG_VCODE = "vcode";
@@ -99,7 +101,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 	}
 
 	protected void saveVcode(HttpServletRequest request, String vcode) throws Exception {
-		this.setCachedStr(request, FLAG_VCODE, vcode, 2);
+		this.setCachedStr(request, FLAG_VCODE, vcode);
 	}
 
 	public String getCachedVcode(HttpServletRequest request) throws Exception {
@@ -139,14 +141,14 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 		return token;
 	}
 
-	private void setCachedStr(HttpServletRequest request, String flag, String content, int expire) {
+	private void setCachedStr(HttpServletRequest request, String flag, String content) {
 		String token = this.createOrGetToken(request);
 		String key = appName+"."+flag+"."+token;
 		Jedis jedis = null;
 		try {
 			jedis = jedisSource.get();
 			jedis.set(key, content);
-			int seconds = expire*60;
+			int seconds = vcodeExpire*60;
 			jedis.expire(key, seconds);
 		} finally {
 			if(jedis!=null)
