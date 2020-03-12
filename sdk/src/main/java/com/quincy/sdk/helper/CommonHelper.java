@@ -70,7 +70,8 @@ public class CommonHelper {
 				return getFirstAsUri(request);
 			}
 		};
-		i18nChainHead = headerSupport.setNext(parameterSupport).setNext(cookieSupport).setNext(uriSupport);
+		headerSupport.setNext(parameterSupport).setNext(cookieSupport).setNext(uriSupport);
+		i18nChainHead = headerSupport;
 	}
 
 	private static abstract class I18NSupport {
