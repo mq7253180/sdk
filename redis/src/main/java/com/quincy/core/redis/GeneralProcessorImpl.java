@@ -7,6 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.MessageFormat;
 import java.util.Properties;
 import java.util.Random;
 import java.util.UUID;
@@ -25,6 +26,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.support.RequestContext;
 
 import com.quincy.core.InnerConstants;
+import com.quincy.sdk.EmailService;
 import com.quincy.sdk.RedisOperation;
 import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.RedisWebOperation;
@@ -169,15 +171,14 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		this.cacheStr(request, FLAG_VCODE, vcode);
 	}
 
-	@Override
-	public String getCachedVCode(HttpServletRequest request) throws Exception {
+	private String getCachedVCode(HttpServletRequest request) throws Exception {
 		return this.getCachedStr(request, FLAG_VCODE);
 	}
 
 	private final static String VCODE_COMBINATION_FROM = "23456789abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ";
 
 	@Override
-	public void vcode(HttpServletRequest request, VCcodeSender sender) throws IOException {
+	public char[] vcode(HttpServletRequest request, VCcodeSender sender) throws Exception {
 		int length = Integer.parseInt(properties.getProperty("vcode.length"));
 		Random random = new Random();
 		StringBuilder sb = new StringBuilder(length);
@@ -190,13 +191,14 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		String vcode = sb.toString();
 		this.cacheVCode(request, vcode);
 		sender.send(_vcode);
+		return _vcode;
 	}
 
 	private final double radians = Math.PI/180;
 
 	@Override
-	public void vcode(HttpServletRequest request, HttpServletResponse response, int size, int start, int space, int width, int height) throws IOException {
-		this.vcode(request, new VCcodeSender() {
+	public char[] vcode(HttpServletRequest request, HttpServletResponse response, int size, int start, int space, int width, int height) throws Exception {
+		return this.vcode(request, new VCcodeSender() {
 			@Override
 			public void send(char[] vcode) throws IOException {
 				BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
@@ -231,6 +233,22 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 					if(out!=null)
 						out.close();
 				}
+			}
+		});
+	}
+
+	@Autowired
+	private EmailService emailService;
+
+	@Override
+	public char[] vcode(HttpServletRequest request, String emailTo, String subject, String _content) throws Exception {
+		return this.vcode(request, new VCcodeSender() {
+			@Override
+			public void send(char[] _vcode) {
+				String vcode = new String(_vcode);
+				String content = MessageFormat.format(_content, vcode);
+				content = String.format(content, vcode);
+				emailService.send(emailTo, subject, content, "", null, null, null, null);
 			}
 		});
 	}

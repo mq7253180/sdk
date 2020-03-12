@@ -1,7 +1,5 @@
 package com.quincy.core.redis;
 
-import java.io.IOException;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -24,7 +22,7 @@ public class VCodeController {
 			@PathVariable(required = true, name = "start")int start,
 			@PathVariable(required = true, name = "space")int space,
 			@PathVariable(required = true, name = "width")int width, 
-			@PathVariable(required = true, name = "height")int height) throws IOException {
+			@PathVariable(required = true, name = "height")int height) throws Exception {
 		redisProcessor.vcode(request, response, size, start, space, width, height);
 	}
 }
