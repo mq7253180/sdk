@@ -194,14 +194,14 @@ public class CommonHelper {
         int rc = 0;
         ByteArrayOutputStream out = null;
         try {
-        		out = new ByteArrayOutputStream();
+        	out = new ByteArrayOutputStream();
             while((rc = in.read(buff, 0, 100))>0)
-            		out.write(buff, 0, rc);
+            	out.write(buff, 0, rc);
             byte[] b = out.toByteArray();
             return b;
         } finally {
-        		if(out!=null)
-        			out.close();
+        	if(out!=null)
+        		out.close();
         }
     }
 
@@ -241,7 +241,7 @@ public class CommonHelper {
 		ByteArrayInputStream bis = null;
         ObjectInputStream ois = null;
         try {
-        		bis = new ByteArrayInputStream (byteArray);
+        	bis = new ByteArrayInputStream (byteArray);
 			ois = new ObjectInputStream(bis);
 			return ois.readObject();
 		} finally {
@@ -394,10 +394,10 @@ public class CommonHelper {
         StringBuilder sb = new StringBuilder(arg.length()*5);
         char[] cArray = arg.toCharArray();
         for(char c:cArray) {
-        		if(c>=19968&&c<=171941) {//汉字范围 \u4e00-\u9fa5 (中文)
-        			sb.append("\\u").append(Integer.toHexString(c));
-        		} else
-        			sb.append(c);
+        	if(c>=19968&&c<=171941) {//汉字范围 \u4e00-\u9fa5 (中文)
+        		sb.append("\\u").append(Integer.toHexString(c));
+        	} else
+        		sb.append(c);
         }
         return sb.toString();
     }

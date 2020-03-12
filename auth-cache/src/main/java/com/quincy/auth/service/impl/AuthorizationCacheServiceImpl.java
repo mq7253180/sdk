@@ -51,6 +51,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 	private DSession setSession(String jsessionid, String originalJsessionid, Long userId, AuthCallback callback) throws IOException, ClassNotFoundException {
 		User user = callback.getUser();
 		user.setJsessionid(jsessionid);
+		user.setPassword(null);
 		DSession session = this.createSession(user);
 		byte[] key = (sessionKeyPrefix+jsessionid).getBytes();
 		Jedis jedis = null;
