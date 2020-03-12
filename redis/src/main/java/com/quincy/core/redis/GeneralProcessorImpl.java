@@ -93,7 +93,8 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 
 	@Override
 	public Object opt(HttpServletRequest request, RedisWebOperation operation) throws Exception {
-		String token = CommonHelper.trim(CommonHelper.getValue(request, InnerConstants.CLIENT_TOKEN));
+		String clientTokenName = CommonHelper.trim(properties.getProperty(InnerConstants.CLIENT_TOKEN_PROPERTY_NAME));
+		String token = CommonHelper.trim(CommonHelper.getValue(request, clientTokenName));
 		if(token!=null) {
 			return this.opt(new RedisOperation() {
 				@Override
@@ -149,10 +150,11 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 
 	@Override
 	public String createOrGetToken(HttpServletRequest request) {
-		String token = CommonHelper.trim(CommonHelper.getValue(request, InnerConstants.CLIENT_TOKEN));
+		String clientTokenName = CommonHelper.trim(properties.getProperty(InnerConstants.CLIENT_TOKEN_PROPERTY_NAME));
+		String token = CommonHelper.trim(CommonHelper.getValue(request, clientTokenName));
 		if(token==null) {
 			token = UUID.randomUUID().toString().replaceAll("-", "");
-			Cookie cookie = new Cookie(InnerConstants.CLIENT_TOKEN, token);
+			Cookie cookie = new Cookie(clientTokenName, token);
 			cookie.setDomain(CommonHelper.trim(properties.getProperty("domain")));
 			cookie.setPath("/");
 			cookie.setMaxAge(3600*12);
