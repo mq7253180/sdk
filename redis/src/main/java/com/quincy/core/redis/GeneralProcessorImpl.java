@@ -28,6 +28,7 @@ import com.quincy.core.InnerConstants;
 import com.quincy.sdk.RedisOperation;
 import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.RedisWebOperation;
+import com.quincy.sdk.VCcodeSender;
 import com.quincy.sdk.annotation.VCodeRequired;
 import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.helper.HttpClientHelper;
@@ -176,7 +177,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 	private final static String VCODE_COMBINATION_FROM = "23456789abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ";
 
 	@Override
-	public void vcode(HttpServletRequest request, HttpServletResponse response, int size, int start, int space, int width, int height) throws IOException {
+	public void vcode(HttpServletRequest request, VCcodeSender sender) throws IOException {
 		int length = Integer.parseInt(properties.getProperty("vcode.length"));
 		Random random = new Random();
 		StringBuilder sb = new StringBuilder(length);
@@ -188,42 +189,49 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		}
 		String vcode = sb.toString();
 		this.cacheVCode(request, vcode);
-		this.drawAsByteArray(_vcode, random, response, size, start, space, width, height);
+		sender.send(_vcode);
 	}
 
 	private final double radians = Math.PI/180;
 
-	private void drawAsByteArray(char[] vcode, Random random, HttpServletResponse response, int size, int start, int space, int width, int height) throws IOException {
-		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
-		Graphics g = image.getGraphics();
-		Graphics2D gg = (Graphics2D)g;
-		g.setColor(Color.WHITE);
-		g.fillRect(0, 0, width, height);//填充背景
-		int lines = Integer.parseInt(properties.getProperty("vcode.lines"));
-		for(int i=0;i<lines;i++) {
-			g.setColor(new Color(random.nextInt(255), random.nextInt(255), random.nextInt(255)));
-			g.drawLine(random.nextInt(width), random.nextInt(height), random.nextInt(width), random.nextInt(height));
-		}
-		Font font = new Font("Times New Roman", Font.ROMAN_BASELINE, 25);
-		g.setFont(font);
-//		g.translate(random.nextInt(3), random.nextInt(3));
-        int x = start;//旋转原点的 x 坐标
-		for(char c:vcode) {
-            double tiltAngle = random.nextInt()%30*radians;//角度小于30度
-			g.setColor(new Color(random.nextInt(255), random.nextInt(255), random.nextInt(255)));
-			gg.rotate(tiltAngle, x, 45);
-			g.drawString(c+"", x, size);
-            gg.rotate(-tiltAngle, x, 45);
-            x += space;
-		}
-		OutputStream out = null;
-		try {
-			out = response.getOutputStream();
-			ImageIO.write(image, "jpg", out);
-			out.flush();
-		} finally {
-			if(out!=null)
-				out.close();
-		}
+	@Override
+	public void vcode(HttpServletRequest request, HttpServletResponse response, int size, int start, int space, int width, int height) throws IOException {
+		this.vcode(request, new VCcodeSender() {
+			@Override
+			public void send(char[] vcode) throws IOException {
+				BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
+				Graphics g = image.getGraphics();
+				Graphics2D gg = (Graphics2D)g;
+				g.setColor(Color.WHITE);
+				g.fillRect(0, 0, width, height);//填充背景
+				int lines = Integer.parseInt(properties.getProperty("vcode.lines"));
+				Random random = new Random();
+				for(int i=0;i<lines;i++) {
+					g.setColor(new Color(random.nextInt(255), random.nextInt(255), random.nextInt(255)));
+					g.drawLine(random.nextInt(width), random.nextInt(height), random.nextInt(width), random.nextInt(height));
+				}
+				Font font = new Font("Times New Roman", Font.ROMAN_BASELINE, 25);
+				g.setFont(font);
+//				g.translate(random.nextInt(3), random.nextInt(3));
+		        int x = start;//旋转原点的 x 坐标
+				for(char c:vcode) {
+		            double tiltAngle = random.nextInt()%30*radians;//角度小于30度
+					g.setColor(new Color(random.nextInt(255), random.nextInt(255), random.nextInt(255)));
+					gg.rotate(tiltAngle, x, 45);
+					g.drawString(c+"", x, size);
+		            gg.rotate(-tiltAngle, x, 45);
+		            x += space;
+				}
+				OutputStream out = null;
+				try {
+					out = response.getOutputStream();
+					ImageIO.write(image, "jpg", out);
+					out.flush();
+				} finally {
+					if(out!=null)
+						out.close();
+				}
+			}
+		});
 	}
 }
