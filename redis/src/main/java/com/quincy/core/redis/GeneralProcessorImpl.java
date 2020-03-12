@@ -49,23 +49,25 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 			HandlerMethod method = (HandlerMethod)handler;
 			VCodeRequired annotation = method.getMethod().getDeclaredAnnotation(VCodeRequired.class);
 			if(annotation!=null) {
-				String inputedVcode = CommonHelper.trim(request.getParameter(InnerConstants.ATTR_VCODE));
+				String inputedVCode = CommonHelper.trim(request.getParameter(InnerConstants.ATTR_VCODE));
 				Integer status = null;
 				String msgI18NKey = null;
-				if(inputedVcode==null) {
+				if(inputedVCode==null) {
 					status = -3;
 					msgI18NKey = "vcode.null";
 				} else {
-					String cachedVcode = CommonHelper.trim(this.getCachedVcode(request));
-					if(cachedVcode==null) {
+					String cachedVCode = CommonHelper.trim(this.getCachedVCode(request));
+					if(cachedVCode==null) {
 						status = -4;
 						msgI18NKey = "vcode.expire";
-					} else if(!cachedVcode.equals(inputedVcode)) {
+					} else if(!cachedVCode.equalsIgnoreCase(inputedVCode)) {
 						status = -5;
 						msgI18NKey = "vcode.not_matched";
 					}
 				}
-				if(status!=null) {
+				if(status==null) {
+					this.rmCachedStr(request, FLAG_VCODE);
+				} else {
 					RequestContext requestContext = new RequestContext(request);
 					String outputContent = "{\"status\":"+status+", \"msg\":\""+requestContext.getMessage(msgI18NKey)+"\"}";
 					HttpClientHelper.outputJson(response, outputContent);
@@ -109,7 +111,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		try {
 			jedis = jedisSource.get();
 			jedis.set(key, content);
-			jedis.expire(key, Integer.parseInt(properties.getProperty("expire.vcode"))*60);
+			jedis.expire(key, Integer.parseInt(properties.getProperty("vcode.expire"))*60);
 		} finally {
 			if(jedis!=null)
 				jedis.close();
@@ -126,6 +128,18 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 			}
 		});
 		return retVal==null?null:String.valueOf(retVal);
+	}
+
+	private void rmCachedStr(HttpServletRequest request, String flag) {
+		String key = combineAsKey(flag, this.createOrGetToken(request));
+		Jedis jedis = null;
+		try {
+			jedis = jedisSource.get();
+			jedis.del(key);
+		} finally {
+			if(jedis!=null)
+				jedis.close();
+		}
 	}
 
 	private String combineAsKey(String flag, String token) {
@@ -147,44 +161,34 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		return token;
 	}
 
-	private void cacheVcode(HttpServletRequest request, String vcode) {
+	private void cacheVCode(HttpServletRequest request, String vcode) {
 		this.cacheStr(request, FLAG_VCODE, vcode);
 	}
 
-	private String getCachedVcode(HttpServletRequest request) throws Exception {
+	private String getCachedVCode(HttpServletRequest request) throws Exception {
 		return this.getCachedStr(request, FLAG_VCODE);
 	}
 
-	private final static int width = 88;
-	private final static int height = 40;
-	private final static int lines = 5;
-	
 	private final static String VCODE_COMBINATION_FROM = "23456789abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ";
 
 	@Override
-	public void vcode(HttpServletRequest request, HttpServletResponse response, int length) throws IOException {
+	public void vcode(HttpServletRequest request, HttpServletResponse response, int width, int height) throws IOException {
+		int length = Integer.parseInt(properties.getProperty("vcode.length"));
 		Random random = new Random();
 		StringBuilder sb = new StringBuilder(length);
 		for(int i=0;i<length;i++)
 			sb.append(VCODE_COMBINATION_FROM.charAt(random.nextInt(VCODE_COMBINATION_FROM.length())));
 		String vcode = sb.toString();
-		this.cacheVcode(request, vcode);
-		OutputStream out = null;
-		try {
-			out = response.getOutputStream();
-			this.drawAsByteArray(vcode, random, out);
-			out.flush();
-		} finally {
-			if(out!=null)
-				out.close();
-		}
+		this.cacheVCode(request, vcode);
+		this.drawAsByteArray(vcode, random, response, width, height);
 	}
 
-	private void drawAsByteArray(String arg, Random random, OutputStream output) throws IOException {
+	private void drawAsByteArray(String arg, Random random, HttpServletResponse response, int width, int height) throws IOException {
 		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
 		Graphics g = image.getGraphics();
 		g.fillRect(0, 0, width, height);
 		g.setColor(new Color(random.nextInt(255), random.nextInt(255), random.nextInt(255)));
+		int lines = Integer.parseInt(properties.getProperty("vcode.lines"));
 		for(int i=0;i<lines;i++)
 			g.drawLine(random.nextInt(width), random.nextInt(height), random.nextInt(width), random.nextInt(height));
 		Font font = new Font("Times New Roman", Font.ROMAN_BASELINE, 25);
@@ -192,6 +196,14 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		g.setColor(new Color(random.nextInt(101), random.nextInt(111), random.nextInt(121)));
 //		g.translate(random.nextInt(3), random.nextInt(3));
 		g.drawString(arg, 13, 25);
-		ImageIO.write(image, "jpg", output);
+		OutputStream out = null;
+		try {
+			out = response.getOutputStream();
+			ImageIO.write(image, "jpg", out);
+			out.flush();
+		} finally {
+			if(out!=null)
+				out.close();
+		}
 	}
 }
