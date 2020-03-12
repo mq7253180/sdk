@@ -6,13 +6,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.util.Properties;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
+import com.quincy.core.InnerConstants;
+
 public class StaticInterceptor extends HandlerInterceptorAdapter {
+	@Resource(name = InnerConstants.BEAN_NAME_PROPERTIES)
+	private Properties properties;
+
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
 		if(request.getRequestURI().endsWith(".properties"))

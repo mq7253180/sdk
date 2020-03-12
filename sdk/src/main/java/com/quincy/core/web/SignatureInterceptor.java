@@ -1,0 +1,52 @@
+package com.quincy.core.web;
+
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import org.springframework.web.servlet.support.RequestContext;
+
+import com.quincy.sdk.annotation.SignatureRequired;
+import com.quincy.sdk.helper.CommonHelper;
+import com.quincy.sdk.helper.HttpClientHelper;
+
+public class SignatureInterceptor extends HandlerInterceptorAdapter {
+	private final static String mapKey = "signature";
+
+	@Override
+	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
+		if(handler instanceof HandlerMethod) {
+			HandlerMethod method = (HandlerMethod)handler;
+			SignatureRequired annotation = method.getMethod().getDeclaredAnnotation(SignatureRequired.class);
+			if(annotation!=null) {
+				Integer status = null;
+				String msgI18NKey = null;
+				String signature = CommonHelper.trim(request.getParameter(mapKey));
+				if(signature==null) {
+					status = -6;
+					msgI18NKey = "signature.null";
+				} else {
+					Map<String, String[]> map = request.getParameterMap();
+					map.remove(mapKey);
+					Iterator<Map.Entry<String, String[]>> it = map.entrySet().iterator();
+					if(!signature.equals("")) {
+						status = -7;
+						msgI18NKey = "signature.not_matched";
+					}
+				}
+				if(status==null) {
+					RequestContext requestContext = new RequestContext(request);
+					String outputContent = "{\"status\":"+status+", \"msg\":\""+requestContext.getMessage(msgI18NKey)+"\"}";
+					HttpClientHelper.outputJson(response, outputContent);
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+}
