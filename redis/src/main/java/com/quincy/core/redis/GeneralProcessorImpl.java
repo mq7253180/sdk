@@ -165,7 +165,8 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		this.cacheStr(request, FLAG_VCODE, vcode);
 	}
 
-	private String getCachedVCode(HttpServletRequest request) throws Exception {
+	@Override
+	public String getCachedVCode(HttpServletRequest request) throws Exception {
 		return this.getCachedStr(request, FLAG_VCODE);
 	}
 
