@@ -8,7 +8,6 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -34,10 +33,8 @@ import com.quincy.core.web.freemarker.LocaleTemplateDirectiveModelBean;
 import com.quincy.core.web.freemarker.PropertiesTemplateDirectiveModelBean;
 import com.quincy.sdk.helper.CommonHelper;
 
-import lombok.extern.slf4j.Slf4j;
+import freemarker.template.Configuration;
 
-@Slf4j
-//@Configuration
 public class WebMvcConfiguration extends WebMvcConfigurationSupport implements InitializingBean {
 	@Autowired
     private RequestMappingHandlerAdapter adapter;
@@ -90,21 +87,15 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport implements I
     	return new GlobalHandlerExceptionResolver();
     }
 
+    @Autowired
+    private Configuration freemarkerCfg;
+
     @PostConstruct
     public void freeMarkerConfigurer() {
-    	freemarker.template.Configuration configuration = null;
-    	try {
-    		configuration = applicationContext.getBean(freemarker.template.Configuration.class);
-    	} catch(NoSuchBeanDefinitionException e) {
-    		log.warn("===================NO_FREEMARKER");
-    	}
-    	if(configuration!=null) {
-    		log.warn("===================WITH_FREEMARKER");
-    		configuration.setSharedVariable("attr", new AttributeTemplateDirectiveModelBean());
-        	configuration.setSharedVariable("i18n", new I18NTemplateDirectiveModelBean(properties));
-        	configuration.setSharedVariable("property", new PropertiesTemplateDirectiveModelBean(properties));
-        	configuration.setSharedVariable("locale", new LocaleTemplateDirectiveModelBean());
-    	}
+    	freemarkerCfg.setSharedVariable("attr", new AttributeTemplateDirectiveModelBean());
+		freemarkerCfg.setSharedVariable("i18n", new I18NTemplateDirectiveModelBean(properties));
+		freemarkerCfg.setSharedVariable("property", new PropertiesTemplateDirectiveModelBean(properties));
+		freemarkerCfg.setSharedVariable("locale", new LocaleTemplateDirectiveModelBean());
     }
 
     /*@Bean

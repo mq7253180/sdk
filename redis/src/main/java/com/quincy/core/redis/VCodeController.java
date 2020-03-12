@@ -18,10 +18,13 @@ public class VCodeController {
 	@Autowired
 	private RedisProcessor redisProcessor;
 
-	@RequestMapping("/auth/vcode/{width}/{height}")
+	@RequestMapping("/auth/vcode/{size}/{start}/{space}/{width}/{height}")
 	public void genVCode(HttpServletRequest request, HttpServletResponse response, 
+			@PathVariable(required = true, name = "size")int size,
+			@PathVariable(required = true, name = "start")int start,
+			@PathVariable(required = true, name = "space")int space,
 			@PathVariable(required = true, name = "width")int width, 
 			@PathVariable(required = true, name = "height")int height) throws IOException {
-		redisProcessor.vcode(request, response, width, height);
+		redisProcessor.vcode(request, response, size, start, space, width, height);
 	}
 }

@@ -3,6 +3,7 @@ package com.quincy.core.redis;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -173,30 +174,46 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 	private final static String VCODE_COMBINATION_FROM = "23456789abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ";
 
 	@Override
-	public void vcode(HttpServletRequest request, HttpServletResponse response, int width, int height) throws IOException {
+	public void vcode(HttpServletRequest request, HttpServletResponse response, int size, int start, int space, int width, int height) throws IOException {
 		int length = Integer.parseInt(properties.getProperty("vcode.length"));
 		Random random = new Random();
 		StringBuilder sb = new StringBuilder(length);
-		for(int i=0;i<length;i++)
-			sb.append(VCODE_COMBINATION_FROM.charAt(random.nextInt(VCODE_COMBINATION_FROM.length())));
+		char[] _vcode = new char[length];
+		for(int i=0;i<length;i++) {
+			char c = VCODE_COMBINATION_FROM.charAt(random.nextInt(VCODE_COMBINATION_FROM.length()));
+			sb.append(c);
+			_vcode[i] = c;
+		}
 		String vcode = sb.toString();
 		this.cacheVCode(request, vcode);
-		this.drawAsByteArray(vcode, random, response, width, height);
+		this.drawAsByteArray(_vcode, random, response, size, start, space, width, height);
 	}
 
-	private void drawAsByteArray(String arg, Random random, HttpServletResponse response, int width, int height) throws IOException {
+	private final double radians = Math.PI/180;
+
+	private void drawAsByteArray(char[] vcode, Random random, HttpServletResponse response, int size, int start, int space, int width, int height) throws IOException {
 		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
 		Graphics g = image.getGraphics();
-		g.fillRect(0, 0, width, height);
-		g.setColor(new Color(random.nextInt(255), random.nextInt(255), random.nextInt(255)));
+		Graphics2D gg = (Graphics2D)g;
+		g.setColor(Color.WHITE);
+		g.fillRect(0, 0, width, height);//填充背景
 		int lines = Integer.parseInt(properties.getProperty("vcode.lines"));
-		for(int i=0;i<lines;i++)
+		for(int i=0;i<lines;i++) {
+			g.setColor(new Color(random.nextInt(255), random.nextInt(255), random.nextInt(255)));
 			g.drawLine(random.nextInt(width), random.nextInt(height), random.nextInt(width), random.nextInt(height));
+		}
 		Font font = new Font("Times New Roman", Font.ROMAN_BASELINE, 25);
 		g.setFont(font);
-		g.setColor(new Color(random.nextInt(101), random.nextInt(111), random.nextInt(121)));
 //		g.translate(random.nextInt(3), random.nextInt(3));
-		g.drawString(arg, 13, 25);
+        int x = start;//旋转原点的 x 坐标
+		for(char c:vcode) {
+            double tiltAngle = random.nextInt()%30*radians;//角度小于30度
+			g.setColor(new Color(random.nextInt(255), random.nextInt(255), random.nextInt(255)));
+			gg.rotate(tiltAngle, x, 45);
+			g.drawString(c+"", x, size);
+            gg.rotate(-tiltAngle, x, 45);
+            x += space;
+		}
 		OutputStream out = null;
 		try {
 			out = response.getOutputStream();
