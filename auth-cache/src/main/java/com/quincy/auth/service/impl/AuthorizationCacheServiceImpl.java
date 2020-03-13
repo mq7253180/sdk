@@ -39,8 +39,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 				byte[] key = (sessionKeyPrefix+token).getBytes();
 				byte[] b = jedis.get(key);
 				if(b!=null&&b.length>0) {
-					int seconds = sessionExpire*60;
-					jedis.expire(key, seconds);
+					jedis.expire(key, sessionExpire*60);
 					return CommonHelper.unSerialize(b);
 				} else 
 					return null;
@@ -67,8 +66,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 				}
 			}
 			jedis.set(key, CommonHelper.serialize(session));
-			int seconds = sessionExpire*60;
-			jedis.expire(key, seconds);
+			jedis.expire(key, sessionExpire*60);
 			callback.updateLastLogined(jsessionid);
 			return session;
 		} finally {
