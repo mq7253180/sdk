@@ -126,8 +126,12 @@ public class RSASecurityHelper {
         Map<String, Object> keyMap = new HashMap<String, Object>(8);
         keyMap.put(PUBLIC_KEY, publicKey);
         keyMap.put(PRIVATE_KEY, privateKey);
-        keyMap.put(PUBLIC_KEY_BASE64, base64Encoder.encode(publicKey.getEncoded()));
-        keyMap.put(PRIVATE_KEY_BASE64, base64Encoder.encode(privateKey.getEncoded()));
+        byte[] encodedPubKey = publicKey.getEncoded();
+        byte[] encodedPriKey = privateKey.getEncoded();
+        String base64edPubKey = base64Encoder.encodeToString(encodedPubKey);
+        String base64edPriKey = base64Encoder.encodeToString(encodedPriKey);
+        keyMap.put(PUBLIC_KEY_BASE64, base64edPubKey);
+        keyMap.put(PRIVATE_KEY_BASE64, base64edPriKey);
         return keyMap;
     }
 
@@ -204,8 +208,8 @@ public class RSASecurityHelper {
 	}
 
 	public static String sign(String _privateKey, String algorithms, String charset, String content) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, SignatureException, IOException {
-		PrivateKey privateKey = RSASecurityHelper.extractPrivateKey(_privateKey);
-		return sign(privateKey, algorithms, content, charset);
+		PrivateKey privateKey = extractPrivateKey(_privateKey);
+		return sign(privateKey, algorithms, charset, content);
 	}
 
 	public static boolean verify(PublicKey publicKey, String algorithms, String signatureStr, String content, String charset) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, SignatureException, IOException {
@@ -218,8 +222,8 @@ public class RSASecurityHelper {
 	}
 
 	public static boolean verify(String _publicKey, String algorithms, String signatureStr, String content, String encode) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, SignatureException, IOException {
-		PublicKey publicKey = RSASecurityHelper.extractPublicKeyByStr(_publicKey);
-		return RSASecurityHelper.verify(publicKey, algorithms, signatureStr, content, encode);
+		PublicKey publicKey = extractPublicKeyByStr(_publicKey);
+		return verify(publicKey, algorithms, signatureStr, content, encode);
 	}
 
 	private static String getDefaultCharset(String _charset) {

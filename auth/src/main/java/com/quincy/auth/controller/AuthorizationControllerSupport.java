@@ -21,7 +21,7 @@ import com.quincy.sdk.Result;
 import com.quincy.sdk.helper.CommonHelper;
 
 @RequestMapping("/auth")
-public abstract class AbstractAuthorizationController {
+public abstract class AuthorizationControllerSupport {
 	@Autowired
 	private AuthorizationService authorizationService;
 
