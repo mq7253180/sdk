@@ -22,7 +22,7 @@ import com.quincy.sdk.helper.HttpClientHelper;
 import com.quincy.sdk.helper.RSASecurityHelper;
 
 public class SignatureInterceptor extends HandlerInterceptorAdapter {
-	private final static String mapKey = "signature";
+	private final static String MAP_KEY = "signature";
 
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException, InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException {
@@ -32,7 +32,7 @@ public class SignatureInterceptor extends HandlerInterceptorAdapter {
 			if(annotation!=null) {
 				Integer status = null;
 				String msgI18NKey = null;
-				String signature = CommonHelper.trim(request.getParameter(mapKey));
+				String signature = CommonHelper.trim(request.getParameter(MAP_KEY));
 				if(signature==null) {
 					status = -2;
 					msgI18NKey = "signature.null";
@@ -42,7 +42,7 @@ public class SignatureInterceptor extends HandlerInterceptorAdapter {
 					StringBuilder sb = new StringBuilder(200);
 					while(it.hasNext()) {
 						Entry<String, String[]> e = it.next();
-						if(!mapKey.equals(e.getKey()))
+						if(!MAP_KEY.equals(e.getKey()))
 							sb.append("&").append(e.getKey()).append("=").append(e.getValue()[0]);
 					}
 					String publicKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCMYDMqMFSJL+nUMzF7MQjCYe/Y3P26wjVn90CdrSE8H9Ed4dg0/BteWn5+ZK65DwWev2F79hBIpprPrtVe+wplCTkpyR+mPiNL+WKkvo7miMegRYJFZLvh9QrFuDzMJZ+rAiu4ldxkVB0CMKfYEWbukKGmAinxVAqUr/HcW2mWjwIDAQAB";
