@@ -142,11 +142,16 @@ public class DistributedTransactionAop implements DTransactionContext {
 	private String getBeanName(Class<?> clazz) {
 		String beanName = CommonHelper.trim(chainHead.support(clazz));
 		if(beanName==null) {
-			String className = clazz.getName();
-			int lastDotIndex = className.lastIndexOf(".");
-			int lastDotIndexPlus2 = lastDotIndex+2;
-			beanName = className.substring(lastDotIndexPlus2, className.length());
-			beanName = className.substring(lastDotIndex+1, lastDotIndexPlus2).toLowerCase()+beanName;
+			String simpleClassName = clazz.getSimpleName();
+			String firstCharLowerCase = simpleClassName.substring(0, 1).toLowerCase();
+			if(simpleClassName.length()==1) {
+				beanName = firstCharLowerCase;
+			} else {
+				char secondChar = simpleClassName.toCharArray()[1];
+				int secondCharAscii = (int)secondChar;
+				//如果第二个字母是大写，beanName就是原类名
+				beanName = (secondCharAscii>=65&&secondCharAscii<=90)?simpleClassName:(firstCharLowerCase+simpleClassName.substring(1, simpleClassName.length()));
+			}
 		}
 		return beanName;
 	}
