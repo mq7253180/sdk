@@ -22,6 +22,12 @@ import com.quincy.sdk.helper.HttpClientHelper;
 import com.quincy.sdk.helper.RSASecurityHelper;
 
 public class SignatureInterceptor extends HandlerInterceptorAdapter {
+	private SignaturePubKeyExchanger exchanger;
+
+	public SignatureInterceptor(SignaturePubKeyExchanger exchanger) {
+		this.exchanger = exchanger;
+	}
+
 	private final static String MAP_KEY = "signature";
 
 	@Override
@@ -32,23 +38,28 @@ public class SignatureInterceptor extends HandlerInterceptorAdapter {
 			if(annotation!=null) {
 				Integer status = null;
 				String msgI18NKey = null;
+				String id = CommonHelper.trim(request.getParameter("id"));
 				String signature = CommonHelper.trim(request.getParameter(MAP_KEY));
-				if(signature==null) {
+				if(id==null||signature==null) {
 					status = -2;
 					msgI18NKey = "signature.null";
 				} else {
-					Map<String, String[]> map = request.getParameterMap();
-					Iterator<Entry<String, String[]>> it = map.entrySet().iterator();
-					StringBuilder sb = new StringBuilder(200);
-					while(it.hasNext()) {
-						Entry<String, String[]> e = it.next();
-						if(!MAP_KEY.equals(e.getKey()))
-							sb.append("&").append(e.getKey()).append("=").append(e.getValue()[0]);
-					}
-					String publicKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCMYDMqMFSJL+nUMzF7MQjCYe/Y3P26wjVn90CdrSE8H9Ed4dg0/BteWn5+ZK65DwWev2F79hBIpprPrtVe+wplCTkpyR+mPiNL+WKkvo7miMegRYJFZLvh9QrFuDzMJZ+rAiu4ldxkVB0CMKfYEWbukKGmAinxVAqUr/HcW2mWjwIDAQAB";
-					if(!RSASecurityHelper.verify(publicKey, RSASecurityHelper.SIGNATURE_ALGORITHMS_SHA1_RSA, signature, sb.substring(1, sb.length()), null)) {
-						status = -3;
-						msgI18NKey = "signature.not_matched";
+					String publicKey = CommonHelper.trim(exchanger.getPublicKeyById(id));
+					if(publicKey==null) {
+						throw new RuntimeException("Public key is null.");
+					} else {
+						Map<String, String[]> map = request.getParameterMap();
+						Iterator<Entry<String, String[]>> it = map.entrySet().iterator();
+						StringBuilder sb = new StringBuilder(200);
+						while(it.hasNext()) {
+							Entry<String, String[]> e = it.next();
+							if(!MAP_KEY.equals(e.getKey()))
+								sb.append("&").append(e.getKey()).append("=").append(e.getValue()[0]);
+						}
+						if(!RSASecurityHelper.verify(publicKey, RSASecurityHelper.SIGNATURE_ALGORITHMS_SHA1_RSA, signature, sb.substring(1, sb.length()), null)) {
+							status = -3;
+							msgI18NKey = "signature.not_matched";
+						}
 					}
 				}
 				if(status!=null) {
