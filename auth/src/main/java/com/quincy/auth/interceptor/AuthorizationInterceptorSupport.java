@@ -19,7 +19,7 @@ import com.quincy.core.InnerConstants;
 import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.helper.HttpClientHelper;
 
-public abstract class AuthorizationInterceptorAbstract extends HandlerInterceptorAdapter {
+public abstract class AuthorizationInterceptorSupport extends HandlerInterceptorAdapter {
 	@Autowired
 	private AuthorizationService authorizationService;
 

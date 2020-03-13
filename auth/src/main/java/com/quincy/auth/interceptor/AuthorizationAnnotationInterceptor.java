@@ -10,7 +10,7 @@ import com.quincy.auth.annotation.LoginRequired;
 import com.quincy.auth.annotation.PermissionNeeded;
 
 @Component("authorizationAnnotationInterceptor")
-public class AuthorizationAnnotationInterceptor extends AuthorizationInterceptorAbstract {
+public class AuthorizationAnnotationInterceptor extends AuthorizationInterceptorSupport {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 		if(handler instanceof HandlerMethod) {
