@@ -300,7 +300,8 @@ public class DistributedTransactionAop implements DTransactionContext {
 				return annotation==null?null:annotation.value();
 			}
 		};
-		chainHead = serviceSupport.setNext(componentSupport).setNext(controllerSupport).setNext(repositorySupport).setNext(configurationSupport);
+		serviceSupport.setNext(componentSupport).setNext(controllerSupport).setNext(repositorySupport).setNext(configurationSupport);
+		chainHead = serviceSupport;
 	}
 
 	private static abstract class Support {

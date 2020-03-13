@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLEncoder;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.KeyFactory;
@@ -232,20 +233,24 @@ public class RSASecurityHelper {
 	}
 
 	public static void main(String[] args) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, IOException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
-		String content = "ABCDEFGHIGKLMNOPQRSTUVWXYZ";
-    	for(int i=0;i<3;i++) {
-    		content += content;
-    	}
+		String content = "a=b&c=d&e=f";
     	String signatureAlgorithms = SIGNATURE_ALGORITHMS_SHA1_RSA;
     	String charset = "UTF-8";
-    	Map<String, Object> keyMap = generateKeyPair();
+    	/*Map<String, Object> keyMap = generateKeyPair();
         String publicKey = keyMap.get(PUBLIC_KEY_BASE64).toString().replaceAll("\r\n", "");
-        String privateKey = keyMap.get(PRIVATE_KEY_BASE64).toString().replaceAll("\r\n", "");
+        String privateKey = keyMap.get(PRIVATE_KEY_BASE64).toString().replaceAll("\r\n", "");*/
+
+    	String publicKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCMYDMqMFSJL+nUMzF7MQjCYe/Y3P26wjVn90CdrSE8H9Ed4dg0/BteWn5+ZK65DwWev2F79hBIpprPrtVe+wplCTkpyR+mPiNL+WKkvo7miMegRYJFZLvh9QrFuDzMJZ+rAiu4ldxkVB0CMKfYEWbukKGmAinxVAqUr/HcW2mWjwIDAQAB";
+        String privateKey = "MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAIxgMyowVIkv6dQzMXsxCMJh79jc/brCNWf3QJ2tITwf0R3h2DT8G15afn5krrkPBZ6/YXv2EEimms+u1V77CmUJOSnJH6Y+I0v5YqS+juaIx6BFgkVku+H1CsW4PMwln6sCK7iV3GRUHQIwp9gRZu6QoaYCKfFUCpSv8dxbaZaPAgMBAAECgYBS1kobMV4RftbLxFIE0pDKtKSnIvIQDZ8adQwKgCpGorfynF3MFqHH8jsHNz7sMfMtFN7gGfrOBJMCz7dWT2p4CVV9uAJjBiUgMk06zMTetViQY3I1SRH883nNIDkuQTOAwjAK5cKlrbCkL63iupRoPx8jzgXGr7lJ7s+PLE9rcQJBAL7ywe4oalCO/aK5LJmvWEGa6sNcrj7Z645ssNJquiPfAlKfclc8CHfe/3dK/VQLi4Evy58OMrwi3NR1qHYpQk0CQQC8MthL3bqsZ0Pe0Ha22OMIJjJ/GRMpRtDpc8eK+TOGbyJdwL7/ZoxkS8RCzuQwa/TgWEvB0m+qo2hsaheQsNJLAkEAnBTO1J+Ql5zqUlLO1CjyGV5KO7rMa2+yDk9mEflPgfbObT8MNaZKvcE4TQitHj/5nnW1GaR/cC2HGNu8AiojmQJAbiRHqCbtQEbzVqykPaCzRiqstOuk5ixWyboD11a/C/dwonPSlECc+3nIM91HePtFhiLGu3l/9trJm2F/xyNk/wJBAJI+64RoJFvgSH7nhv5RHS0+aZeUMj4hA0qZmvTr3XyBwy1Ct5K0EQrDTWEEwFVy8Hws46DQF/fLdNzu1T3gCCM=";
+        Map<String, Object> keyMap = new HashMap<String, Object>(2);
+        keyMap.put(PUBLIC_KEY, publicKey);
+        keyMap.put(PRIVATE_KEY, privateKey);
+
         String signature = sign(privateKey, signatureAlgorithms, charset, content);
         byte[] encryption = crypt(loadPrivateKeyByStr(privateKey), content.getBytes(), Cipher.ENCRYPT_MODE);
         String decryption = new String(crypt(loadPublicKeyByStr(publicKey), encryption, Cipher.DECRYPT_MODE));
 
-        System.out.println("Content: "+content+"\r\nSignature: "+signature);
+        System.out.println("Content: "+content+"\r\nSignature: \r\n"+signature+"\r\n"+URLEncoder.encode(signature, "UTF-8"));
         System.out.println("-----------------");
         System.out.println(verify(publicKey, signatureAlgorithms, signature, content, charset));
         System.out.println("-----------------");

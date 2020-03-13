@@ -34,24 +34,24 @@ public class SignatureInterceptor extends HandlerInterceptorAdapter {
 				String msgI18NKey = null;
 				String signature = CommonHelper.trim(request.getParameter(mapKey));
 				if(signature==null) {
-					status = -6;
+					status = -2;
 					msgI18NKey = "signature.null";
 				} else {
 					Map<String, String[]> map = request.getParameterMap();
-					map.remove(mapKey);
 					Iterator<Entry<String, String[]>> it = map.entrySet().iterator();
 					StringBuilder sb = new StringBuilder(200);
 					while(it.hasNext()) {
 						Entry<String, String[]> e = it.next();
-						sb.append("&").append(e.getKey()).append("=").append(e.getValue()[0]);
+						if(!mapKey.equals(e.getKey()))
+							sb.append("&").append(e.getKey()).append("=").append(e.getValue()[0]);
 					}
-					String publicKey = "";
+					String publicKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCMYDMqMFSJL+nUMzF7MQjCYe/Y3P26wjVn90CdrSE8H9Ed4dg0/BteWn5+ZK65DwWev2F79hBIpprPrtVe+wplCTkpyR+mPiNL+WKkvo7miMegRYJFZLvh9QrFuDzMJZ+rAiu4ldxkVB0CMKfYEWbukKGmAinxVAqUr/HcW2mWjwIDAQAB";
 					if(!RSASecurityHelper.verify(publicKey, RSASecurityHelper.SIGNATURE_ALGORITHMS_SHA1_RSA, signature, sb.substring(1, sb.length()), null)) {
-						status = -7;
+						status = -3;
 						msgI18NKey = "signature.not_matched";
 					}
 				}
-				if(status==null) {
+				if(status!=null) {
 					RequestContext requestContext = new RequestContext(request);
 					String outputContent = "{\"status\":"+status+", \"msg\":\""+requestContext.getMessage(msgI18NKey)+"\"}";
 					HttpClientHelper.outputJson(response, outputContent);
