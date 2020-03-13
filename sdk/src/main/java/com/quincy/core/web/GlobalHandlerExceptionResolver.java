@@ -24,7 +24,13 @@ public class GlobalHandlerExceptionResolver implements HandlerExceptionResolver 
 	public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object handler, Exception e) {
 		log.error(HttpClientHelper.getRequestURIOrURL(request, HttpClientHelper.FLAG_URL), e);
 		String clientType = CommonHelper.clientType(request, handler);
-		String exception = InnerConstants.CLIENT_TYPE_J.equals(clientType)?e.toString().replaceAll("\n", "").replaceAll("\r", "").replaceAll("\\\\", "/"):this.getExceptionStackTrace(e, "<br/>", "&nbsp;");
+		String exception = null;
+		if(!InnerConstants.CLIENT_TYPE_J.equals(clientType)) {
+			exception = this.getExceptionStackTrace(e, "<br/>", "&nbsp;");
+		} else {
+			exception = e.toString().replaceAll("\n", "").replaceAll("\r", "").replaceAll("\\\\", "/");
+			response.setHeader("Content-Type", "application/json;charset=UTF-8");
+		}
 		RequestContext requestContext = new RequestContext(request);
 		return new ModelAndView("/error_"+clientType)
 				.addObject("msg", requestContext.getMessage(Result.I18N_KEY_EXCEPTION))
