@@ -57,15 +57,15 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 				Integer status = null;
 				String msgI18NKey = null;
 				if(inputedVCode==null) {
-					status = -3;
+					status = -5;
 					msgI18NKey = "vcode.null";
 				} else {
 					String cachedVCode = CommonHelper.trim(this.getCachedVCode(request));
 					if(cachedVCode==null) {
-						status = -4;
+						status = -6;
 						msgI18NKey = "vcode.expire";
 					} else if(!cachedVCode.equalsIgnoreCase(inputedVCode)) {
-						status = -5;
+						status = -7;
 						msgI18NKey = "vcode.not_matched";
 					}
 				}
