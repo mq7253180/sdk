@@ -1,22 +1,18 @@
 package com.quincy.core.web;
 
-import java.util.Locale;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
-import com.quincy.core.Sync;
 import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.helper.HttpClientHelper;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class I18NInterceptor extends HandlerInterceptorAdapter {
+public class GeneralInterceptor extends HandlerInterceptorAdapter {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
 		log.warn(HttpClientHelper.getRequestURIOrURL(request, HttpClientHelper.FLAG_URL));
@@ -25,7 +21,8 @@ public class I18NInterceptor extends HandlerInterceptorAdapter {
 //		response.setHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
 //		response.setHeader("Access-Control-Max-Age", "3600");
 //		response.setHeader("Access-Control-Allow-Headers", "accept, Accept, Origin, x-requested-with, XRequestedWith, XMLHttpRequest, Content-Type, contentType, LastModified, "+Constants.CLIENT_TOKEN);
-		Locale locale = StringUtils.parseLocaleString(CommonHelper.getLocale(request));
+		CommonHelper.getLocale(request);
+//		Locale locale = CommonHelper.getLocale(request);
 		/*
 		 * 普通springmvc这样设置, spring-boot抛异常, spring-boot要通过实现LocaleResolver接口的bean实现
 		 * java.lang.UnsupportedOperationException: Cannot change HTTP accept header - use a different locale resolution strategy
@@ -37,7 +34,7 @@ public class I18NInterceptor extends HandlerInterceptorAdapter {
 		/*
 		 * 设置当前请求的整个线程的locale, 用在applicationContext.getMessage获取国际化msg方式上, 因为封装返回值时获取不到HttpServletRequest对象
 		 */
-		Sync.getLocaleThreadLocal().set(locale);
+//		Sync.getLocale().set(locale);
 		return true;
 	}
 

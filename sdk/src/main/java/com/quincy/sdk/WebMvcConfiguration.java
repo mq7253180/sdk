@@ -25,7 +25,7 @@ import com.quincy.core.InnerConstants;
 import com.quincy.core.web.GlobalHandlerExceptionResolver;
 import com.quincy.core.web.GlobalHandlerMethodReturnValueHandler;
 import com.quincy.core.web.GlobalLocaleResolver;
-import com.quincy.core.web.I18NInterceptor;
+import com.quincy.core.web.GeneralInterceptor;
 import com.quincy.core.web.StaticInterceptor;
 import com.quincy.core.web.freemarker.AttributeTemplateDirectiveModelBean;
 import com.quincy.core.web.freemarker.I18NTemplateDirectiveModelBean;
@@ -49,7 +49,7 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport implements I
 	protected void addInterceptors(InterceptorRegistry registry) {
 		if(Constants.ENV_DEV.equals(env))
 			registry.addInterceptor(new StaticInterceptor()).addPathPatterns("/static/**");
-		registry.addInterceptor(new I18NInterceptor()).addPathPatterns("/**");
+		registry.addInterceptor(new GeneralInterceptor()).addPathPatterns("/**");
 		String interceptorImpl = CommonHelper.trim(properties.getProperty("impl.auth.interceptor"));
 		if(interceptorImpl!=null) {
 			HandlerInterceptorAdapter handlerInterceptorAdapter = applicationContext.getBean(interceptorImpl, HandlerInterceptorAdapter.class);

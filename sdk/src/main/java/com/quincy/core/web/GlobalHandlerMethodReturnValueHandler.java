@@ -29,7 +29,7 @@ public class GlobalHandlerMethodReturnValueHandler implements HandlerMethodRetur
 	public void handleReturnValue(Object returnValue, MethodParameter returnType, ModelAndViewContainer mavContainer,
 			NativeWebRequest webRequest) throws Exception {
 		Result result = Result.newSuccess();
-		returnValue = result.msg(applicationContext.getMessage(Result.I18N_KEY_SUCCESS, null, Sync.getLocaleThreadLocal().get())).data(returnValue).cluster(cluster);
+		returnValue = result.msg(applicationContext.getMessage(Result.I18N_KEY_SUCCESS, null, Sync.getLocale().get())).data(returnValue).cluster(cluster);
 		origin.handleReturnValue(returnValue, returnType, mavContainer, webRequest);
 	}
 }

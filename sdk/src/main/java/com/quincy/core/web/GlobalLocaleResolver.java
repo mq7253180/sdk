@@ -5,7 +5,6 @@ import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.LocaleResolver;
 
 import com.quincy.sdk.helper.CommonHelper;
@@ -16,7 +15,7 @@ import com.quincy.sdk.helper.CommonHelper;
 public class GlobalLocaleResolver implements LocaleResolver {
 	@Override
 	public Locale resolveLocale(HttpServletRequest request) {
-		Locale locale = StringUtils.parseLocaleString(CommonHelper.getLocale(request));
+		Locale locale = CommonHelper.getLocale(request);
 		return locale;
 	}
 

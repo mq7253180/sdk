@@ -16,7 +16,7 @@ public class LocaleTemplateDirectiveModelBean implements TemplateDirectiveModel 
 	@Override
 	public void execute(Environment env, Map params, TemplateModel[] loopVars, TemplateDirectiveBody body)
 			throws TemplateException, IOException {
-		Locale locale = Sync.getLocaleThreadLocal().get();
+		Locale locale = Sync.getLocale().get();
 		env.getOut().write(locale.getLanguage()+"_"+locale.getCountry());
 	}
 }

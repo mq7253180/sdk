@@ -1,12 +1,29 @@
 package com.quincy.core;
 
 import java.util.Locale;
+import java.util.Map;
 
 import org.springframework.core.NamedThreadLocal;
 
 public class Sync {
-	private static final ThreadLocal<Locale> localeThreadLocal = new NamedThreadLocal<Locale>("locale");
-	public static ThreadLocal<Locale> getLocaleThreadLocal() {
-		return localeThreadLocal;
+	private static final ThreadLocal<Locale> locale = new NamedThreadLocal<Locale>("locale");
+	private static final ThreadLocal<String> app = new NamedThreadLocal<String>("app");
+	private static final ThreadLocal<Boolean> isApp = new NamedThreadLocal<Boolean>("isApp");
+	private static final ThreadLocal<String> clientType = new NamedThreadLocal<String>("clientType");
+	private static final ThreadLocal<Map<String, String>> requestParams = new NamedThreadLocal<Map<String, String>>("requestParams");
+	public static ThreadLocal<Locale> getLocale() {
+		return locale;
+	}
+	public static ThreadLocal<String> getApp() {
+		return app;
+	}
+	public static ThreadLocal<Boolean> isApp() {
+		return isApp;
+	}
+	public static ThreadLocal<String> getClientType() {
+		return clientType;
+	}
+	public static ThreadLocal<Map<String, String>> getRequestParams() {
+		return requestParams;
 	}
 }

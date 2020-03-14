@@ -16,7 +16,9 @@ import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.zip.ZipInputStream;
 
 import javax.servlet.http.Cookie;
@@ -28,21 +30,28 @@ import org.apache.tools.zip.ZipFile;
 import org.apache.tools.zip.ZipOutputStream;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.method.HandlerMethod;
 
 import com.quincy.core.InnerConstants;
+import com.quincy.core.Sync;
 
 public class CommonHelper {
 	private static I18NSupport i18nChainHead;
-	private final static String[] MOBILE_USER_AGENT_FLAGS = {"iPhone", "iPad", "Android"};
+	private final static String[] WAP_USER_AGENT_FLAGS = {"iPhone", "iPad", "Android"};
 	public static String[] SUPPORTED_LOCALES;
 
-	public static String getLocale(HttpServletRequest request) {
-		String locale = i18nChainHead.support(request);
-		return locale==null?getDefaultLocale(request):locale;
+	public static Locale getLocale(HttpServletRequest request) {
+		Locale _locale = Sync.getLocale().get();
+		if(_locale==null) {
+			String locale = i18nChainHead.support(request);
+			_locale = StringUtils.parseLocale(locale);
+			Sync.getLocale().set(_locale);
+		}
+		return _locale;
 	}
 
 	static {
@@ -70,7 +79,13 @@ public class CommonHelper {
 				return getFirstAsUri(request);
 			}
 		};
-		headerSupport.setNext(parameterSupport).setNext(cookieSupport).setNext(uriSupport);
+		I18NSupport defaultSupport = new I18NSupport() {
+			@Override
+			protected String resolve(HttpServletRequest request) {
+				return getDefaultLocale(request);
+			}
+		};
+		headerSupport.setNext(parameterSupport).setNext(cookieSupport).setNext(uriSupport).setNext(defaultSupport);
 		i18nChainHead = headerSupport;
 	}
 
@@ -131,23 +146,31 @@ public class CommonHelper {
 	}
 
 	public static String clientType(HttpServletRequest request, Object handler) {
-		ResponseBody annotation = null;
-		if(handler!=null) {
-			HandlerMethod method = (HandlerMethod)handler;
-			annotation = method.getMethod().getDeclaredAnnotation(ResponseBody.class);
-		}
-		if("XMLHttpRequest".equals(request.getHeader("x-requested-with"))||isApp(request)||annotation!=null) {
-			return InnerConstants.CLIENT_TYPE_J;
-		} else {
-			String userAgent = request.getHeader("user-agent");
-			if(userAgent!=null) {
-				for(String flag:MOBILE_USER_AGENT_FLAGS) {
-					if(userAgent.contains(flag))
-						return InnerConstants.CLIENT_TYPE_M;
-				}
+		String clientType = Sync.getClientType().get();
+		if(clientType==null) {
+			ResponseBody annotation = null;
+			if(handler!=null) {
+				HandlerMethod method = (HandlerMethod)handler;
+				annotation = method.getMethod().getDeclaredAnnotation(ResponseBody.class);
 			}
-			return InnerConstants.CLIENT_TYPE_P;
+			if("XMLHttpRequest".equals(request.getHeader("x-requested-with"))||isApp(request)||annotation!=null) {
+				clientType =  InnerConstants.CLIENT_TYPE_J;
+			} else {
+				String userAgent = request.getHeader("user-agent");
+				if(userAgent!=null) {
+					for(String flag:WAP_USER_AGENT_FLAGS) {
+						if(userAgent.contains(flag)) {
+							clientType =  InnerConstants.CLIENT_TYPE_M;
+							break;
+						}
+					}
+				}
+				if(clientType==null)
+					clientType = InnerConstants.CLIENT_TYPE_P;
+			}
+			Sync.getClientType().set(clientType);
 		}
+		return clientType;
 	}
 
 	public static String getValueFromCookie(HttpServletRequest request, String key) {
@@ -162,25 +185,46 @@ public class CommonHelper {
 	}
 
 	public static String getValue(HttpServletRequest request, String key) {
-		String value = request.getHeader(key);
-		if(value!=null)
-			return value;
-		value = request.getParameter(key);
-		if(value!=null)
-			return value;
-		value = getValueFromCookie(request, key);
-		if(value!=null)
-			return value;
-		return null;
+		String value = null;
+		Map<String, String> map = Sync.getRequestParams().get();
+		if(map==null) {
+			map = new HashMap<String, String>();
+		} else {
+			value = map.get(key);
+			if(value==null) {
+				value = request.getHeader(key);
+				if(value!=null)
+					return value;
+				value = request.getParameter(key);
+				if(value!=null)
+					return value;
+				value = getValueFromCookie(request, key);
+				if(value!=null)
+					return value;
+			}
+			map.put(key, value!=null?value:"");
+		}
+		return value;
 	}
 
 	public static String getApp(HttpServletRequest request) {
-		return CommonHelper.trim(getValue(request, InnerConstants.CLIENT_APP));
+		String app = Sync.getApp().get();
+		if(app==null) {
+			app = CommonHelper.trim(getValue(request, InnerConstants.CLIENT_APP));
+			if(app!=null)
+				Sync.getApp().set(app);
+		}
+		return app;
 	}
 
 	public static boolean isApp(HttpServletRequest request) {
-		String app = getApp(request);
-		return app!=null;
+		Boolean isApp = Sync.isApp().get();
+		if(isApp==null) {
+			String app = getApp(request);
+			isApp = app!=null;
+			Sync.isApp().set(isApp);
+		}
+		return isApp;
 	}
 
 	public static String getFirstAsUri(HttpServletRequest request) {
