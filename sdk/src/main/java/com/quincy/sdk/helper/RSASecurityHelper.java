@@ -233,7 +233,7 @@ public class RSASecurityHelper {
 	}
 
 	public static void main(String[] args) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, IOException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
-		String content = "id=xxx&a=b&c=d&e=f";
+		String content = "id=xxx&e=f&c=d&a=b";
     	String signatureAlgorithms = SIGNATURE_ALGORITHMS_SHA1_RSA;
     	String charset = "UTF-8";
     	/*Map<String, Object> keyMap = generateKeyPair();
