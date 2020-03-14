@@ -12,7 +12,7 @@ import com.quincy.core.sftp.PoolableChannelSftpFactory;
 import com.quincy.core.sftp.impl.ChannelSftpSourceImpl;
 
 @Configuration
-public class SFTPApplicationContext {
+public class SFTPConfiguration {
 	@Autowired
 	private GenericObjectPoolConfig poolCfg;
 	@Autowired
