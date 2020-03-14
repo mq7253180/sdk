@@ -177,7 +177,7 @@ public class HttpClientHelper {
 	}
 
 	public static void outputJson(HttpServletResponse response, String json) throws IOException {
-		output(response, "application/json;charset=utf-8", json);
+		output(response, "application/json;charset=UTF-8", json);
 	}
 
 	public static void main(String[] args) throws IOException {
