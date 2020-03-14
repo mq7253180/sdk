@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 import com.quincy.core.zookeeper.ContextConstants;
 import com.quincy.core.zookeeper.ZooKeeperSource;
@@ -59,6 +60,7 @@ public class ZooKeeperApplicationContext implements Context {
 	}
 
 	@Autowired
+	@Lazy
 	private ZooKeeperSource zooKeeperSource;
 
 	@PostConstruct
