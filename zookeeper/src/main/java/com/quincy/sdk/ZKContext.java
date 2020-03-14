@@ -1,6 +1,6 @@
-package com.quincy.sdk.zookeeper;
+package com.quincy.sdk;
 
-public interface Context {
+public interface ZKContext {
 	public String getRootPath();
 	public String getSynPath();
 }

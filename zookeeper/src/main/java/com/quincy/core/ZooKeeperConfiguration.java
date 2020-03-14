@@ -13,11 +13,11 @@ import org.springframework.context.annotation.Configuration;
 
 import com.quincy.core.zookeeper.ContextConstants;
 import com.quincy.core.zookeeper.ZooKeeperSourceBean;
+import com.quincy.sdk.ZKContext;
 import com.quincy.sdk.helper.CommonHelper;
-import com.quincy.sdk.zookeeper.Context;
 
 @Configuration
-public class ZooKeeperConfiguration implements Context {
+public class ZooKeeperConfiguration implements ZKContext {
 	@Value("${spring.application.name}")
 	private String applicationName;
 	@Value("${zk.url}")

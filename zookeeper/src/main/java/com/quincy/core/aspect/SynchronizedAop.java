@@ -16,9 +16,9 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import com.quincy.core.zookeeper.ZooKeeperSource;
+import com.quincy.sdk.ZKContext;
 import com.quincy.sdk.annotation.Synchronized;
 import com.quincy.sdk.helper.AopHelper;
-import com.quincy.sdk.zookeeper.Context;
 
 import lombok.Data;
 
@@ -29,7 +29,7 @@ public class SynchronizedAop {
 	@Autowired
 	private ZooKeeperSource zkSource;
 	@Autowired
-	private Context context;
+	private ZKContext context;
 	private final static String KEY = "execution";
 
 	@Pointcut("@annotation(com.quincy.sdk.annotation.Synchronized)")
