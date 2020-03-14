@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import com.quincy.core.zookeeper.ZooKeeperSource;
 
 @Component
-public class ZooKeeperInit {
+public class ZooKeeperDeamon {
 	@Autowired
 	private ZooKeeperSource zooKeeperSource;
 	@Resource(name = "zookeeperRootNode")
