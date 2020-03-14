@@ -40,14 +40,15 @@ import com.quincy.core.InnerConstants;
 import com.quincy.core.Sync;
 
 public class CommonHelper {
-	private static I18NSupport i18nChainHead;
-	private final static String[] WAP_USER_AGENT_FLAGS = {"iPhone", "iPad", "Android"};
+	private static ParamSupport paramSupportHead;
+	private static I18NSupport i18nSupportHead;
+	private final static String[] WAP_USER_AGENT_FLAGS = {"iPhone", "iPad", "Android", "Symbian"};
 	public static String[] SUPPORTED_LOCALES;
 
 	public static Locale getLocale(HttpServletRequest request) {
 		Locale _locale = Sync.getLocale().get();
 		if(_locale==null) {
-			String locale = i18nChainHead.support(request);
+			String locale = i18nSupportHead.support(request);
 			_locale = StringUtils.parseLocale(locale);
 			Sync.getLocale().set(_locale);
 		}
@@ -55,38 +56,47 @@ public class CommonHelper {
 	}
 
 	static {
-		I18NSupport headerSupport = new I18NSupport() {
+		ParamSupport headerParamSupport = new ParamSupport() {
 			@Override
-			protected String resolve(HttpServletRequest request) {
-				return request.getHeader(InnerConstants.KEY_LOCALE);
+			protected String resolve(HttpServletRequest request, String key) {
+				return request.getHeader(key);
 			}
 		};
-		I18NSupport cookieSupport = new I18NSupport() {
+		ParamSupport paramParamSupport = new ParamSupport() {
 			@Override
-			protected String resolve(HttpServletRequest request) {
-				return getValueFromCookie(request, InnerConstants.KEY_LOCALE);
+			protected String resolve(HttpServletRequest request, String key) {
+				return request.getParameter(key);
 			}
 		};
-		I18NSupport parameterSupport = new I18NSupport() {
+		ParamSupport cookieParamSupport = new ParamSupport() {
 			@Override
-			protected String resolve(HttpServletRequest request) {
-				return request.getParameter(InnerConstants.KEY_LOCALE);
+			protected String resolve(HttpServletRequest request, String key) {
+				return getValueFromCookie(request, key);
 			}
 		};
-		I18NSupport uriSupport = new I18NSupport() {
+		headerParamSupport.setNext(paramParamSupport).setNext(cookieParamSupport);
+		paramSupportHead = headerParamSupport;
+
+		I18NSupport paramI18NSupport = new I18NSupport() {
+			@Override
+			protected String resolve(HttpServletRequest request) {
+				return getValue(request, InnerConstants.KEY_LOCALE);
+			}
+		};
+		I18NSupport uriI18NSupport = new I18NSupport() {
 			@Override
 			protected String resolve(HttpServletRequest request) {
 				return getFirstAsUri(request);
 			}
 		};
-		I18NSupport defaultSupport = new I18NSupport() {
+		I18NSupport defaultI18NSupport = new I18NSupport() {
 			@Override
 			protected String resolve(HttpServletRequest request) {
 				return getDefaultLocale(request);
 			}
 		};
-		headerSupport.setNext(parameterSupport).setNext(cookieSupport).setNext(uriSupport).setNext(defaultSupport);
-		i18nChainHead = headerSupport;
+		paramI18NSupport.setNext(uriI18NSupport).setNext(defaultI18NSupport);
+		i18nSupportHead = paramI18NSupport;
 	}
 
 	private static abstract class I18NSupport {
@@ -108,6 +118,22 @@ public class CommonHelper {
 				}
 			}
 			return this.next==null?null:this.next.support(request);
+		}
+	}
+
+	private static abstract class ParamSupport {
+		private ParamSupport next;
+
+		protected abstract String resolve(HttpServletRequest request, String key);
+
+		public ParamSupport setNext(ParamSupport next) {
+			this.next = next;
+			return next;
+		}
+
+		public String support(HttpServletRequest request, String key) {
+			String value = trim(this.resolve(request, key));
+			return value!=null?value:(this.next==null?null:this.next.support(request, key));
 		}
 	}
 
@@ -133,20 +159,13 @@ public class CommonHelper {
 		return ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getResponse();
 	}
 
-	public static String clientType() {
-		return clientType(getRequest(), null);
-	}
-
-	public static String clientType(Object handler) {
-		return clientType(getRequest(), handler);
-	}
-
 	public static String clientType(HttpServletRequest request) {
 		return clientType(request, null);
 	}
 
 	public static String clientType(HttpServletRequest request, Object handler) {
-		String clientType = Sync.getClientType().get();
+		Object _clientType = request.getAttribute("cliengType");
+		String clientType = _clientType==null?null:_clientType.toString();
 		if(clientType==null) {
 			ResponseBody annotation = null;
 			if(handler!=null) {
@@ -155,20 +174,9 @@ public class CommonHelper {
 			}
 			if("XMLHttpRequest".equals(request.getHeader("x-requested-with"))||isApp(request)||annotation!=null) {
 				clientType =  InnerConstants.CLIENT_TYPE_J;
-			} else {
-				String userAgent = request.getHeader("user-agent");
-				if(userAgent!=null) {
-					for(String flag:WAP_USER_AGENT_FLAGS) {
-						if(userAgent.contains(flag)) {
-							clientType =  InnerConstants.CLIENT_TYPE_M;
-							break;
-						}
-					}
-				}
-				if(clientType==null)
-					clientType = InnerConstants.CLIENT_TYPE_P;
-			}
-			Sync.getClientType().set(clientType);
+			} else
+				clientType = isWap(request)?InnerConstants.CLIENT_TYPE_M:InnerConstants.CLIENT_TYPE_P;
+			request.setAttribute("cliengType", clientType);
 		}
 		return clientType;
 	}
@@ -189,21 +197,11 @@ public class CommonHelper {
 		Map<String, String> map = Sync.getRequestParams().get();
 		if(map==null) {
 			map = new HashMap<String, String>();
-		} else {
+		} else
 			value = map.get(key);
-			if(value==null) {
-				value = request.getHeader(key);
-				if(value!=null)
-					return value;
-				value = request.getParameter(key);
-				if(value!=null)
-					return value;
-				value = getValueFromCookie(request, key);
-				if(value!=null)
-					return value;
-			}
-			map.put(key, value!=null?value:"");
-		}
+		if(value==null)
+			value = paramSupportHead.support(request, key);
+		map.put(key, value!=null?value:"");
 		return value;
 	}
 
@@ -225,6 +223,25 @@ public class CommonHelper {
 			Sync.isApp().set(isApp);
 		}
 		return isApp;
+	}
+
+	public static boolean isWap(HttpServletRequest request) {
+		Boolean isWap = Sync.isWap().get();
+		if(isWap==null) {
+			String userAgent = request.getHeader("user-agent");
+			if(userAgent!=null) {
+				for(String flag:WAP_USER_AGENT_FLAGS) {
+					if(userAgent.contains(flag)) {
+						isWap =  true;
+						break;
+					}
+				}
+			}
+			if(isWap==null)
+				isWap = false;
+			Sync.isWap().set(isWap);
+		}
+		return isWap;
 	}
 
 	public static String getFirstAsUri(HttpServletRequest request) {

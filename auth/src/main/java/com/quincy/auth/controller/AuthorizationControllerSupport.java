@@ -74,7 +74,7 @@ public abstract class AuthorizationControllerSupport {
 			@RequestParam(required = false, value = "password")String _password, 
 			@RequestParam(required = false, value = AuthConstants.PARAM_BACK_TO)String _backTo) throws Exception {
 		Result result = this.login(request, _username, _password);
-		String clientType = CommonHelper.clientType();
+		String clientType = CommonHelper.clientType(request);
 		ModelAndView mv = null;
 		if(InnerConstants.CLIENT_TYPE_J.equals(clientType)) {
 			mv = this.createModelAndView(result);

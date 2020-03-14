@@ -15,7 +15,7 @@ import com.quincy.auth.service.AuthCallback;
 import com.quincy.core.InnerConstants;
 
 @Service("authorizationSessionServiceImpl")
-public class AuthorizationSessionServiceImpl extends AuthorizationAbstract {
+public class AuthorizationSessionServiceImpl extends AuthorizationSupport {
 	@Override
 	protected Object getUserObject(HttpServletRequest request) {
 		HttpSession session = request.getSession(false);

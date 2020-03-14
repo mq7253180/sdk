@@ -2,17 +2,18 @@ package com.quincy.auth.service.impl;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Properties;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.quincy.auth.o.DSession;
 import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthCallback;
+import com.quincy.core.InnerConstants;
 import com.quincy.core.redis.JedisSource;
 import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.RedisWebOperation;
@@ -21,13 +22,13 @@ import com.quincy.sdk.helper.CommonHelper;
 import redis.clients.jedis.Jedis;
 
 @Service("authorizationCacheServiceImpl")
-public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
+public class AuthorizationCacheServiceImpl extends AuthorizationSupport {
 	@Autowired
 	private JedisSource jedisSource;
 	@Autowired
 	private RedisProcessor redisProcessor;
-	@Value("${expire.session.pc}")
-	private int pcSessionExpire;
+	@Resource(name = InnerConstants.BEAN_NAME_PROPERTIES)
+	private Properties properties;
 	@Resource(name = "sessionKeyPrefix")
 	private String sessionKeyPrefix;
 
@@ -39,7 +40,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 				byte[] key = (sessionKeyPrefix+token).getBytes();
 				byte[] b = jedis.get(key);
 				if(b!=null&&b.length>0) {
-					jedis.expire(key, pcSessionExpire*60);
+					jedis.expire(key, getExpireSconds(request));
 					return CommonHelper.unSerialize(b);
 				} else 
 					return null;
@@ -47,7 +48,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 		});
 	}
 
-	private DSession setSession(String jsessionid, String originalJsessionid, Long userId, AuthCallback callback) throws IOException, ClassNotFoundException {
+	private DSession setSession(HttpServletRequest request, String jsessionid, String originalJsessionid, Long userId, AuthCallback callback) throws IOException, ClassNotFoundException {
 		User user = callback.getUser();
 		user.setJsessionid(jsessionid);
 		user.setPassword(null);
@@ -65,8 +66,9 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 						jedis.del(originalKey);
 				}
 			}
+			int expire = getExpireSconds(request);
 			jedis.set(key, CommonHelper.serialize(session));
-			jedis.expire(key, pcSessionExpire*60);
+			jedis.expire(key, expire);
 			callback.updateLastLogined(jsessionid);
 			return session;
 		} finally {
@@ -75,10 +77,22 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 		}
 	}
 
+	private int getExpireSconds(HttpServletRequest request) {
+		boolean isApp = CommonHelper.isApp(request);
+		Integer expire = null;
+		if(isApp) {
+			expire = Integer.parseInt(properties.getProperty("expire.session.app"))*24*3600;
+		} else {
+			String _expire = properties.getProperty(CommonHelper.isWap(request)?"expire.session.wap":"expire.session.pc");
+			expire = Integer.parseInt(_expire)*60;
+		}
+		return expire;
+	}
+
 	@Override
 	public DSession setSession(HttpServletRequest request, String originalJsessionid, Long userId, AuthCallback callback) throws IOException, ClassNotFoundException {
 		String jsessionid = redisProcessor.createOrGetToken(request);
-		DSession session = this.setSession(jsessionid, originalJsessionid, userId, callback);
+		DSession session = this.setSession(request, jsessionid, originalJsessionid, userId, callback);
 		return session;
 	}
 
