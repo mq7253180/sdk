@@ -26,8 +26,8 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 	private JedisSource jedisSource;
 	@Autowired
 	private RedisProcessor redisProcessor;
-	@Value("${expire.session}")
-	private int sessionExpire;
+	@Value("${expire.session.pc}")
+	private int pcSessionExpire;
 	@Resource(name = "sessionKeyPrefix")
 	private String sessionKeyPrefix;
 
@@ -39,7 +39,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 				byte[] key = (sessionKeyPrefix+token).getBytes();
 				byte[] b = jedis.get(key);
 				if(b!=null&&b.length>0) {
-					jedis.expire(key, sessionExpire*60);
+					jedis.expire(key, pcSessionExpire*60);
 					return CommonHelper.unSerialize(b);
 				} else 
 					return null;
@@ -66,7 +66,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationAbstract {
 				}
 			}
 			jedis.set(key, CommonHelper.serialize(session));
-			jedis.expire(key, sessionExpire*60);
+			jedis.expire(key, pcSessionExpire*60);
 			callback.updateLastLogined(jsessionid);
 			return session;
 		} finally {
