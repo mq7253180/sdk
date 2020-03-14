@@ -37,7 +37,7 @@ import com.quincy.core.InnerConstants;
 
 public class CommonHelper {
 	private static I18NSupport i18nChainHead;
-	private final static String[] MOBILE_USER_AGENT_FLAGS = {"iPhone", "iPad", "Android"};
+	private final static String[] MOBILE_USER_AGENT_FLAGS = {"iOS", "iPhone", "iPad", "Android"};
 	public static String[] SUPPORTED_LOCALES;
 
 	public static String getLocale(HttpServletRequest request) {
