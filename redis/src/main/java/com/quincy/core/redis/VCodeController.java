@@ -17,6 +17,9 @@ public class VCodeController {
 	@Autowired
 	private RedisProcessor redisProcessor;
 
+	/**
+	 * Example: 25/10/25/110/35
+	 */
 	@RequestMapping("/auth/vcode/{size}/{start}/{space}/{width}/{height}")
 	public void genVCode(HttpServletRequest request, HttpServletResponse response, 
 			@PathVariable(required = true, name = "size")int size,
