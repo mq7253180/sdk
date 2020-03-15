@@ -6,7 +6,7 @@ import java.util.Map;
 import org.springframework.core.NamedThreadLocal;
 
 public class Sync {
-	private static final ThreadLocal<Locale> locale = new NamedThreadLocal<Locale>("locale");
+	/*private static final ThreadLocal<Locale> locale = new NamedThreadLocal<Locale>("locale");
 	private static final ThreadLocal<String> app = new NamedThreadLocal<String>("app");
 	private static final ThreadLocal<Boolean> isApp = new NamedThreadLocal<Boolean>("isApp");
 	private static final ThreadLocal<Boolean> isWap = new NamedThreadLocal<Boolean>("isWap");
@@ -25,5 +25,5 @@ public class Sync {
 	}
 	public static ThreadLocal<Map<String, String>> getRequestParams() {
 		return requestParams;
-	}
+	}*/
 }

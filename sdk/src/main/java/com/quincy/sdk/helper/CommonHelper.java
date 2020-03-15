@@ -37,22 +37,30 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.method.HandlerMethod;
 
 import com.quincy.core.InnerConstants;
-import com.quincy.core.Sync;
 
 public class CommonHelper {
 	private static ParamSupport paramSupportHead;
 	private static I18NSupport i18nSupportHead;
 	private final static String[] WAP_USER_AGENT_FLAGS = {"iPhone", "iPad", "Android", "Symbian"};
 	public static String[] SUPPORTED_LOCALES;
+	private final static String I18N_KEY = "_"+InnerConstants.KEY_LOCALE;
+
+	public static Locale getLocale() {
+		HttpServletRequest request = getRequest();
+		return getLocale(request);
+	}
 
 	public static Locale getLocale(HttpServletRequest request) {
-		Locale _locale = Sync.getLocale().get();
-		if(_locale==null) {
-			String locale = i18nSupportHead.support(request);
-			_locale = StringUtils.parseLocale(locale);
-			Sync.getLocale().set(_locale);
+		Locale locale = null;
+		Object _locale = request.getAttribute(I18N_KEY);
+		if(_locale!=null) {
+			locale = (Locale)_locale;
+		} else {
+			String localeStr = i18nSupportHead.support(request);
+			locale = StringUtils.parseLocale(localeStr);
+			request.setAttribute(I18N_KEY, locale);
 		}
-		return _locale;
+		return locale;
 	}
 
 	static {
@@ -99,6 +107,22 @@ public class CommonHelper {
 		i18nSupportHead = paramI18NSupport;
 	}
 
+	private static abstract class ParamSupport {
+		private ParamSupport next;
+
+		protected abstract String resolve(HttpServletRequest request, String key);
+
+		public ParamSupport setNext(ParamSupport next) {
+			this.next = next;
+			return next;
+		}
+
+		public String support(HttpServletRequest request, String key) {
+			String value = trim(this.resolve(request, key));
+			return value!=null?value:(this.next==null?null:this.next.support(request, key));
+		}
+	}
+
 	private static abstract class I18NSupport {
 		private I18NSupport next;
 
@@ -118,22 +142,6 @@ public class CommonHelper {
 				}
 			}
 			return this.next==null?null:this.next.support(request);
-		}
-	}
-
-	private static abstract class ParamSupport {
-		private ParamSupport next;
-
-		protected abstract String resolve(HttpServletRequest request, String key);
-
-		public ParamSupport setNext(ParamSupport next) {
-			this.next = next;
-			return next;
-		}
-
-		public String support(HttpServletRequest request, String key) {
-			String value = trim(this.resolve(request, key));
-			return value!=null?value:(this.next==null?null:this.next.support(request, key));
 		}
 	}
 
@@ -164,9 +172,11 @@ public class CommonHelper {
 	}
 
 	public static String clientType(HttpServletRequest request, Object handler) {
+		String clientType = null;
 		Object _clientType = request.getAttribute("cliengType");
-		String clientType = _clientType==null?null:_clientType.toString();
-		if(clientType==null) {
+		if(_clientType!=null) {
+			clientType = _clientType.toString();
+		} else {
 			ResponseBody annotation = null;
 			if(handler!=null) {
 				HandlerMethod method = (HandlerMethod)handler;
@@ -192,42 +202,60 @@ public class CommonHelper {
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	public static String getValue(HttpServletRequest request, String key) {
 		String value = null;
-		Map<String, String> map = Sync.getRequestParams().get();
-		if(map==null) {
+		Map<String, String> map = null;
+		Object _map = request.getAttribute("requestParams");
+		if(_map==null) {
 			map = new HashMap<String, String>();
-		} else
+			request.setAttribute("requestParams", map);
+		} else {
+			map = (Map<String, String>)_map;
 			value = map.get(key);
-		if(value==null)
+		}
+		if(value==null) {
 			value = paramSupportHead.support(request, key);
-		map.put(key, value!=null?value:"");
-		return value;
+			if(value==null)
+				value = "";
+			map.put(key, value);
+		}
+		return value.length()==0?null:value;
 	}
 
 	public static String getApp(HttpServletRequest request) {
-		String app = Sync.getApp().get();
-		if(app==null) {
-			app = CommonHelper.trim(getValue(request, InnerConstants.CLIENT_APP));
-			if(app!=null)
-				Sync.getApp().set(app);
+		String app = null;
+		Object _app = request.getAttribute("app");
+		if(_app!=null) {
+			app = _app.toString();
+		} else {
+			app = getValue(request, InnerConstants.CLIENT_APP);
+			if(app==null)
+				app = "";
+			request.setAttribute("app", app);
 		}
-		return app;
+		return app.length()==0?null:app;
 	}
 
 	public static boolean isApp(HttpServletRequest request) {
-		Boolean isApp = Sync.isApp().get();
-		if(isApp==null) {
+		Boolean isApp = null;
+		Object _isApp = request.getAttribute("isApp");
+		if(_isApp!=null) {
+			isApp = Boolean.valueOf(_isApp.toString());
+		} else {
 			String app = getApp(request);
 			isApp = app!=null;
-			Sync.isApp().set(isApp);
+			request.setAttribute("isApp", isApp);
 		}
 		return isApp;
 	}
 
 	public static boolean isWap(HttpServletRequest request) {
-		Boolean isWap = Sync.isWap().get();
-		if(isWap==null) {
+		Boolean isWap = null;
+		Object _isWap = request.getAttribute("isWap");
+		if(_isWap!=null) {
+			isWap = Boolean.valueOf(_isWap.toString());
+		} else {
 			String userAgent = request.getHeader("user-agent");
 			if(userAgent!=null) {
 				for(String flag:WAP_USER_AGENT_FLAGS) {
@@ -239,7 +267,7 @@ public class CommonHelper {
 			}
 			if(isWap==null)
 				isWap = false;
-			Sync.isWap().set(isWap);
+			request.setAttribute("isWap", isWap);
 		}
 		return isWap;
 	}

@@ -21,7 +21,6 @@ public class GeneralInterceptor extends HandlerInterceptorAdapter {
 //		response.setHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
 //		response.setHeader("Access-Control-Max-Age", "3600");
 //		response.setHeader("Access-Control-Allow-Headers", "accept, Accept, Origin, x-requested-with, XRequestedWith, XMLHttpRequest, Content-Type, contentType, LastModified, "+Constants.CLIENT_TOKEN);
-		CommonHelper.getLocale(request);
 //		Locale locale = CommonHelper.getLocale(request);
 		/*
 		 * 普通springmvc这样设置, spring-boot抛异常, spring-boot要通过实现LocaleResolver接口的bean实现

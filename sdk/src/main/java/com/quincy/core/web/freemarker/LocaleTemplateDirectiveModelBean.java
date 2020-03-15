@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Locale;
 import java.util.Map;
 
-import com.quincy.core.Sync;
+import com.quincy.sdk.helper.CommonHelper;
 
 import freemarker.core.Environment;
 import freemarker.template.TemplateDirectiveBody;
@@ -16,7 +16,7 @@ public class LocaleTemplateDirectiveModelBean implements TemplateDirectiveModel 
 	@Override
 	public void execute(Environment env, Map params, TemplateModel[] loopVars, TemplateDirectiveBody body)
 			throws TemplateException, IOException {
-		Locale locale = Sync.getLocale().get();
+		Locale locale = CommonHelper.getLocale();
 		env.getOut().write(locale.getLanguage()+"_"+locale.getCountry());
 	}
 }
