@@ -13,6 +13,7 @@ import com.quincy.auth.o.DSession;
 import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthCallback;
 import com.quincy.core.InnerConstants;
+import com.quincy.sdk.helper.CommonHelper;
 
 @Service("authorizationSessionServiceImpl")
 public class AuthorizationSessionServiceImpl extends AuthorizationSupport {
@@ -24,7 +25,7 @@ public class AuthorizationSessionServiceImpl extends AuthorizationSupport {
 
 	@Override
 	public DSession setSession(HttpServletRequest request, String originalJsessionid, Long userId, AuthCallback callback) {
-		if(originalJsessionid!=null&&originalJsessionid.length()>0) {//同一user不同客户端登录互踢
+		if(originalJsessionid!=null) {//同一user不同客户端登录互踢
 			HttpSession httpSession = AuthConstants.SESSIONS.get(originalJsessionid);
 			if(httpSession!=null) {
 				DSession session = (DSession)httpSession.getAttribute(InnerConstants.ATTR_SESSION);
@@ -51,9 +52,12 @@ public class AuthorizationSessionServiceImpl extends AuthorizationSupport {
 
 	@Override
 	public void updateSession(User user) {
-		HttpSession httpSession = AuthConstants.SESSIONS.get(user.getJsessionid());
-		DSession dSession = this.createSession(user);
-		httpSession.setAttribute(InnerConstants.ATTR_SESSION, dSession);
+		String jsessionid = CommonHelper.trim(user.getJsessionid());
+		if(jsessionid!=null) {
+			HttpSession httpSession = AuthConstants.SESSIONS.get(jsessionid);
+			DSession dSession = this.createSession(user);
+			httpSession.setAttribute(InnerConstants.ATTR_SESSION, dSession);
+		}
 	}
 
 	@Override

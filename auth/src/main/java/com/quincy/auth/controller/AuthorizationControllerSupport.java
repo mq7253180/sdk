@@ -123,7 +123,7 @@ public abstract class AuthorizationControllerSupport {
 			result.setMsg(requestContext.getMessage("auth.account.pwd_incorrect"));
 			return result;
 		}
-		DSession session = authorizationService.setSession(request, user.getJsessionid(), user.getId(), new AuthCallback() {
+		DSession session = authorizationService.setSession(request, CommonHelper.trim(user.getJsessionid()), user.getId(), new AuthCallback() {
 			@Override
 			public void updateLastLogined(String jsessionid) {
 				updateLastLogin(user.getId(), client, jsessionid);

@@ -58,7 +58,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationSupport {
 		Jedis jedis = null;
 		try {
 			jedis = jedisSource.get();
-			if(originalJsessionid!=null&&originalJsessionid.length()>0) {//同一user不同客户端登录互踢
+			if(originalJsessionid!=null) {//同一user不同客户端登录互踢
 				byte[] originalKey = (sessionKeyPrefix+originalJsessionid).getBytes();
 				byte[] b = jedis.get(originalKey);
 				if(b!=null&&b.length>0) {
@@ -102,12 +102,15 @@ public class AuthorizationCacheServiceImpl extends AuthorizationSupport {
 	}
 
 	private void updateSession(User user, Jedis jedis) throws IOException {
-		byte[] key = (sessionKeyPrefix+user.getJsessionid()).getBytes();
-		byte[] b = jedis.get(key);
-		if(b!=null&&b.length>0) {
-			DSession session = this.createSession(user);
-			b = CommonHelper.serialize(session);
-			jedis.set(key, b);
+		String jsessionid = CommonHelper.trim(user.getJsessionid());
+		if(jsessionid!=null) {
+			byte[] key = (sessionKeyPrefix+jsessionid).getBytes();
+			byte[] b = jedis.get(key);
+			if(b!=null&&b.length>0) {
+				DSession session = this.createSession(user);
+				b = CommonHelper.serialize(session);
+				jedis.set(key, b);
+			}
 		}
 	}
 
