@@ -212,7 +212,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 					g.setColor(new Color(random.nextInt(255), random.nextInt(255), random.nextInt(255)));
 					g.drawLine(random.nextInt(width), random.nextInt(height), random.nextInt(width), random.nextInt(height));
 				}
-				Font font = new Font("Times New Roman", Font.ROMAN_BASELINE, 25);
+				Font font = new Font("Times New Roman", Font.ROMAN_BASELINE, size);
 				g.setFont(font);
 //				g.translate(random.nextInt(3), random.nextInt(3));
 		        int x = start;//旋转原点的 x 坐标
