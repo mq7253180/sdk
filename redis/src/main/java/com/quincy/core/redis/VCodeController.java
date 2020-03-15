@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.quincy.sdk.RedisProcessor;
+import com.quincy.sdk.VCodeCharsFrom;
 
 @Controller
 @RequestMapping("")
@@ -23,6 +24,6 @@ public class VCodeController {
 			@PathVariable(required = true, name = "space")int space,
 			@PathVariable(required = true, name = "width")int width, 
 			@PathVariable(required = true, name = "height")int height) throws Exception {
-		redisProcessor.vcode(request, response, null, size, start, space, width, height);
+		redisProcessor.vcode(request, response, VCodeCharsFrom.MIXED, size, start, space, width, height);
 	}
 }
