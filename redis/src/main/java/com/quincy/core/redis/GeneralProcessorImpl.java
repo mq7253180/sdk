@@ -177,9 +177,8 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 	}
 
 	@Override
-	public char[] vcode(HttpServletRequest request, VCodeCharsFrom _charsFrom, VCcodeSender sender) throws Exception {
+	public char[] vcode(HttpServletRequest request, VCodeCharsFrom _charsFrom, int length, VCcodeSender sender) throws Exception {
 		String charsFrom = (_charsFrom==null?VCodeCharsFrom.MIXED:_charsFrom).getValue();
-		int length = Integer.parseInt(properties.getProperty("vcode.length"));
 		Random random = new Random();
 		StringBuilder sb = new StringBuilder(length);
 		char[] _vcode = new char[length];
@@ -197,8 +196,8 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 	private final double radians = Math.PI/180;
 
 	@Override
-	public char[] vcode(HttpServletRequest request, HttpServletResponse response, VCodeCharsFrom charsFrom, int size, int start, int space, int width, int height) throws Exception {
-		return this.vcode(request, charsFrom, new VCcodeSender() {
+	public char[] vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, HttpServletResponse response, int size, int start, int space, int width, int height) throws Exception {
+		return this.vcode(request, charsFrom, length, new VCcodeSender() {
 			@Override
 			public void send(char[] vcode) throws IOException {
 				BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
@@ -241,8 +240,8 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 	private EmailService emailService;
 
 	@Override
-	public char[] vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, String emailTo, String subject, String _content) throws Exception {
-		return this.vcode(request, charsFrom, new VCcodeSender() {
+	public char[] vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, String emailTo, String subject, String _content) throws Exception {
+		return this.vcode(request, charsFrom, length, new VCcodeSender() {
 			@Override
 			public void send(char[] _vcode) {
 				String vcode = new String(_vcode);

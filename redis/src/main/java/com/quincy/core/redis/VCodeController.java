@@ -27,6 +27,6 @@ public class VCodeController {
 			@PathVariable(required = true, name = "space")int space,
 			@PathVariable(required = true, name = "width")int width, 
 			@PathVariable(required = true, name = "height")int height) throws Exception {
-		redisProcessor.vcode(request, response, VCodeCharsFrom.MIXED, size, start, space, width, height);
+		redisProcessor.vcode(request, VCodeCharsFrom.MIXED, 6, response, size, start, space, width, height);
 	}
 }
