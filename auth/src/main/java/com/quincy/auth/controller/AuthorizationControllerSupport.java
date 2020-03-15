@@ -26,7 +26,7 @@ public abstract class AuthorizationControllerSupport {
 	@Autowired
 	private AuthorizationService authorizationService;
 
-	protected abstract User findUser(String username);
+	protected abstract User findUser(String username, Client client);
 	protected abstract void updateLastLogin(Long userId, Client client, String jsessionid);
 	/**
 	 * 进登录页
@@ -111,7 +111,8 @@ public abstract class AuthorizationControllerSupport {
 			result.setMsg(requestContext.getMessage("auth.null.password"));
 			return result;
 		}
-		User user = this.findUser(username);
+		Client client = CommonHelper.getClient(request);
+		User user = this.findUser(username, client);
 		if(user==null) {
 			result.setStatus(-3);
 			result.setMsg(requestContext.getMessage("auth.account.no"));
@@ -125,7 +126,7 @@ public abstract class AuthorizationControllerSupport {
 		DSession session = authorizationService.setSession(request, user.getJsessionid(), user.getId(), new AuthCallback() {
 			@Override
 			public void updateLastLogined(String jsessionid) {
-				updateLastLogin(user.getId(), CommonHelper.getClient(request), jsessionid);
+				updateLastLogin(user.getId(), client, jsessionid);
 			}
 
 			@Override
