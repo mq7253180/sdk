@@ -37,6 +37,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.method.HandlerMethod;
 
 import com.quincy.core.InnerConstants;
+import com.quincy.sdk.Client;
 
 public class CommonHelper {
 	private static ParamSupport paramSupportHead;
@@ -270,6 +271,11 @@ public class CommonHelper {
 			request.setAttribute("isWap", isWap);
 		}
 		return isWap;
+	}
+
+	public static Client getClient(HttpServletRequest request) {
+		Client client = CommonHelper.isWap(request)?Client.WAP:(CommonHelper.isApp(request)?Client.APP:Client.PC);
+		return client;
 	}
 
 	public static String getFirstAsUri(HttpServletRequest request) {

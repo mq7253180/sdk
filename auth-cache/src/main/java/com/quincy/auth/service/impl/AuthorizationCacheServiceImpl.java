@@ -15,6 +15,7 @@ import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthCallback;
 import com.quincy.core.InnerConstants;
 import com.quincy.core.redis.JedisSource;
+import com.quincy.sdk.Client;
 import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.RedisWebOperation;
 import com.quincy.sdk.helper.CommonHelper;
@@ -78,7 +79,8 @@ public class AuthorizationCacheServiceImpl extends AuthorizationSupport {
 	}
 
 	private int getExpireSconds(HttpServletRequest request) {
-		Integer expireMinutes = Integer.parseInt(properties.getProperty("expire.session."+(CommonHelper.isApp(request)?"app":(CommonHelper.isWap(request)?"wap":"pc"))));
+		Client client = CommonHelper.getClient(request);
+		Integer expireMinutes = Integer.parseInt(properties.getProperty("expire.session."+client.getName()));
 		return expireMinutes*60;
 	}
 

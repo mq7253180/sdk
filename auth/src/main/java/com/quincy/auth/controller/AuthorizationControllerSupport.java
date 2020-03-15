@@ -17,6 +17,7 @@ import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthCallback;
 import com.quincy.auth.service.AuthorizationService;
 import com.quincy.core.InnerConstants;
+import com.quincy.sdk.Client;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.helper.CommonHelper;
 
@@ -26,7 +27,7 @@ public abstract class AuthorizationControllerSupport {
 	private AuthorizationService authorizationService;
 
 	protected abstract User findUser(String username);
-	protected abstract void updateLastLogin(Long userId, String jsessionid);
+	protected abstract void updateLastLogin(Long userId, Client client, String jsessionid);
 	/**
 	 * 进登录页
 	 */
@@ -124,7 +125,7 @@ public abstract class AuthorizationControllerSupport {
 		DSession session = authorizationService.setSession(request, user.getJsessionid(), user.getId(), new AuthCallback() {
 			@Override
 			public void updateLastLogined(String jsessionid) {
-				updateLastLogin(user.getId(), jsessionid);
+				updateLastLogin(user.getId(), CommonHelper.getClient(request), jsessionid);
 			}
 
 			@Override
