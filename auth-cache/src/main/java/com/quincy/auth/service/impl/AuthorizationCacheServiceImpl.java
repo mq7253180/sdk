@@ -78,15 +78,8 @@ public class AuthorizationCacheServiceImpl extends AuthorizationSupport {
 	}
 
 	private int getExpireSconds(HttpServletRequest request) {
-		boolean isApp = CommonHelper.isApp(request);
-		Integer expire = null;
-		if(isApp) {
-			expire = Integer.parseInt(properties.getProperty("expire.session.app"))*24*3600;
-		} else {
-			String _expire = properties.getProperty(CommonHelper.isWap(request)?"expire.session.wap":"expire.session.pc");
-			expire = Integer.parseInt(_expire)*60;
-		}
-		return expire;
+		Integer expireMinutes = Integer.parseInt(properties.getProperty("expire.session."+(CommonHelper.isApp(request)?"app":(CommonHelper.isWap(request)?"wap":"pc"))));
+		return expireMinutes*60;
 	}
 
 	@Override
