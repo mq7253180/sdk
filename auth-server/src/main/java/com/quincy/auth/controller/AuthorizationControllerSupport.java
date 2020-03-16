@@ -67,14 +67,20 @@ public abstract class AuthorizationControllerSupport {
 		return "/deny";
 	}
 	/**
-	 * 登录
+	 * 密码登录
 	 */
-	@PostMapping("/signin/do")
+	@PostMapping("/signin/pwd")
 	public ModelAndView doLogin(HttpServletRequest request, 
 			@RequestParam(required = false, value = "username")String _username, 
 			@RequestParam(required = false, value = "password")String _password, 
 			@RequestParam(required = false, value = AuthConstants.PARAM_BACK_TO)String _backTo) throws Exception {
-		Result result = this.login(request, _username, _password);
+		String password = CommonHelper.trim(_password);
+		Result result = password!=null?this.login(request, _username, password):new Result(-2, new RequestContext(request).getMessage("auth.null.password"));
+		ModelAndView mv = this.createModelAndView(request, result, _backTo);
+		return mv;
+	}
+
+	protected ModelAndView createModelAndView(HttpServletRequest request, Result result, String _backTo) throws JsonProcessingException {
 		String clientType = CommonHelper.clientType(request);
 		ModelAndView mv = null;
 		if(InnerConstants.CLIENT_TYPE_J.equals(clientType)) {
@@ -96,19 +102,13 @@ public abstract class AuthorizationControllerSupport {
 				.addObject("data", new ObjectMapper().writeValueAsString(result.getData()));
 	}
 
-	private Result login(HttpServletRequest request, String _username, String _password) throws Exception {
+	protected Result login(HttpServletRequest request, String _username, String password) throws Exception {
 		RequestContext requestContext = new RequestContext(request);
 		Result result = new Result();
 		String username = CommonHelper.trim(_username);
 		if(username==null) {
 			result.setStatus(-1);
 			result.setMsg(requestContext.getMessage("auth.null.username"));
-			return result;
-		}
-		String password = CommonHelper.trim(_password);
-		if(password==null) {
-			result.setStatus(-2);
-			result.setMsg(requestContext.getMessage("auth.null.password"));
 			return result;
 		}
 		Client client = CommonHelper.getClient(request);
@@ -118,7 +118,7 @@ public abstract class AuthorizationControllerSupport {
 			result.setMsg(requestContext.getMessage("auth.account.no"));
 			return result;
 		}
-		if(!password.equalsIgnoreCase(user.getPassword())) {
+		if(password!=null&&!password.equalsIgnoreCase(user.getPassword())) {
 			result.setStatus(-4);
 			result.setMsg(requestContext.getMessage("auth.account.pwd_incorrect"));
 			return result;

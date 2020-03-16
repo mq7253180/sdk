@@ -110,7 +110,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		return null;
 	}
 
-	private void cacheStr(HttpServletRequest request, String flag, String content) {
+	private String cacheStr(HttpServletRequest request, String flag, String content) {
 		String token = this.createOrGetToken(request);
 		String key = combineAsKey(flag, token);
 		Jedis jedis = null;
@@ -118,6 +118,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 			jedis = jedisSource.get();
 			jedis.set(key, content);
 			jedis.expire(key, Integer.parseInt(properties.getProperty("vcode.expire"))*60);
+			return token;
 		} finally {
 			if(jedis!=null)
 				jedis.close();
@@ -168,8 +169,8 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		return token;
 	}
 
-	private void cacheVCode(HttpServletRequest request, String vcode) {
-		this.cacheStr(request, FLAG_VCODE, vcode);
+	private String cacheVCode(HttpServletRequest request, String vcode) {
+		return this.cacheStr(request, FLAG_VCODE, vcode);
 	}
 
 	private String getCachedVCode(HttpServletRequest request) throws Exception {
@@ -177,7 +178,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 	}
 
 	@Override
-	public char[] vcode(HttpServletRequest request, VCodeCharsFrom _charsFrom, int length, VCcodeSender sender) throws Exception {
+	public String vcode(HttpServletRequest request, VCodeCharsFrom _charsFrom, int length, VCcodeSender sender) throws Exception {
 		String charsFrom = (_charsFrom==null?VCodeCharsFrom.MIXED:_charsFrom).getValue();
 		Random random = new Random();
 		StringBuilder sb = new StringBuilder(length);
@@ -188,15 +189,15 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 			_vcode[i] = c;
 		}
 		String vcode = sb.toString();
-		this.cacheVCode(request, vcode);
+		String token = this.cacheVCode(request, vcode);
 		sender.send(_vcode);
-		return _vcode;
+		return token;
 	}
 
 	private final double radians = Math.PI/180;
 
 	@Override
-	public char[] vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, HttpServletResponse response, int size, int start, int space, int width, int height) throws Exception {
+	public String vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, HttpServletResponse response, int size, int start, int space, int width, int height) throws Exception {
 		return this.vcode(request, charsFrom, length, new VCcodeSender() {
 			@Override
 			public void send(char[] vcode) throws IOException {
@@ -240,7 +241,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 	private EmailService emailService;
 
 	@Override
-	public char[] vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, String emailTo, String subject, String _content) throws Exception {
+	public String vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, String emailTo, String subject, String _content) throws Exception {
 		return this.vcode(request, charsFrom, length, new VCcodeSender() {
 			@Override
 			public void send(char[] _vcode) {
