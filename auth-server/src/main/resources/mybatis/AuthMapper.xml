@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.quincy.auth.mapper.AuthMapper" >
+	<resultMap id="roleResultMap" type="com.quincy.auth.entity.Role">
+		<result column="id" property="id" jdbcType="INTEGER" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+	</resultMap>
+	<resultMap id="menuResultMap" type="com.quincy.auth.entity.Menu">
+		<result column="id" property="id" jdbcType="INTEGER" />
+		<result column="p_id" property="pId" jdbcType="INTEGER" />
+		<result column="permission_id" property="permissionId" jdbcType="INTEGER" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="uri" property="uri" jdbcType="VARCHAR" />
+		<result column="icon" property="icon" jdbcType="VARCHAR" />
+	</resultMap>
+	<resultMap id="permissionResultMap" type="com.quincy.auth.entity.Permission">
+		<result column="id" property="id" jdbcType="INTEGER" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="des" property="des" jdbcType="VARCHAR" />
+	</resultMap>
+	<select id="findRolesByUserId" resultMap="roleResultMap">
+		SELECT role.* FROM s_role role INNER JOIN s_role_user_rel rel ON role.id=rel.role_id WHERE rel.user_id=#{userId, jdbcType=INTEGER}
+	</select>
+	<select id="findMenusByUserId" resultMap="menuResultMap">
+		SELECT m.* FROM s_menu m 
+		INNER JOIN s_role_menu_rel r1 ON m.id=r1.menu_id 
+		INNER JOIN s_role_user_rel r2 ON r1.role_id=r2.role_id 
+		WHERE r2.user_id=#{userId, jdbcType=INTEGER}
+	</select>
+	<select id="findPermissionsByUserId" resultMap="permissionResultMap">
+		SELECT p.* FROM s_permission p 
+		INNER JOIN s_permission_role_rel r1 ON p.id=r1.permission_id 
+		INNER JOIN s_role_user_rel r2 ON r1.role_id=r2.role_id 
+		WHERE r2.user_id=#{userId, jdbcType=INTEGER}
+	</select>
+</mapper>
