@@ -71,7 +71,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 					}
 				}
 				if(status==null) {
-					this.rmCachedStr(request, FLAG_VCODE);
+					this.rmCachedVCode(request);
 				} else {
 					RequestContext requestContext = new RequestContext(request);
 					String outputContent = "{\"status\":"+status+", \"msg\":\""+requestContext.getMessage(msgI18NKey)+"\"}";
@@ -173,8 +173,14 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		return this.cacheStr(request, FLAG_VCODE, vcode);
 	}
 
-	private String getCachedVCode(HttpServletRequest request) throws Exception {
+	@Override
+	public String getCachedVCode(HttpServletRequest request) throws Exception {
 		return this.getCachedStr(request, FLAG_VCODE);
+	}
+
+	@Override
+	public void rmCachedVCode(HttpServletRequest request) {
+		this.rmCachedStr(request, FLAG_VCODE);
 	}
 
 	@Override
