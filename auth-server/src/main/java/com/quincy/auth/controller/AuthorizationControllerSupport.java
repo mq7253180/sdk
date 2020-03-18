@@ -3,7 +3,6 @@ package com.quincy.auth.controller;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
@@ -66,18 +65,49 @@ public abstract class AuthorizationControllerSupport {
 	public String deny(HttpServletRequest request) throws Exception {
 		return "/deny";
 	}
-	/**
-	 * 密码登录
-	 */
-	@PostMapping("/signin/pwd")
-	public ModelAndView doLogin(HttpServletRequest request, 
-			@RequestParam(required = false, value = "username")String _username, 
-			@RequestParam(required = false, value = "password")String _password, 
-			@RequestParam(required = false, value = AuthConstants.PARAM_BACK_TO)String _backTo) throws Exception {
+
+	protected Result doPwdLogin(HttpServletRequest request, String username, String _password) throws Exception {
 		String password = CommonHelper.trim(_password);
-		Result result = password!=null?this.login(request, _username, password):new Result(-2, new RequestContext(request).getMessage("auth.null.password"));
-		ModelAndView mv = this.createModelAndView(request, result, _backTo);
-		return mv;
+		Result result = password!=null?this.login(request, username, password):new Result(-2, new RequestContext(request).getMessage("auth.null.password"));
+		return result;
+	}
+
+	protected Result login(HttpServletRequest request, String _username, String password) throws Exception {
+		RequestContext requestContext = new RequestContext(request);
+		Result result = new Result();
+		String username = CommonHelper.trim(_username);
+		if(username==null) {
+			result.setStatus(-1);
+			result.setMsg(requestContext.getMessage("auth.null.username"));
+			return result;
+		}
+		Client client = CommonHelper.getClient(request);
+		User user = this.findUser(username, client);
+		if(user==null) {
+			result.setStatus(-3);
+			result.setMsg(requestContext.getMessage("auth.account.no"));
+			return result;
+		}
+		if(password!=null&&!password.equalsIgnoreCase(user.getPassword())) {
+			result.setStatus(AuthConstants.LOGIN_STATUS_PWD_INCORRECT);
+			result.setMsg(requestContext.getMessage("auth.account.pwd_incorrect"));
+			return result;
+		}
+		DSession session = authorizationService.setSession(request, CommonHelper.trim(user.getJsessionid()), user.getId(), new AuthCallback() {
+			@Override
+			public void updateLastLogined(String jsessionid) {
+				updateLastLogin(user.getId(), client, jsessionid);
+			}
+
+			@Override
+			public User getUser() {
+				return user;
+			}
+		});
+		result.setStatus(1);
+		result.setMsg(requestContext.getMessage("auth.success"));
+		result.setData(session);
+		return result;
 	}
 
 	protected ModelAndView createModelAndView(HttpServletRequest request, Result result, String _backTo) throws JsonProcessingException {
@@ -100,43 +130,5 @@ public abstract class AuthorizationControllerSupport {
 				.addObject("status", result.getStatus())
 				.addObject("msg", result.getMsg())
 				.addObject("data", new ObjectMapper().writeValueAsString(result.getData()));
-	}
-
-	protected Result login(HttpServletRequest request, String _username, String password) throws Exception {
-		RequestContext requestContext = new RequestContext(request);
-		Result result = new Result();
-		String username = CommonHelper.trim(_username);
-		if(username==null) {
-			result.setStatus(-1);
-			result.setMsg(requestContext.getMessage("auth.null.username"));
-			return result;
-		}
-		Client client = CommonHelper.getClient(request);
-		User user = this.findUser(username, client);
-		if(user==null) {
-			result.setStatus(-3);
-			result.setMsg(requestContext.getMessage("auth.account.no"));
-			return result;
-		}
-		if(password!=null&&!password.equalsIgnoreCase(user.getPassword())) {
-			result.setStatus(-4);
-			result.setMsg(requestContext.getMessage("auth.account.pwd_incorrect"));
-			return result;
-		}
-		DSession session = authorizationService.setSession(request, CommonHelper.trim(user.getJsessionid()), user.getId(), new AuthCallback() {
-			@Override
-			public void updateLastLogined(String jsessionid) {
-				updateLastLogin(user.getId(), client, jsessionid);
-			}
-
-			@Override
-			public User getUser() {
-				return user;
-			}
-		});
-		result.setStatus(1);
-		result.setMsg(requestContext.getMessage("auth.success"));
-		result.setData(session);
-		return result;
 	}
 }

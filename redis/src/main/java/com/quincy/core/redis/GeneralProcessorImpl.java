@@ -30,6 +30,7 @@ import com.quincy.sdk.EmailService;
 import com.quincy.sdk.RedisOperation;
 import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.RedisWebOperation;
+import com.quincy.sdk.Result;
 import com.quincy.sdk.VCcodeSender;
 import com.quincy.sdk.VCodeCharsFrom;
 import com.quincy.sdk.annotation.VCodeRequired;
@@ -54,33 +55,44 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 			HandlerMethod method = (HandlerMethod)handler;
 			VCodeRequired annotation = method.getMethod().getDeclaredAnnotation(VCodeRequired.class);
 			if(annotation!=null) {
-				String inputedVCode = CommonHelper.trim(request.getParameter(InnerConstants.ATTR_VCODE));
-				Integer status = null;
-				String msgI18NKey = null;
-				if(inputedVCode==null) {
-					status = -5;
-					msgI18NKey = "vcode.null";
-				} else {
-					String cachedVCode = CommonHelper.trim(this.getCachedVCode(request));
-					if(cachedVCode==null) {
-						status = -6;
-						msgI18NKey = "vcode.expire";
-					} else if(!cachedVCode.equalsIgnoreCase(inputedVCode)) {
-						status = -7;
-						msgI18NKey = "vcode.not_matched";
-					}
-				}
-				if(status==null) {
-					this.rmCachedVCode(request);
-				} else {
-					RequestContext requestContext = new RequestContext(request);
-					String outputContent = "{\"status\":"+status+", \"msg\":\""+requestContext.getMessage(msgI18NKey)+"\"}";
+				Result result = this.validateVCode(request);
+				if(result.getStatus()!=1) {
+					String outputContent = "{\"status\":"+result.getStatus()+", \"msg\":\""+result.getMsg()+"\"}";
 					HttpClientHelper.outputJson(response, outputContent);
 					return false;
 				}
 			}
 		}
 		return true;
+	}
+
+	@Override
+	public Result validateVCode(HttpServletRequest request) throws Exception {
+		String inputedVCode = CommonHelper.trim(request.getParameter(InnerConstants.ATTR_VCODE));
+		Integer status = null;
+		String msgI18NKey = null;
+		String msg = null;
+		if(inputedVCode==null) {
+			status = -5;
+			msgI18NKey = "vcode.null";
+		} else {
+			String cachedVCode = CommonHelper.trim(this.getCachedVCode(request));
+			if(cachedVCode==null) {
+				status = -6;
+				msgI18NKey = "vcode.expire";
+			} else if(!cachedVCode.equalsIgnoreCase(inputedVCode)) {
+				status = -7;
+				msgI18NKey = "vcode.not_matched";
+			}
+		}
+		if(status==null) {
+			this.rmCachedVCode(request);
+			status = 1;
+		} else {
+			RequestContext requestContext = new RequestContext(request);
+			msg = requestContext.getMessage(msgI18NKey);
+		}
+		return new Result(status, msg);
 	}
 
 	@Override
@@ -173,13 +185,11 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		return this.cacheStr(request, FLAG_VCODE, vcode);
 	}
 
-	@Override
-	public String getCachedVCode(HttpServletRequest request) throws Exception {
+	private String getCachedVCode(HttpServletRequest request) throws Exception {
 		return this.getCachedStr(request, FLAG_VCODE);
 	}
 
-	@Override
-	public void rmCachedVCode(HttpServletRequest request) {
+	private void rmCachedVCode(HttpServletRequest request) {
 		this.rmCachedStr(request, FLAG_VCODE);
 	}
 
