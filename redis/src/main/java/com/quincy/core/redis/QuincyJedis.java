@@ -117,6 +117,36 @@ public class QuincyJedis extends Jedis {
 		jedisCluster.subscribe(jedisPubSub, channels);
 	}
 
+	@Override
+	public String hget(final String key, final String field) {
+		return jedisCluster.hget(key, field);
+	}
+
+	@Override
+	public byte[] hget(final byte[] key, final byte[] field) {
+		return jedisCluster.hget(key, field);
+	}
+
+	@Override
+	public Long hdel(final String key, final String... fields) {
+		return jedisCluster.hdel(key, fields);
+	}
+
+	@Override
+	public Long hdel(final byte[] key, final byte[]... fields) {
+		return jedisCluster.hdel(key, fields);
+	}
+
+	@Override
+	public Long hincrBy(final String key, final String field, final long value) {
+		return jedisCluster.hincrBy(key, field, value);
+	}
+
+	@Override
+	public Long hincrBy(final byte[] key, final byte[] field, final long value) {
+		return jedisCluster.hincrBy(key, field, value);
+	}
+
 	/*@Override
 	public void close() {
 		try {

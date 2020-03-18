@@ -68,7 +68,7 @@ public abstract class AuthorizationControllerSupport {
 
 	protected Result doPwdLogin(HttpServletRequest request, String username, String _password) throws Exception {
 		String password = CommonHelper.trim(_password);
-		Result result = password!=null?this.login(request, username, password):new Result(-2, new RequestContext(request).getMessage("auth.null.password"));
+		Result result = password!=null?this.login(request, username, password):new Result(0, new RequestContext(request).getMessage("auth.null.password"));
 		return result;
 	}
 
@@ -84,7 +84,7 @@ public abstract class AuthorizationControllerSupport {
 		Client client = CommonHelper.getClient(request);
 		User user = this.findUser(username, client);
 		if(user==null) {
-			result.setStatus(-3);
+			result.setStatus(-2);
 			result.setMsg(requestContext.getMessage("auth.account.no"));
 			return result;
 		}

@@ -39,19 +39,26 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 		String _failures = jedis.hget(key, username);
 		long failures = _failures==null?0:Integer.parseInt(_failures);
 		if(failures<MAX_FAILURES_ALLOWED) {
-			result = doPwdLogin(request, username, password);
+			result = this.doPwdLogin(request, username, password, failures, jedis, key);
 		} else {
 			result = redisProcessor.validateVCode(request);
-			if(result.getStatus()==1) {
-				result = doPwdLogin(request, username, password);
-				if(result.getStatus()==AuthConstants.LOGIN_STATUS_PWD_INCORRECT)
-					failures = jedis.hincrBy(key, username, 1);
-			}
+			if(result.getStatus()==1)
+				result = this.doPwdLogin(request, username, password, failures, jedis, key);
 		}
 		if(result.getStatus()==1)
 			jedis.hdel(key, username);
 		ModelAndView mv = createModelAndView(request, result, _backTo);
 		return mv;
+	}
+
+	private Result doPwdLogin(HttpServletRequest request, String username, String password, long failures, Jedis jedis, String key) throws Exception {
+		Result result = doPwdLogin(request, username, password);
+		if(result.getStatus()==AuthConstants.LOGIN_STATUS_PWD_INCORRECT) {
+			jedis.hincrBy(key, username, 1);
+			if(failures+1==MAX_FAILURES_ALLOWED)
+				result.setStatus(AuthConstants.LOGIN_STATUS_PWD_INCORRECT-1);
+		}
+		return result;
 	}
 	/**
 	 * 验证码登录
