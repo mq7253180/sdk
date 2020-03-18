@@ -33,18 +33,18 @@ public class JedisInjectorAop {
     	MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
     	Class<?>[] classes = methodSignature.getParameterTypes();
     	Object[] args = joinPoint.getArgs();
-    	List<Integer> list = new ArrayList<Integer>(classes.length);
+    	List<Integer> index = new ArrayList<Integer>(classes.length);
     	for(int i=0;i<classes.length;i++) {
     		String className = classes[i].getName();
-    		if((Jedis.class.getName().equals(className)||JedisCluster.class.getName().equals(className))&&args[i]!=null)
-    			list.add(i);
+    		if((Jedis.class.getName().equals(className)||JedisCluster.class.getName().equals(className))&&args[i]==null)
+    			index.add(i);
     	}
-    	if(list.size()>0) {
+    	if(index.size()>0) {
     		Jedis jedis = null;
         	JedisCluster jedisCluster = null;
         	try {
         		jedis = jedisSource.get();
-        		for(Integer i:list) {
+        		for(Integer i:index) {
         			String className = classes[i].getName();
         			if(Jedis.class.getName().equals(className)) {
         				args[i] = jedis;

@@ -1,5 +1,8 @@
 package com.quincy.core.aspect;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.zookeeper.ZooKeeper;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -25,22 +28,26 @@ public class ZooKeeperInjectorAop {
     @Around("pointCut()")
     public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
     		MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
-    		Class<?>[] clazzes = methodSignature.getParameterTypes();
+    		Class<?>[] classes = methodSignature.getParameterTypes();
     		Object[] args = joinPoint.getArgs();
-    		ZooKeeper zk = null;
-    		try {
-    			for(int i=0;i<clazzes.length;i++) {
-    				Class<?> clazz = clazzes[i];
-    				if(ZooKeeper.class.getName().equals(clazz.getName())) {
-    					if(zk==null)
-    						zk = zkSource.get();
-    					args[i] = zk;
-    				}
-    			}
-    			return joinPoint.proceed(args);
-    		} finally {
-    			if(zk!=null)
-    				zk.close();
+    		List<Integer> index = new ArrayList<Integer>(classes.length);
+    		for(int i=0;i<classes.length;i++) {
+    			Object arg = args[i];
+    			if(ZooKeeper.class.getName().equals(classes[i].getName())&&arg==null)
+    				index.add(i);
     		}
+    		if(index.size()>0) {
+    			ZooKeeper zk = null;
+        		try {
+        			zk = zkSource.get();
+        			for(int i:index)
+        				args[i] = zk;
+        			return joinPoint.proceed(args);
+        		} finally {
+        			if(zk!=null)
+        				zk.close();
+        		}
+    		} else
+    			return joinPoint.proceed(args);
     }
 }
