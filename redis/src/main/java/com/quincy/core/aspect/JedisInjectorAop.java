@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import com.quincy.core.redis.JedisSource;
 import com.quincy.core.redis.QuincyJedis;
+import com.quincy.sdk.helper.AopHelper;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
@@ -36,7 +37,7 @@ public class JedisInjectorAop {
     	List<Integer> index = new ArrayList<Integer>(classes.length);
     	for(int i=0;i<classes.length;i++) {
     		String className = classes[i].getName();
-    		if((Jedis.class.getName().equals(className)||JedisCluster.class.getName().equals(className))&&args[i]==null)
+    		if((Jedis.class.getName().equals(className)||JedisCluster.class.getName().equals(className))&&(args[i]==null||AopHelper.isControllerMethod(joinPoint)))
     			index.add(i);
     	}
     	if(index.size()>0) {
