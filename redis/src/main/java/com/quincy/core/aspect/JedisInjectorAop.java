@@ -1,5 +1,8 @@
 package com.quincy.core.aspect;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -30,25 +33,33 @@ public class JedisInjectorAop {
     	MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
     	Class<?>[] classes = methodSignature.getParameterTypes();
     	Object[] args = joinPoint.getArgs();
-    	Jedis jedis = null;
-    	JedisCluster jedisCluster = null;
-    	try {
-    		for(int i=0;i<classes.length;i++) {
-    			if(jedis==null)
-    				jedis = jedisSource.get();
-    			String className = classes[i].getName();
-    			if(Jedis.class.getName().equals(className)) {
-    				args[i] = jedis;
-    			} else if(JedisCluster.class.getName().equals(className)) {
-    				if(jedisCluster==null)
-    					jedisCluster = ((QuincyJedis)jedis).getJedisCluster();
-    				args[i] = jedisCluster;
-    			}
-    		}
-    		return joinPoint.proceed(args);
-    	} finally {
-    		if(jedisCluster==null&&jedis!=null)
-    			jedis.close();
+    	List<Integer> list = new ArrayList<Integer>(classes.length);
+    	for(int i=0;i<classes.length;i++) {
+    		String className = classes[i].getName();
+    		if((Jedis.class.getName().equals(className)||JedisCluster.class.getName().equals(className))&&args[i]!=null)
+    			list.add(i);
     	}
+    	if(list.size()>0) {
+    		Jedis jedis = null;
+        	JedisCluster jedisCluster = null;
+        	try {
+        		jedis = jedisSource.get();
+        		for(Integer i:list) {
+        			String className = classes[i].getName();
+        			if(Jedis.class.getName().equals(className)) {
+        				args[i] = jedis;
+        			} else if(JedisCluster.class.getName().equals(className)) {
+        				if(jedisCluster==null)
+        					jedisCluster = ((QuincyJedis)jedis).getJedisCluster();
+        				args[i] = jedisCluster;
+        			}
+        		}
+        		return joinPoint.proceed(args);
+        	} finally {
+        		if(jedisCluster==null&&jedis!=null)
+        			jedis.close();
+        	}
+    	} else
+    		return joinPoint.proceed(args);
     }
 }
