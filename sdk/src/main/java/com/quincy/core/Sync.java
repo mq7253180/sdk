@@ -1,10 +1,5 @@
 package com.quincy.core;
 
-import java.util.Locale;
-import java.util.Map;
-
-import org.springframework.core.NamedThreadLocal;
-
 public class Sync {
 	/*private static final ThreadLocal<Locale> locale = new NamedThreadLocal<Locale>("locale");
 	private static final ThreadLocal<String> app = new NamedThreadLocal<String>("app");
