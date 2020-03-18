@@ -28,27 +28,27 @@ public class ZooKeeperInjectorAop {
 
     @Around("pointCut()")
     public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
-    		MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
-    		Class<?>[] classes = methodSignature.getParameterTypes();
-    		Object[] args = joinPoint.getArgs();
-    		List<Integer> index = new ArrayList<Integer>(classes.length);
-    		for(int i=0;i<classes.length;i++) {
-    			Object arg = args[i];
-    			if(ZooKeeper.class.getName().equals(classes[i].getName())&&(arg==null||AopHelper.isControllerMethod(joinPoint)))
-    				index.add(i);
-    		}
-    		if(index.size()>0) {
-    			ZooKeeper zk = null;
-        		try {
-        			zk = zkSource.get();
-        			for(int i:index)
-        				args[i] = zk;
-        			return joinPoint.proceed(args);
-        		} finally {
-        			if(zk!=null)
-        				zk.close();
-        		}
-    		} else
+    	MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
+    	Class<?>[] classes = methodSignature.getParameterTypes();
+    	Object[] args = joinPoint.getArgs();
+    	List<Integer> index = new ArrayList<Integer>(classes.length);
+    	for(int i=0;i<classes.length;i++) {
+    		Object arg = args[i];
+    		if(ZooKeeper.class.getName().equals(classes[i].getName())&&(arg==null||AopHelper.isControllerMethod(joinPoint)))
+    			index.add(i);
+    	}
+    	if(index.size()>0) {
+    		ZooKeeper zk = null;
+    		try {
+    			zk = zkSource.get();
+    			for(int i:index)
+    				args[i] = zk;
     			return joinPoint.proceed(args);
+    		} finally {
+    			if(zk!=null)
+    				zk.close();
+    		}
+    	} else
+    		return joinPoint.proceed(args);
     }
 }

@@ -1,5 +1,8 @@
 package com.quincy.core.aspect;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -11,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 import com.jcraft.jsch.ChannelSftp;
 import com.quincy.core.sftp.ChannelSftpSource;
-import com.quincy.sdk.annotation.ChannelSftpInjector;
+import com.quincy.sdk.helper.AopHelper;
 
 @Aspect
 @Order(5)
@@ -25,23 +28,27 @@ public class ChannelSftpInjectorAop {
 
     @Around("pointCut()")
     public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
-    		MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
-    		Class<?>[] clazzes = methodSignature.getParameterTypes();
-    		Object[] args = joinPoint.getArgs();
+    	MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
+    	Class<?>[] classes = methodSignature.getParameterTypes();
+    	Object[] args = joinPoint.getArgs();
+    	List<Integer> index = new ArrayList<Integer>(classes.length);
+    	for(int i=0;i<classes.length;i++) {
+    		Object arg = args[i];
+    		if(ChannelSftp.class.getName().equals(classes[i].getName())&&(arg==null||AopHelper.isControllerMethod(joinPoint)))
+    			index.add(i);
+    	}
+    	if(index.size()>0) {
     		ChannelSftp channel = null;
     		try {
-    			for(int i=0;i<clazzes.length;i++) {
-    				Class<?> clazz = clazzes[i];
-    				if(ChannelSftpInjector.class.getName().equals(clazz.getName())) {
-    					channel = channelSftpSource.get();
-    					args[i] = channel;
-    					break;
-    				}
-    			}
+    			channel = channelSftpSource.get();
+    			for(int i:index)
+    				args[i] = channel;
     			return joinPoint.proceed(args);
     		} finally {
     			if(channel!=null)
     				channel.disconnect();
     		}
+    	} else
+    		return joinPoint.proceed(args);
     }
 }
