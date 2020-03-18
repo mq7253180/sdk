@@ -21,7 +21,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 	private RedisProcessor redisProcessor;
 	@Resource(name = "loginFailuresHolderKey")
 	private String loginFailuresHolderKey;
-	private final static int MAX_FAILURES_ALLOWED = 3;
+	private final static int FAILURES_THRESHOLD_FOR_VCODE = 3;
 	/**
 	 * 密码登录
 	 */
@@ -36,7 +36,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 		Result result = null;
 		String _failures = jedis.hget(loginFailuresHolderKey, username);
 		int failures = _failures==null?0:Integer.parseInt(_failures);
-		if(failures<MAX_FAILURES_ALLOWED) {
+		if(failures<FAILURES_THRESHOLD_FOR_VCODE) {
 			result = doPwdLogin(request, username, password, failures, jedis);
 		} else {
 			result = redisProcessor.validateVCode(request);
@@ -53,7 +53,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 		Result result = doPwdLogin(request, username, password);
 		if(result.getStatus()==AuthConstants.LOGIN_STATUS_PWD_INCORRECT) {
 			jedis.hincrBy(loginFailuresHolderKey, username, 1);
-			if(failures+1>=MAX_FAILURES_ALLOWED)
+			if(failures+1>=FAILURES_THRESHOLD_FOR_VCODE)
 				result.setStatus(AuthConstants.LOGIN_STATUS_PWD_INCORRECT-1);
 		}
 		return result;
