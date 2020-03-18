@@ -55,7 +55,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 		Result result = doPwdLogin(request, username, password);
 		if(result.getStatus()==AuthConstants.LOGIN_STATUS_PWD_INCORRECT) {
 			jedis.hincrBy(key, username, 1);
-			if(failures+1==MAX_FAILURES_ALLOWED)
+			if(failures+1>=MAX_FAILURES_ALLOWED)
 				result.setStatus(AuthConstants.LOGIN_STATUS_PWD_INCORRECT-1);
 		}
 		return result;
