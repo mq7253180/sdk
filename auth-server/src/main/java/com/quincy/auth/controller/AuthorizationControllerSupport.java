@@ -27,12 +27,15 @@ public abstract class AuthorizationControllerSupport {
 
 	protected abstract User findUser(String username, Client client);
 	protected abstract void updateLastLogin(Long userId, Client client, String jsessionid);
+	protected abstract ModelAndView signinView(HttpServletRequest request);
 	/**
 	 * 进登录页
 	 */
 	@RequestMapping("/signin")
-	public ModelAndView toLogin(@RequestParam(required = false, value = AuthConstants.PARAM_BACK_TO)String _backTo) {
-		ModelAndView mv = new ModelAndView("/login");
+	public ModelAndView toLogin(HttpServletRequest request, @RequestParam(required = false, value = AuthConstants.PARAM_BACK_TO)String _backTo) {
+		ModelAndView mv = this.signinView(request);
+		if(mv==null)
+			mv = new ModelAndView("/login");
 		String backTo = CommonHelper.trim(_backTo);
 		if(backTo!=null)
 			mv.addObject(AuthConstants.PARAM_BACK_TO, backTo);

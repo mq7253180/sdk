@@ -33,6 +33,7 @@ import com.quincy.sdk.RedisWebOperation;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.VCcodeSender;
 import com.quincy.sdk.VCodeCharsFrom;
+import com.quincy.sdk.annotation.JedisInjector;
 import com.quincy.sdk.annotation.VCodeRequired;
 import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.helper.HttpClientHelper;
@@ -46,7 +47,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 	@Resource(name = InnerConstants.BEAN_NAME_PROPERTIES)
 	private Properties properties;
 	@Value("${spring.application.name}")
-	private String appName;
+	private String applicationName;
 	private final static String FLAG_VCODE = "vcode";
 
 	@Override
@@ -162,7 +163,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 	}
 
 	private String combineAsKey(String flag, String token) {
-		return appName+"."+flag+"."+token;
+		return applicationName+"."+flag+"."+token;
 	}
 
 	@Override
@@ -267,5 +268,23 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 				emailService.send(emailTo, subject, content, "", null, null, null, null);
 			}
 		});
+	}
+
+	private final static int MAX_FAILURES_ALLOWED = 3;
+	@Resource(name = "loginFailuresHolderKey")
+	private String loginFailuresHolderKey;
+
+	@Override
+	public int getMaxFailuresAlloed() {
+		return MAX_FAILURES_ALLOWED;
+	}
+
+	@JedisInjector
+	@Override
+	public int getLoginFailures(HttpServletRequest request, Jedis jedis) {
+		String username = request.getParameter("username");
+		String _failures = jedis.hget(loginFailuresHolderKey, username);
+		int failures = _failures==null?0:Integer.parseInt(_failures);
+		return failures;
 	}
 }

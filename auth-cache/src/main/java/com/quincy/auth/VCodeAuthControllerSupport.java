@@ -1,9 +1,9 @@
 package com.quincy.auth;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
@@ -19,10 +19,8 @@ import redis.clients.jedis.Jedis;
 public abstract class VCodeAuthControllerSupport extends AuthorizationControllerSupport {
 	@Autowired
 	private RedisProcessor redisProcessor;
-	@Value("${spring.application.name}")
-	private String applicationName;
-	private final static String FAILURES_HOLDER_KEY = ".login_failures";
-	private final static int MAX_FAILURES_ALLOWED = 3;
+	@Resource(name = "loginFailuresHolderKey")
+	private String loginFailuresHolderKey;
 	/**
 	 * 密码登录
 	 */
@@ -35,27 +33,25 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 			@RequestParam(required = false, value = AuthConstants.PARAM_BACK_TO)String _backTo, 
 			Jedis jedis) throws Exception {
 		Result result = null;
-		String key = applicationName+FAILURES_HOLDER_KEY;
-		String _failures = jedis.hget(key, username);
-		long failures = _failures==null?0:Integer.parseInt(_failures);
-		if(failures<MAX_FAILURES_ALLOWED) {
-			result = this.doPwdLogin(request, username, password, failures, jedis, key);
+		long failures = redisProcessor.getLoginFailures(request, jedis);
+		if(failures<redisProcessor.getMaxFailuresAlloed()) {
+			result = doPwdLogin(request, username, password, failures, jedis);
 		} else {
 			result = redisProcessor.validateVCode(request);
 			if(result.getStatus()==1)
-				result = this.doPwdLogin(request, username, password, failures, jedis, key);
+				result = doPwdLogin(request, username, password, failures, jedis);
 		}
 		if(result.getStatus()==1)
-			jedis.hdel(key, username);
+			jedis.hdel(loginFailuresHolderKey, username);
 		ModelAndView mv = createModelAndView(request, result, _backTo);
 		return mv;
 	}
 
-	private Result doPwdLogin(HttpServletRequest request, String username, String password, long failures, Jedis jedis, String key) throws Exception {
+	private Result doPwdLogin(HttpServletRequest request, String username, String password, long failures, Jedis jedis) throws Exception {
 		Result result = doPwdLogin(request, username, password);
 		if(result.getStatus()==AuthConstants.LOGIN_STATUS_PWD_INCORRECT) {
-			jedis.hincrBy(key, username, 1);
-			if(failures+1>=MAX_FAILURES_ALLOWED)
+			jedis.hincrBy(loginFailuresHolderKey, username, 1);
+			if(failures+1>=redisProcessor.getMaxFailuresAlloed())
 				result.setStatus(AuthConstants.LOGIN_STATUS_PWD_INCORRECT-1);
 		}
 		return result;
