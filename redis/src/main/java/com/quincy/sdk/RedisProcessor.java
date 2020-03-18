@@ -13,6 +13,6 @@ public interface RedisProcessor {
 	public String createOrGetToken(HttpServletRequest request);
 	public Object opt(RedisOperation operation) throws Exception;
 	public Object opt(HttpServletRequest request, RedisWebOperation operation) throws Exception;
-	public int getMaxFailuresAlloed();
-	public int getLoginFailures(HttpServletRequest request, Jedis jedis);
+//	public int getMaxFailuresAlloed();
+//	public int getLoginFailures(HttpServletRequest request, Jedis jedis);
 }
