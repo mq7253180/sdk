@@ -14,6 +14,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import com.quincy.core.zookeeper.ZooKeeperSource;
+import com.quincy.sdk.helper.AopHelper;
 
 @Aspect
 @Order(4)
@@ -33,7 +34,7 @@ public class ZooKeeperInjectorAop {
     		List<Integer> index = new ArrayList<Integer>(classes.length);
     		for(int i=0;i<classes.length;i++) {
     			Object arg = args[i];
-    			if(ZooKeeper.class.getName().equals(classes[i].getName())&&arg==null)
+    			if(ZooKeeper.class.getName().equals(classes[i].getName())&&(arg==null||AopHelper.isControllerMethod(joinPoint)))
     				index.add(i);
     		}
     		if(index.size()>0) {
