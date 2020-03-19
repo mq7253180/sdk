@@ -33,7 +33,7 @@ public abstract class AuthorizationControllerSupport {
 	 */
 	@RequestMapping("/signin")
 	public ModelAndView toLogin(HttpServletRequest request, @RequestParam(required = false, value = AuthConstants.PARAM_BACK_TO)String _backTo) {
-		ModelAndView mv = this.signinView(request);
+		ModelAndView mv = signinView(request);
 		if(mv==null)
 			mv = new ModelAndView("/login");
 		String backTo = CommonHelper.trim(_backTo);
@@ -71,7 +71,7 @@ public abstract class AuthorizationControllerSupport {
 
 	protected Result doPwdLogin(HttpServletRequest request, String username, String _password) throws Exception {
 		String password = CommonHelper.trim(_password);
-		Result result = password!=null?this.login(request, username, password):new Result(0, new RequestContext(request).getMessage("auth.null.password"));
+		Result result = password!=null?login(request, username, password):new Result(0, new RequestContext(request).getMessage("auth.null.password"));
 		return result;
 	}
 
@@ -85,7 +85,7 @@ public abstract class AuthorizationControllerSupport {
 			return result;
 		}
 		Client client = CommonHelper.getClient(request);
-		User user = this.findUser(username, client);
+		User user = findUser(username, client);
 		if(user==null) {
 			result.setStatus(-2);
 			result.setMsg(requestContext.getMessage("auth.account.no"));
@@ -117,13 +117,13 @@ public abstract class AuthorizationControllerSupport {
 		String clientType = CommonHelper.clientType(request);
 		ModelAndView mv = null;
 		if(InnerConstants.CLIENT_TYPE_J.equals(clientType)) {
-			mv = this.createModelAndView(result);
+			mv = createModelAndView(result);
 		} else {
 			if(result.getStatus()==1) {
 				String backTo = CommonHelper.trim(_backTo);
 				mv = new ModelAndView("redirect:"+(backTo!=null?backTo:AuthConstants.URI_INDEX));
 			} else
-				mv = this.createModelAndView(result);
+				mv = createModelAndView(result);
 		}
 		return mv;
 	}

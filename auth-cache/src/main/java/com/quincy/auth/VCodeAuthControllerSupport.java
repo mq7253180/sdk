@@ -37,11 +37,11 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 		String _failures = jedis.hget(loginFailuresHolderKey, username);
 		int failures = _failures==null?0:Integer.parseInt(_failures);
 		if(failures<FAILURES_THRESHOLD_FOR_VCODE) {
-			result = doPwdLogin(request, username, password, failures, jedis);
+			result = login(request, username, password, failures, jedis);
 		} else {
 			result = redisProcessor.validateVCode(request);
 			if(result.getStatus()==1)
-				result = doPwdLogin(request, username, password, failures, jedis);
+				result = login(request, username, password, failures, jedis);
 		}
 		if(result.getStatus()==1)
 			jedis.hdel(loginFailuresHolderKey, username);
@@ -49,7 +49,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 		return mv;
 	}
 
-	private Result doPwdLogin(HttpServletRequest request, String username, String password, long failures, Jedis jedis) throws Exception {
+	private Result login(HttpServletRequest request, String username, String password, long failures, Jedis jedis) throws Exception {
 		Result result = doPwdLogin(request, username, password);
 		if(result.getStatus()==AuthConstants.LOGIN_STATUS_PWD_INCORRECT) {
 			jedis.hincrBy(loginFailuresHolderKey, username, 1);
@@ -66,7 +66,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 	public ModelAndView doLogin(HttpServletRequest request, 
 			@RequestParam(required = false, value = "username")String _username, 
 			@RequestParam(required = false, value = AuthConstants.PARAM_BACK_TO)String _backTo) throws Exception {
-		Result result = this.login(request, _username, null);
-		return this.createModelAndView(request, result, _backTo);
+		Result result = login(request, _username, null);
+		return createModelAndView(request, result, _backTo);
 	}
 }
