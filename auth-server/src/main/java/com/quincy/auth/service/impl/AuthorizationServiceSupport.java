@@ -21,7 +21,6 @@ import com.quincy.auth.service.AuthorizationService;
 
 public abstract class AuthorizationServiceSupport implements AuthorizationService {
 	protected abstract Object getUserObject(HttpServletRequest request) throws Exception;
-//	protected abstract void saveVcode(HttpServletRequest request, String vcode) throws Exception;
 
 	public DSession getSession(HttpServletRequest request) throws Exception {
 		Object obj = this.getUserObject(request);
