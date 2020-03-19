@@ -23,7 +23,7 @@ import com.quincy.sdk.helper.CommonHelper;
 import redis.clients.jedis.Jedis;
 
 @Service("authorizationCacheServiceImpl")
-public class AuthorizationCacheServiceImpl extends AuthorizationSupport {
+public class AuthorizationCacheServiceImpl extends AuthorizationServiceSupport {
 	@Autowired
 	private JedisSource jedisSource;
 	@Autowired

@@ -19,7 +19,7 @@ import com.quincy.auth.o.DSession;
 import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthorizationService;
 
-public abstract class AuthorizationSupport implements AuthorizationService {
+public abstract class AuthorizationServiceSupport implements AuthorizationService {
 	protected abstract Object getUserObject(HttpServletRequest request) throws Exception;
 //	protected abstract void saveVcode(HttpServletRequest request, String vcode) throws Exception;
 
