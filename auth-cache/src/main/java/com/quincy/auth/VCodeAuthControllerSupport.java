@@ -31,7 +31,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 			@RequestParam(required = false, value = "username")String username, 
 			@RequestParam(required = false, value = "password")String password, 
 			@RequestParam(required = false, value = "vcode")String vcode, 
-			@RequestParam(required = false, value = AuthConstants.PARAM_BACK_TO)String _backTo, 
+			@RequestParam(required = false, value = AuthConstants.PARAM_REDIRECT_TO)String redirectTo, 
 			Jedis jedis) throws Exception {
 		Result result = null;
 		String _failures = jedis.hget(loginFailuresHolderKey, username);
@@ -45,7 +45,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 		}
 		if(result.getStatus()==1)
 			jedis.hdel(loginFailuresHolderKey, username);
-		ModelAndView mv = createModelAndView(request, result, _backTo);
+		ModelAndView mv = createModelAndView(request, result, redirectTo);
 		return mv;
 	}
 
@@ -64,9 +64,9 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 	@VCodeRequired
 	@PostMapping("/signin/vcode")
 	public ModelAndView doLogin(HttpServletRequest request, 
-			@RequestParam(required = false, value = "username")String _username, 
-			@RequestParam(required = false, value = AuthConstants.PARAM_BACK_TO)String _backTo) throws Exception {
-		Result result = login(request, _username, null);
-		return createModelAndView(request, result, _backTo);
+			@RequestParam(required = false, value = "username")String username, 
+			@RequestParam(required = false, value = AuthConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
+		Result result = login(request, username, null);
+		return createModelAndView(request, result, redirectTo);
 	}
 }

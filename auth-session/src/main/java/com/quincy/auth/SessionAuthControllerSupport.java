@@ -17,9 +17,9 @@ public abstract class SessionAuthControllerSupport extends AuthorizationControll
 	public ModelAndView doLogin(HttpServletRequest request, 
 			@RequestParam(required = false, value = "username")String username, 
 			@RequestParam(required = false, value = "password")String password, 
-			@RequestParam(required = false, value = AuthConstants.PARAM_BACK_TO)String _backTo) throws Exception {
+			@RequestParam(required = false, value = AuthConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
 		Result result = doPwdLogin(request, username, password);
-		ModelAndView mv = createModelAndView(request, result, _backTo);
+		ModelAndView mv = createModelAndView(request, result, redirectTo);
 		return mv;
 	}
 }

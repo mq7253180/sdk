@@ -63,7 +63,7 @@ public abstract class AuthorizationInterceptorSupport extends HandlerInterceptor
 			request.getRequestDispatcher(new StringBuilder(250)
 					.append(redirectTo)
 					.append(redirectTo.indexOf("?")>=0?"&":"?")
-					.append(AuthConstants.PARAM_BACK_TO)
+					.append(AuthConstants.PARAM_REDIRECT_TO)
 					.append("=")
 					.append(URLEncoder.encode(request.getRequestURI()+(request.getQueryString()==null?"":("?"+request.getQueryString())), "UTF-8"))
 					.toString()).forward(request, response);

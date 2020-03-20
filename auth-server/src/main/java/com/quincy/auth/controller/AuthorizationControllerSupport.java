@@ -32,24 +32,24 @@ public abstract class AuthorizationControllerSupport {
 	 * 进登录页
 	 */
 	@RequestMapping("/signin")
-	public ModelAndView toLogin(HttpServletRequest request, @RequestParam(required = false, value = AuthConstants.PARAM_BACK_TO)String _backTo) {
+	public ModelAndView toLogin(HttpServletRequest request, @RequestParam(required = false, value = AuthConstants.PARAM_REDIRECT_TO)String _redirectTo) {
 		ModelAndView mv = signinView(request);
 		if(mv==null)
 			mv = new ModelAndView("/login");
-		String backTo = CommonHelper.trim(_backTo);
-		if(backTo!=null)
-			mv.addObject(AuthConstants.PARAM_BACK_TO, backTo);
+		String redirectTo = CommonHelper.trim(_redirectTo);
+		if(redirectTo!=null)
+			mv.addObject(AuthConstants.PARAM_REDIRECT_TO, redirectTo);
 		return mv;
 	}
 	/**
 	 * 进登录跳转页
 	 */
 	@RequestMapping("/signin/broker")
-	public ModelAndView toLoginBroker(@RequestParam(required = false, value = AuthConstants.PARAM_BACK_TO)String _backTo) {
+	public ModelAndView toLoginBroker(@RequestParam(required = false, value = AuthConstants.PARAM_REDIRECT_TO)String _redirectTo) {
 		ModelAndView mv = new ModelAndView("/login_broker");
-		String backTo = CommonHelper.trim(_backTo);
-		if(backTo!=null)
-			mv.addObject(AuthConstants.PARAM_BACK_TO, backTo);
+		String redirectTo = CommonHelper.trim(_redirectTo);
+		if(redirectTo!=null)
+			mv.addObject(AuthConstants.PARAM_REDIRECT_TO, redirectTo);
 		return mv;
 	}
 	/**
@@ -113,15 +113,15 @@ public abstract class AuthorizationControllerSupport {
 		return result;
 	}
 
-	protected ModelAndView createModelAndView(HttpServletRequest request, Result result, String _backTo) throws JsonProcessingException {
+	protected ModelAndView createModelAndView(HttpServletRequest request, Result result, String _redirectTo) throws JsonProcessingException {
 		String clientType = CommonHelper.clientType(request);
 		ModelAndView mv = null;
 		if(InnerConstants.CLIENT_TYPE_J.equals(clientType)) {
 			mv = createModelAndView(result);
 		} else {
 			if(result.getStatus()==1) {
-				String backTo = CommonHelper.trim(_backTo);
-				mv = new ModelAndView("redirect:"+(backTo!=null?backTo:AuthConstants.URI_INDEX));
+				String redirectTo = CommonHelper.trim(_redirectTo);
+				mv = new ModelAndView("redirect:"+(redirectTo!=null?redirectTo:AuthConstants.URI_INDEX));
 			} else
 				mv = createModelAndView(result);
 		}
