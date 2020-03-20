@@ -3,12 +3,12 @@ package com.quincy.auth.freemarker;
 import java.io.IOException;
 import java.util.Map;
 
-import freemarker.template.TemplateDirectiveBody;
+import freemarker.core.Environment;
 import freemarker.template.TemplateModel;
 
 public class InputTemplateDirectiveModelBean extends AbstractHtmlTemplateDirectiveModel {
 	@Override
-	protected String realExecute(Map params, TemplateModel[] loopVars, TemplateDirectiveBody body) throws IOException {
+	protected String reallyExecute(Environment env, Map params, TemplateModel[] loopVars) throws IOException {
 		Object type = params.get("type");
 		Object id = params.get("id");
 		Object name = params.get("name");

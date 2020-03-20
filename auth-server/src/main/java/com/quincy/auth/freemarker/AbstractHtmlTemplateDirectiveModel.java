@@ -18,14 +18,16 @@ import freemarker.template.TemplateException;
 import freemarker.template.TemplateModel;
 
 public abstract class AbstractHtmlTemplateDirectiveModel implements TemplateDirectiveModel {
-	protected abstract String realExecute(Map params, TemplateModel[] loopVars, TemplateDirectiveBody body) throws IOException;
+	protected abstract String reallyExecute(Environment env, Map params, TemplateModel[] loopVars) throws IOException;
 
 	@Override
 	public void execute(Environment env, Map params, TemplateModel[] loopVars, TemplateDirectiveBody body)
 			throws TemplateException, IOException {
 		boolean output = false;
 		Object permission = params.get("permission");
-		if(permission!=null) {
+		if(permission==null) {
+			output = true;
+		} else {
 			String permissionName = permission.toString();
 			HttpServletRequest request = CommonHelper.getRequest();
 			DSession session = (DSession)request.getAttribute(InnerConstants.ATTR_SESSION);
@@ -36,10 +38,9 @@ public abstract class AbstractHtmlTemplateDirectiveModel implements TemplateDire
 					break;
 				}
 			}
-		} else
-			output = true;
+		}
 		if(output) {
-			String html = this.realExecute(params, loopVars, body);
+			String html = this.reallyExecute(env, params, loopVars);
 			if(html!=null) {
 				if(body!=null) {
 					body.render(new PlaceHolderWriter(env.getOut(), html));
