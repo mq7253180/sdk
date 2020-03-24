@@ -4,6 +4,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
@@ -21,7 +22,8 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 	private RedisProcessor redisProcessor;
 	@Resource(name = "loginFailuresHolderKey")
 	private String loginFailuresHolderKey;
-	private final static int FAILURES_THRESHOLD_FOR_VCODE = 3;
+	@Value("${vcode.loginFailures}")
+	private int failuresThresholdForVCode;
 	/**
 	 * 密码登录
 	 */
@@ -36,7 +38,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 		Result result = null;
 		String _failures = jedis.hget(loginFailuresHolderKey, username);
 		int failures = _failures==null?0:Integer.parseInt(_failures);
-		if(failures<FAILURES_THRESHOLD_FOR_VCODE) {
+		if(failures<failuresThresholdForVCode) {
 			result = login(request, username, password, failures, jedis);
 		} else {
 			result = redisProcessor.validateVCode(request);
@@ -53,7 +55,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 		Result result = doPwdLogin(request, username, password);
 		if(result.getStatus()==AuthConstants.LOGIN_STATUS_PWD_INCORRECT) {
 			jedis.hincrBy(loginFailuresHolderKey, username, 1);
-			if(failures+1>=FAILURES_THRESHOLD_FOR_VCODE)
+			if(failures+1>=failuresThresholdForVCode)
 				result.setStatus(AuthConstants.LOGIN_STATUS_PWD_INCORRECT-1);
 		}
 		return result;
