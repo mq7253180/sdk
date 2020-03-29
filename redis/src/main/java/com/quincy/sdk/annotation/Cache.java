@@ -10,10 +10,10 @@ import java.lang.annotation.Target;
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(value = {ElementType.ANNOTATION_TYPE, ElementType.METHOD})
 public @interface Cache {
-	public int expire() default 0;
+	public int expire() default 60;
 	public String key() default "";
-	public int failoverDelaySecs() default 3;
-	public int failoverRetries() default 3;
+	public int setnxDelaySecs() default 3;
+	public int setnxFailRetries() default 3;
 	public long intervalMillis() default 1000;
 	public boolean returnNull() default true;
 }
