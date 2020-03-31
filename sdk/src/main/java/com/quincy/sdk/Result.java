@@ -1,7 +1,7 @@
 package com.quincy.sdk;
 
 public class Result {
-	private int status;//1正常，0未登录，-1操作未被授权、被拒，-2签名验证失败，-3服务端程序抛异常，-4图片验证码过期，-5图片验证码输入有误，-6mobilephone字段为空，-7手机验证码过期，-8手机验证码输入有误
+	private int status;//1成功, 0会话超时, -1无权限, -2签名传空, -3签名验证失败, -4抛异常, -5验证码输入为空，-6验证码过期, -7验证码输入有误
 	private String msg;
 	private Object data;
 	private String cluster;
