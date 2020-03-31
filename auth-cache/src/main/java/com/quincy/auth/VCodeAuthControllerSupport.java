@@ -41,7 +41,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 		if(failures<failuresThresholdForVCode) {
 			result = login(request, username, password, failures, jedis);
 		} else {
-			result = redisProcessor.validateVCode(request);
+			result = redisProcessor.validateVCode(request, null);
 			if(result.getStatus()==1)
 				result = login(request, username, password, failures, jedis);
 		}

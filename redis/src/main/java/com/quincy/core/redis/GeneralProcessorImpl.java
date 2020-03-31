@@ -55,7 +55,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 			HandlerMethod method = (HandlerMethod)handler;
 			VCodeRequired annotation = method.getMethod().getDeclaredAnnotation(VCodeRequired.class);
 			if(annotation!=null) {
-				Result result = this.validateVCode(request);
+				Result result = this.validateVCode(request, annotation.clientTokenName());
 				if(result.getStatus()!=1) {
 					String outputContent = "{\"status\":"+result.getStatus()+", \"msg\":\""+result.getMsg()+"\"}";
 					HttpClientHelper.outputJson(response, outputContent);
@@ -67,7 +67,10 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 	}
 
 	@Override
-	public Result validateVCode(HttpServletRequest request) throws Exception {
+	public Result validateVCode(HttpServletRequest request, String _clientTokenName) throws Exception {
+		String clientTokenName = CommonHelper.trim(_clientTokenName);
+		if(clientTokenName!=null)//校验是否为空
+			this.createOrGetToken(request, clientTokenName);
 		String inputedVCode = CommonHelper.trim(request.getParameter(InnerConstants.ATTR_VCODE));
 		Integer status = null;
 		String msgI18NKey = null;
@@ -76,7 +79,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 			status = -5;
 			msgI18NKey = "vcode.null";
 		} else {
-			String cachedVCode = CommonHelper.trim(this.getCachedVCode(request));
+			String cachedVCode = CommonHelper.trim(this.getCachedVCode(request, clientTokenName));
 			if(cachedVCode==null) {
 				status = -6;
 				msgI18NKey = "vcode.expire";
@@ -86,7 +89,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 			}
 		}
 		if(status==null) {
-			this.rmCachedVCode(request);
+			this.rmCachedVCode(request, clientTokenName);
 			status = 1;
 		} else {
 			RequestContext requestContext = new RequestContext(request);
@@ -108,8 +111,10 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 	}
 
 	@Override
-	public Object opt(HttpServletRequest request, RedisWebOperation operation) throws Exception {
-		String clientTokenName = CommonHelper.trim(properties.getProperty(InnerConstants.CLIENT_TOKEN_PROPERTY_NAME));
+	public Object opt(HttpServletRequest request, RedisWebOperation operation, String _clientTokenName) throws Exception {
+		String clientTokenName = CommonHelper.trim(_clientTokenName);
+		if(clientTokenName==null)
+			clientTokenName = CommonHelper.trim(properties.getProperty(InnerConstants.CLIENT_TOKEN_PROPERTY_NAME));
 		String token = CommonHelper.getValue(request, clientTokenName);
 		if(token!=null) {
 			return this.opt(new RedisOperation() {
@@ -122,8 +127,8 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		return null;
 	}
 
-	private String cacheStr(HttpServletRequest request, String flag, String content) {
-		String token = this.createOrGetToken(request);
+	private String cacheStr(HttpServletRequest request, String flag, String content, String clientTokenName) {
+		String token = this.createOrGetToken(request, clientTokenName);
 		String key = combineAsKey(flag, token);
 		Jedis jedis = null;
 		try {
@@ -137,7 +142,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		}
 	}
 
-	private String getCachedStr(HttpServletRequest request, String flag) throws Exception {
+	private String getCachedStr(HttpServletRequest request, String flag, String clientTokenName) throws Exception {
 		Object retVal = this.opt(request, new RedisWebOperation() {
 			@Override
 			public Object run(Jedis jedis, String token) {
@@ -145,12 +150,12 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 				String vcode = jedis.get(key);
 				return vcode;
 			}
-		});
+		}, clientTokenName);
 		return retVal==null?null:String.valueOf(retVal);
 	}
 
-	private void rmCachedStr(HttpServletRequest request, String flag) {
-		String key = combineAsKey(flag, this.createOrGetToken(request));
+	private void rmCachedStr(HttpServletRequest request, String flag, String clientTokenName) {
+		String key = combineAsKey(flag, this.createOrGetToken(request, clientTokenName));
 		Jedis jedis = null;
 		try {
 			jedis = jedisSource.get();
@@ -166,35 +171,43 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 	}
 
 	@Override
-	public String createOrGetToken(HttpServletRequest request) {
-		String clientTokenName = CommonHelper.trim(properties.getProperty(InnerConstants.CLIENT_TOKEN_PROPERTY_NAME));
+	public String createOrGetToken(HttpServletRequest request, String _clientTokenName) {
+		boolean autoGenerateIfNull = false;
+		String clientTokenName = CommonHelper.trim(_clientTokenName);
+		if(clientTokenName==null) {
+			autoGenerateIfNull = true;
+			clientTokenName = CommonHelper.trim(properties.getProperty(InnerConstants.CLIENT_TOKEN_PROPERTY_NAME));
+		}
 		String token = CommonHelper.getValue(request, clientTokenName);
 		if(token==null) {
-			token = UUID.randomUUID().toString().replaceAll("-", "");
-			Cookie cookie = new Cookie(clientTokenName, token);
-			cookie.setDomain(CommonHelper.trim(properties.getProperty("domain")));
-			cookie.setPath("/");
-			cookie.setMaxAge(3600*12);
-			HttpServletResponse response = CommonHelper.getResponse();
-			response.addCookie(cookie);
+			if(autoGenerateIfNull) {
+				token = UUID.randomUUID().toString().replaceAll("-", "");
+				Cookie cookie = new Cookie(clientTokenName, token);
+				cookie.setDomain(CommonHelper.trim(properties.getProperty("domain")));
+				cookie.setPath("/");
+				cookie.setMaxAge(3600*12);
+				HttpServletResponse response = CommonHelper.getResponse();
+				response.addCookie(cookie);
+			} else
+				throw new RuntimeException("No value of "+clientTokenName+" is presented.");
 		}
 		return token;
 	}
 
-	private String cacheVCode(HttpServletRequest request, String vcode) {
-		return this.cacheStr(request, FLAG_VCODE, vcode);
+	private String cacheVCode(HttpServletRequest request, String vcode, String clientTokenName) {
+		return this.cacheStr(request, FLAG_VCODE, vcode, clientTokenName);
 	}
 
-	private String getCachedVCode(HttpServletRequest request) throws Exception {
-		return this.getCachedStr(request, FLAG_VCODE);
+	private String getCachedVCode(HttpServletRequest request, String clientTokenName) throws Exception {
+		return this.getCachedStr(request, FLAG_VCODE, clientTokenName);
 	}
 
-	private void rmCachedVCode(HttpServletRequest request) {
-		this.rmCachedStr(request, FLAG_VCODE);
+	private void rmCachedVCode(HttpServletRequest request, String clientTokenName) {
+		this.rmCachedStr(request, FLAG_VCODE, clientTokenName);
 	}
 
 	@Override
-	public String vcode(HttpServletRequest request, VCodeCharsFrom _charsFrom, int length, VCcodeSender sender) throws Exception {
+	public String vcode(HttpServletRequest request, VCodeCharsFrom _charsFrom, int length, String clientTokenName, VCcodeSender sender) throws Exception {
 		String charsFrom = (_charsFrom==null?VCodeCharsFrom.MIXED:_charsFrom).getValue();
 		Random random = new Random();
 		StringBuilder sb = new StringBuilder(length);
@@ -205,7 +218,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 			_vcode[i] = c;
 		}
 		String vcode = sb.toString();
-		String token = this.cacheVCode(request, vcode);
+		String token = this.cacheVCode(request, vcode, clientTokenName);
 		sender.send(_vcode);
 		return token;
 	}
@@ -213,8 +226,8 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 	private final double radians = Math.PI/180;
 
 	@Override
-	public String vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, HttpServletResponse response, int size, int start, int space, int width, int height) throws Exception {
-		return this.vcode(request, charsFrom, length, new VCcodeSender() {
+	public String vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, String clientTokenName, HttpServletResponse response, int size, int start, int space, int width, int height) throws Exception {
+		return this.vcode(request, charsFrom, length, clientTokenName, new VCcodeSender() {
 			@Override
 			public void send(char[] vcode) throws IOException {
 				BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
@@ -257,8 +270,8 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 	private EmailService emailService;
 
 	@Override
-	public String vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, String emailTo, String subject, String _content) throws Exception {
-		return this.vcode(request, charsFrom, length, new VCcodeSender() {
+	public String vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, String clientTokenName, String emailTo, String subject, String _content) throws Exception {
+		return this.vcode(request, charsFrom, length, clientTokenName, new VCcodeSender() {
 			@Override
 			public void send(char[] _vcode) {
 				String vcode = new String(_vcode);

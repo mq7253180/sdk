@@ -46,7 +46,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationServiceSupport {
 				} else 
 					return null;
 			}
-		});
+		}, null);
 	}
 
 	private DSession setSession(HttpServletRequest request, String jsessionid, String originalJsessionid, Long userId, AuthCallback callback) throws IOException, ClassNotFoundException {
@@ -86,7 +86,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationServiceSupport {
 
 	@Override
 	public DSession setSession(HttpServletRequest request, String originalJsessionid, Long userId, AuthCallback callback) throws IOException, ClassNotFoundException {
-		String jsessionid = redisProcessor.createOrGetToken(request);
+		String jsessionid = redisProcessor.createOrGetToken(request, null);
 		DSession session = this.setSession(request, jsessionid, originalJsessionid, userId, callback);
 		return session;
 	}
@@ -98,7 +98,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationServiceSupport {
 				jedis.del((sessionKeyPrefix+token).getBytes());
 				return null;
 			}
-		});
+		}, null);
 	}
 
 	private void updateSession(User user, Jedis jedis) throws IOException {

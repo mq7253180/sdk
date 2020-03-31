@@ -33,6 +33,6 @@ public class VCodeController {
 			@PathVariable(required = true, name = "space")int space,
 			@PathVariable(required = true, name = "width")int width, 
 			@PathVariable(required = true, name = "height")int height) throws Exception {
-		redisProcessor.vcode(request, VCodeCharsFrom.MIXED, Integer.parseInt(properties.getProperty("vcode.length")), response, size, start, space, width, height);
+		redisProcessor.vcode(request, VCodeCharsFrom.MIXED, Integer.parseInt(properties.getProperty("vcode.length")), null, response, size, start, space, width, height);
 	}
 }
