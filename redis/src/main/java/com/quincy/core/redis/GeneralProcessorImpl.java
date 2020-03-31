@@ -181,7 +181,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		String token = CommonHelper.getValue(request, clientTokenName);
 		if(token==null) {
 			if(autoGenerateIfNull) {
-				token = UUID.randomUUID().toString().replaceAll("-", "");
+				token = System.currentTimeMillis()+"-"+UUID.randomUUID().toString().replaceAll("-", "");
 				Cookie cookie = new Cookie(clientTokenName, token);
 				cookie.setDomain(CommonHelper.trim(properties.getProperty("domain")));
 				cookie.setPath("/");
