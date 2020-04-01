@@ -91,6 +91,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationServiceSupport {
 		return session;
 	}
 
+	@Override
 	public void logout(HttpServletRequest request) throws Exception {
 		redisProcessor.opt(request, new RedisWebOperation() {
 			@Override
