@@ -36,14 +36,18 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 			@RequestParam(required = false, value = AuthConstants.PARAM_REDIRECT_TO)String redirectTo, 
 			Jedis jedis) throws Exception {
 		Result result = null;
-		String _failures = jedis.hget(loginFailuresHolderKey, username);
-		int failures = _failures==null?0:Integer.parseInt(_failures);
-		if(failures<failuresThresholdForVCode) {
-			result = login(request, username, password, failures, jedis);
+		if(failuresThresholdForVCode>=Integer.MAX_VALUE) {
+			result = login(request, username, password, null, jedis);
 		} else {
-			result = redisProcessor.validateVCode(request, null);
-			if(result.getStatus()==1)
+			String _failures = jedis.hget(loginFailuresHolderKey, username);
+			int failures = _failures==null?0:Integer.parseInt(_failures);
+			if(failures<failuresThresholdForVCode) {
 				result = login(request, username, password, failures, jedis);
+			} else {
+				result = redisProcessor.validateVCode(request, null);
+				if(result.getStatus()==1)
+					result = login(request, username, password, failures, jedis);
+			}
 		}
 		if(result.getStatus()==1)
 			jedis.hdel(loginFailuresHolderKey, username);
@@ -51,9 +55,9 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 		return mv;
 	}
 
-	private Result login(HttpServletRequest request, String username, String password, long failures, Jedis jedis) throws Exception {
+	private Result login(HttpServletRequest request, String username, String password, Integer failures, Jedis jedis) throws Exception {
 		Result result = doPwdLogin(request, username, password);
-		if(result.getStatus()==AuthConstants.LOGIN_STATUS_PWD_INCORRECT) {
+		if(failures!=null&&result.getStatus()==AuthConstants.LOGIN_STATUS_PWD_INCORRECT) {
 			jedis.hincrBy(loginFailuresHolderKey, username, 1);
 			if(failures+1>=failuresThresholdForVCode)
 				result.setStatus(AuthConstants.LOGIN_STATUS_PWD_INCORRECT-1);
