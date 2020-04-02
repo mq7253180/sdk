@@ -182,16 +182,31 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		if(token==null) {
 			if(autoGenerateIfNull) {
 				token = System.currentTimeMillis()+"-"+UUID.randomUUID().toString().replaceAll("-", "");
-				Cookie cookie = new Cookie(clientTokenName, token);
-				cookie.setDomain(CommonHelper.trim(properties.getProperty("domain")));
-				cookie.setPath("/");
-				cookie.setMaxAge(3600*12);
-				HttpServletResponse response = CommonHelper.getResponse();
-				response.addCookie(cookie);
+				this.addCookie(CommonHelper.getResponse(), clientTokenName, token, 3600*12);
 			} else
 				throw new RuntimeException("No value of "+clientTokenName+" is presented.");
 		}
 		return token;
+	}
+
+	@Override
+	public void deleteCookie() {
+		this.deleteCookie(CommonHelper.getResponse());
+	}
+
+	@Override
+	public void deleteCookie(HttpServletResponse response) {
+		String clientTokenName = CommonHelper.trim(properties.getProperty(InnerConstants.CLIENT_TOKEN_PROPERTY_NAME));
+		if(clientTokenName!=null)
+			this.addCookie(response, clientTokenName, "", 0);
+	}
+
+	private void addCookie(HttpServletResponse response, String key, String value, int expiry) {
+		Cookie cookie = new Cookie(key, value);
+		cookie.setDomain(CommonHelper.trim(properties.getProperty("domain")));
+		cookie.setPath("/");
+		cookie.setMaxAge(expiry);
+		response.addCookie(cookie);
 	}
 
 	private String cacheVCode(HttpServletRequest request, String vcode, String clientTokenName) {

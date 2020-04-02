@@ -1,6 +1,7 @@
 package com.quincy.auth.controller;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,8 +57,8 @@ public abstract class AuthorizationControllerSupport {
 	 * 登出
 	 */
 	@RequestMapping("/signout")
-	public ModelAndView logout(HttpServletRequest request) throws Exception {
-		authorizationService.logout(request);
+	public ModelAndView logout(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		authorizationService.logout(request, response);
 		RequestContext requestContext = new RequestContext(request);
 		return new ModelAndView("/result").addObject("status", 1).addObject("msg", requestContext.getMessage("status.success"));
 	}

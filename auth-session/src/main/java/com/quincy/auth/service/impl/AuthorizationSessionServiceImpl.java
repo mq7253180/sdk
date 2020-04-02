@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Service;
@@ -43,7 +44,7 @@ public class AuthorizationSessionServiceImpl extends AuthorizationServiceSupport
 		return session;
 	}
 
-	public void logout(HttpServletRequest request) {
+	public void logout(HttpServletRequest request, HttpServletResponse response) {
 		HttpSession session = request.getSession(false);
 		if(session!=null) {
 			session.invalidate();

@@ -6,6 +6,7 @@ import java.util.Properties;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationServiceSupport {
 
 	@Override
 	protected Object getUserObject(HttpServletRequest request) throws Exception {
-		return redisProcessor.opt(request, new RedisWebOperation() {
+		Object retVal = redisProcessor.opt(request, new RedisWebOperation() {
 			@Override
 			public Object run(Jedis jedis, String token) throws ClassNotFoundException, IOException {
 				byte[] key = (sessionKeyPrefix+token).getBytes();
@@ -47,6 +48,9 @@ public class AuthorizationCacheServiceImpl extends AuthorizationServiceSupport {
 					return null;
 			}
 		}, null);
+		if(retVal==null)
+			redisProcessor.deleteCookie();
+		return retVal;
 	}
 
 	private DSession setSession(HttpServletRequest request, String jsessionid, String originalJsessionid, Long userId, AuthCallback callback) throws IOException, ClassNotFoundException {
@@ -92,7 +96,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationServiceSupport {
 	}
 
 	@Override
-	public void logout(HttpServletRequest request) throws Exception {
+	public void logout(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		redisProcessor.opt(request, new RedisWebOperation() {
 			@Override
 			public Object run(Jedis jedis, String token) {
@@ -100,6 +104,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationServiceSupport {
 				return null;
 			}
 		}, null);
+		redisProcessor.deleteCookie(response);
 	}
 
 	private void updateSession(User user, Jedis jedis) throws IOException {
