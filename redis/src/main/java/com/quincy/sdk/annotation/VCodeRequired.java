@@ -11,4 +11,5 @@ import java.lang.annotation.Target;
 @Target(value = {ElementType.ANNOTATION_TYPE, ElementType.METHOD})
 public @interface VCodeRequired {
 	public String clientTokenName() default "";
+	public boolean ignoreCase() default true;
 }

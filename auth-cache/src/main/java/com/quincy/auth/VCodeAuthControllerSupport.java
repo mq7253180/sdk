@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.quincy.auth.controller.AuthorizationControllerSupport;
+import com.quincy.core.InnerConstants;
 import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.annotation.JedisInjector;
@@ -33,7 +34,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 			@RequestParam(required = false, value = "username")String username, 
 			@RequestParam(required = false, value = "password")String password, 
 			@RequestParam(required = false, value = "vcode")String vcode, 
-			@RequestParam(required = false, value = AuthConstants.PARAM_REDIRECT_TO)String redirectTo, 
+			@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo, 
 			Jedis jedis) throws Exception {
 		Result result = null;
 		if(failuresThresholdForVCode>=Integer.MAX_VALUE) {
@@ -44,7 +45,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 			if(failures<failuresThresholdForVCode) {
 				result = login(request, username, password, failures, jedis);
 			} else {
-				result = redisProcessor.validateVCode(request, null);
+				result = redisProcessor.validateVCode(request, null, true);
 				if(result.getStatus()==1)
 					result = login(request, username, password, failures, jedis);
 			}
@@ -71,7 +72,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 	@PostMapping("/signin/vcode")
 	public ModelAndView doLogin(HttpServletRequest request, 
 			@RequestParam(required = false, value = "username")String username, 
-			@RequestParam(required = false, value = AuthConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
+			@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
 		Result result = login(request, username, null);
 		return createModelAndView(request, result, redirectTo);
 	}

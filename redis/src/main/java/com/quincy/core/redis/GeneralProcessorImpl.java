@@ -55,7 +55,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 			HandlerMethod method = (HandlerMethod)handler;
 			VCodeRequired annotation = method.getMethod().getDeclaredAnnotation(VCodeRequired.class);
 			if(annotation!=null) {
-				Result result = this.validateVCode(request, annotation.clientTokenName());
+				Result result = this.validateVCode(request, annotation.clientTokenName(), annotation.ignoreCase());
 				if(result.getStatus()!=1) {
 					String outputContent = "{\"status\":"+result.getStatus()+", \"msg\":\""+result.getMsg()+"\"}";
 					HttpClientHelper.outputJson(response, outputContent);
@@ -67,7 +67,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 	}
 
 	@Override
-	public Result validateVCode(HttpServletRequest request, String _clientTokenName) throws Exception {
+	public Result validateVCode(HttpServletRequest request, String _clientTokenName, boolean ignoreCase) throws Exception {
 		String clientTokenName = CommonHelper.trim(_clientTokenName);
 		if(clientTokenName!=null)//校验是否为空
 			this.createOrGetToken(request, clientTokenName);
@@ -83,7 +83,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 			if(cachedVCode==null) {
 				status = -6;
 				msgI18NKey = "vcode.expire";
-			} else if(!cachedVCode.equalsIgnoreCase(inputedVCode)) {
+			} else if(!(ignoreCase?cachedVCode.equalsIgnoreCase(inputedVCode):cachedVCode.equals(inputedVCode))) {
 				status = -7;
 				msgI18NKey = "vcode.not_matched";
 			}

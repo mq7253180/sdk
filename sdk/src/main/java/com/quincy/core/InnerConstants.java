@@ -17,6 +17,7 @@ public class InnerConstants {
 	public final static String ATTR_VCODE = "vcode";
 	public final static String ATTR_DENIED_PERMISSION = "denied_permission";
 	public final static String BEAN_NAME_PROPERTIES = "quincyPropertiesFactory";
+	public final static String PARAM_REDIRECT_TO = "redirectTo";
 //	public final static KeyFingerPrintCalculator KEY_FINGER_PRINT_CALCULATOR = new JcaKeyFingerprintCalculator();
 	public final static KeyFingerPrintCalculator KEY_FINGER_PRINT_CALCULATOR = new BcKeyFingerprintCalculator();
 }

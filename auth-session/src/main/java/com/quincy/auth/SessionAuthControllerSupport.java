@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.quincy.auth.controller.AuthorizationControllerSupport;
+import com.quincy.core.InnerConstants;
 import com.quincy.sdk.Result;
 
 public abstract class SessionAuthControllerSupport extends AuthorizationControllerSupport {
@@ -17,7 +18,7 @@ public abstract class SessionAuthControllerSupport extends AuthorizationControll
 	public ModelAndView doLogin(HttpServletRequest request, 
 			@RequestParam(required = false, value = "username")String username, 
 			@RequestParam(required = false, value = "password")String password, 
-			@RequestParam(required = false, value = AuthConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
+			@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
 		Result result = doPwdLogin(request, username, password);
 		ModelAndView mv = createModelAndView(request, result, redirectTo);
 		return mv;

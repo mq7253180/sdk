@@ -33,24 +33,24 @@ public abstract class AuthorizationControllerSupport {
 	 * 进登录页
 	 */
 	@RequestMapping("/signin")
-	public ModelAndView toLogin(HttpServletRequest request, @RequestParam(required = false, value = AuthConstants.PARAM_REDIRECT_TO)String _redirectTo) {
+	public ModelAndView toLogin(HttpServletRequest request, @RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String _redirectTo) {
 		ModelAndView mv = signinView(request);
 		if(mv==null)
 			mv = new ModelAndView("/login");
 		String redirectTo = CommonHelper.trim(_redirectTo);
 		if(redirectTo!=null)
-			mv.addObject(AuthConstants.PARAM_REDIRECT_TO, redirectTo);
+			mv.addObject(InnerConstants.PARAM_REDIRECT_TO, redirectTo);
 		return mv;
 	}
 	/**
 	 * 进登录跳转页
 	 */
 	@RequestMapping("/signin/broker")
-	public ModelAndView toLoginBroker(@RequestParam(required = false, value = AuthConstants.PARAM_REDIRECT_TO)String _redirectTo) {
+	public ModelAndView toLoginBroker(@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String _redirectTo) {
 		ModelAndView mv = new ModelAndView("/login_broker");
 		String redirectTo = CommonHelper.trim(_redirectTo);
 		if(redirectTo!=null)
-			mv.addObject(AuthConstants.PARAM_REDIRECT_TO, redirectTo);
+			mv.addObject(InnerConstants.PARAM_REDIRECT_TO, redirectTo);
 		return mv;
 	}
 	/**
