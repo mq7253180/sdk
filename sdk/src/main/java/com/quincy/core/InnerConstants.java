@@ -12,7 +12,7 @@ public class InnerConstants {
 	public final static String CLIENT_TYPE_M = "m";
 	public final static String CLIENT_TYPE_J = "j";
 	public final static String CLIENT_APP = "app_client";
-	public final static String CLIENT_TOKEN_PROPERTY_NAME = "client";
+	public final static String CLIENT_TOKEN_PROPERTY_NAME = "clientTokenName";
 	public final static String ATTR_SESSION = "dddsession";//改了会影响页面模板，要同时改
 	public final static String ATTR_VCODE = "vcode";
 	public final static String ATTR_DENIED_PERMISSION = "denied_permission";
