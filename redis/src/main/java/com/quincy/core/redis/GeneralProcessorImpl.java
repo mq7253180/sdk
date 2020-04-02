@@ -182,7 +182,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		if(token==null) {
 			if(autoGenerateIfNull) {
 				token = System.currentTimeMillis()+"-"+UUID.randomUUID().toString().replaceAll("-", "");
-				this.addCookie(CommonHelper.getResponse(), clientTokenName, token, 3600*12);
+				this.addCookie(CommonHelper.getResponse(), clientTokenName, token, Integer.parseInt(properties.getProperty("expire.cookie"))*60);
 			} else
 				throw new RuntimeException("No value of "+clientTokenName+" is presented.");
 		}
