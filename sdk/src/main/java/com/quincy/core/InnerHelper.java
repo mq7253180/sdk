@@ -21,13 +21,12 @@ public class InnerHelper {
 			HttpClientHelper.outputJson(response, outputContent);
 		} else {
 			StringBuilder redirectTo = new StringBuilder(250).append(_redirectTo);
-			if(appendBackTo) {
+			if(appendBackTo)
 				redirectTo
 					.append(_redirectTo.indexOf("?")>=0?"&":"?")
 					.append(InnerConstants.PARAM_REDIRECT_TO)
 					.append("=")
 					.append(URLEncoder.encode(request.getRequestURI()+(request.getQueryString()==null?"":("?"+request.getQueryString())), "UTF-8"));
-			}
 			request.getRequestDispatcher(redirectTo.toString()).forward(request, response);
 		}
 	}
