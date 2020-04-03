@@ -77,4 +77,9 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 		Result result = login(request, username, null);
 		return createModelAndView(request, result, redirectTo);
 	}
+
+	@RequestMapping("/vcode/failure")
+	public String vcodeFailure(HttpServletRequest request) {
+		return "/result";
+	}
 }

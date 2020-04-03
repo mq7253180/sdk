@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContext;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.quincy.auth.AuthConstants;
 import com.quincy.auth.o.DSession;
 import com.quincy.auth.o.User;
@@ -65,7 +64,7 @@ public abstract class AuthorizationControllerSupport {
 	 * 点超链接没权限要进入的页面
 	 */
 	@RequestMapping("/deny")
-	public String deny(HttpServletRequest request) throws Exception {
+	public String deny(HttpServletRequest request) {
 		return "/deny";
 	}
 
@@ -113,7 +112,7 @@ public abstract class AuthorizationControllerSupport {
 		return result;
 	}
 
-	protected ModelAndView createModelAndView(HttpServletRequest request, Result result, String _redirectTo) throws JsonProcessingException {
+	protected ModelAndView createModelAndView(HttpServletRequest request, Result result, String _redirectTo) {
 		String clientType = CommonHelper.clientType(request);
 		ModelAndView mv = null;
 		if(InnerConstants.CLIENT_TYPE_J.equals(clientType)) {
@@ -128,7 +127,7 @@ public abstract class AuthorizationControllerSupport {
 		return mv;
 	}
 
-	private ModelAndView createModelAndView(Result result) throws JsonProcessingException {
+	private ModelAndView createModelAndView(Result result) {
 		return new ModelAndView("/result_login")
 				.addObject("status", result.getStatus())
 				.addObject("msg", result.getMsg())
