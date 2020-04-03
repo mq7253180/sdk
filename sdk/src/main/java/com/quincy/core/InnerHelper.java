@@ -2,6 +2,8 @@ package com.quincy.core;
 
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -16,7 +18,15 @@ public class InnerHelper {
 		if(InnerConstants.CLIENT_TYPE_J.equals(clientType)) {
 			String outputContent = "{\"status\":"+status+", \"msg\":\""+msg+"\"}";
 			HttpClientHelper.outputJson(response, outputContent);
-		} else
+		} else {
+			request.setAttribute("status", status);
+			request.setAttribute("msg", msg);
+			Iterator<Entry<String, String[]>> it = request.getParameterMap().entrySet().iterator();
+			while(it.hasNext()) {
+				Entry<String, String[]> e = it.next();
+				if(e.getValue()!=null&&e.getValue().length>0)
+					request.setAttribute(e.getKey(), e.getValue()[0]);
+			}
 			request.getRequestDispatcher(appendBackTo?new StringBuilder(250)
 					.append(redirectTo)
 					.append(redirectTo.indexOf("?")>=0?"&":"?")
@@ -24,5 +34,6 @@ public class InnerHelper {
 					.append("=")
 					.append(URLEncoder.encode(request.getRequestURI()+(request.getQueryString()==null?"":("?"+request.getQueryString())), "UTF-8"))
 					.toString():redirectTo).forward(request, response);
+		}
 	}
 }

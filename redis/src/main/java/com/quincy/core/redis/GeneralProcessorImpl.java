@@ -57,8 +57,6 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 			if(annotation!=null) {
 				Result result = this.validateVCode(request, annotation.clientTokenName(), annotation.ignoreCase());
 				if(result.getStatus()!=1) {
-					request.setAttribute("status", result.getStatus());
-					request.setAttribute("msg", result.getMsg());
 					InnerHelper.outputOrForward(request, response, handler, result.getStatus(), result.getMsg(), annotation.timeoutForwardTo(), false);
 					return false;
 				}

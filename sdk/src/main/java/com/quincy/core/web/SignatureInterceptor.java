@@ -53,7 +53,7 @@ public class SignatureInterceptor extends HandlerInterceptorAdapter {
 						StringBuilder sb = new StringBuilder(200);
 						while(it.hasNext()) {
 							Entry<String, String[]> e = it.next();
-							if(!MAP_KEY.equals(e.getKey()))
+							if(e.getValue()!=null&&e.getValue().length>0&&!MAP_KEY.equals(e.getKey()))
 								sb.append("&").append(e.getKey()).append("=").append(e.getValue()[0]);
 						}
 						if(!RSASecurityHelper.verify(publicKey, RSASecurityHelper.SIGNATURE_ALGORITHMS_SHA1_RSA, signature, sb.substring(1, sb.length()), null)) {
