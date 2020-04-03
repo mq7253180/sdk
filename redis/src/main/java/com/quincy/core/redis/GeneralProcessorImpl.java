@@ -26,6 +26,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.support.RequestContext;
 
 import com.quincy.core.InnerConstants;
+import com.quincy.core.InnerHelper;
 import com.quincy.sdk.EmailService;
 import com.quincy.sdk.RedisOperation;
 import com.quincy.sdk.RedisProcessor;
@@ -35,7 +36,6 @@ import com.quincy.sdk.VCcodeSender;
 import com.quincy.sdk.VCodeCharsFrom;
 import com.quincy.sdk.annotation.VCodeRequired;
 import com.quincy.sdk.helper.CommonHelper;
-import com.quincy.sdk.helper.HttpClientHelper;
 
 import redis.clients.jedis.Jedis;
 
@@ -57,8 +57,9 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 			if(annotation!=null) {
 				Result result = this.validateVCode(request, annotation.clientTokenName(), annotation.ignoreCase());
 				if(result.getStatus()!=1) {
-					String outputContent = "{\"status\":"+result.getStatus()+", \"msg\":\""+result.getMsg()+"\"}";
-					HttpClientHelper.outputJson(response, outputContent);
+					request.setAttribute("status", result.getStatus());
+					request.setAttribute("msg", result.getMsg());
+					InnerHelper.outputOrForward(request, response, handler, result.getStatus(), result.getMsg(), annotation.timeoutForwardTo(), false);
 					return false;
 				}
 			}

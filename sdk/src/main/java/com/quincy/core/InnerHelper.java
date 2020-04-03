@@ -11,7 +11,7 @@ import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.helper.HttpClientHelper;
 
 public class InnerHelper {
-	public static void outputOrRedirect(HttpServletRequest request, HttpServletResponse response, Object handler, int status, String msg, String redirectTo, boolean appendBackTo) throws IOException, ServletException {
+	public static void outputOrForward(HttpServletRequest request, HttpServletResponse response, Object handler, int status, String msg, String redirectTo, boolean appendBackTo) throws IOException, ServletException {
 		String clientType = CommonHelper.clientType(request, handler);
 		if(InnerConstants.CLIENT_TYPE_J.equals(clientType)) {
 			String outputContent = "{\"status\":"+status+", \"msg\":\""+msg+"\"}";

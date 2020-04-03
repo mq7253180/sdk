@@ -12,5 +12,5 @@ import java.lang.annotation.Target;
 public @interface VCodeRequired {
 	public String clientTokenName() default "";
 	public boolean ignoreCase() default true;
-	public String timeoutRedirectTo() default "/auth/vcode/failure";
+	public String timeoutForwardTo() default "/auth/vcode/failure";
 }
