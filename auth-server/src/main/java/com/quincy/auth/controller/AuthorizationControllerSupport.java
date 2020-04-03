@@ -10,7 +10,6 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContext;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quincy.auth.AuthConstants;
 import com.quincy.auth.o.DSession;
 import com.quincy.auth.o.User;
@@ -130,9 +129,9 @@ public abstract class AuthorizationControllerSupport {
 	}
 
 	private ModelAndView createModelAndView(Result result) throws JsonProcessingException {
-		return new ModelAndView("/result")
+		return new ModelAndView("/result_login")
 				.addObject("status", result.getStatus())
 				.addObject("msg", result.getMsg())
-				.addObject("data", new ObjectMapper().writeValueAsString(result.getData()));
+				.addObject("data", result.getData());
 	}
 }
