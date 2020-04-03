@@ -235,7 +235,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		}
 		String vcode = sb.toString();
 		String token = this.cacheVCode(request, vcode, clientTokenName);
-		sender.send(_vcode);
+		sender.send(_vcode, token);
 		return token;
 	}
 
@@ -245,7 +245,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 	public String vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, String clientTokenName, HttpServletResponse response, int size, int start, int space, int width, int height) throws Exception {
 		return this.vcode(request, charsFrom, length, clientTokenName, new VCcodeSender() {
 			@Override
-			public void send(char[] vcode) throws IOException {
+			public void send(char[] vcode, String token) throws IOException {
 				BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
 				Graphics g = image.getGraphics();
 				Graphics2D gg = (Graphics2D)g;
@@ -289,10 +289,10 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 	public String vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, String clientTokenName, String emailTo, String subject, String _content) throws Exception {
 		return this.vcode(request, charsFrom, length, clientTokenName, new VCcodeSender() {
 			@Override
-			public void send(char[] _vcode) {
+			public void send(char[] _vcode, String token) {
 				String vcode = new String(_vcode);
-				String content = MessageFormat.format(_content, vcode);
-				content = String.format(content, vcode);
+				String content = MessageFormat.format(_content, vcode, token);
+//				content = String.format(content, vcode, token);
 				emailService.send(emailTo, subject, content, "", null, null, null, null);
 			}
 		});
