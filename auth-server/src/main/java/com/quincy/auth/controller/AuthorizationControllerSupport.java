@@ -64,7 +64,7 @@ public abstract class AuthorizationControllerSupport {
 	 * 点超链接没权限要进入的页面
 	 */
 	@RequestMapping("/deny")
-	public String deny(HttpServletRequest request) {
+	public String deny() {
 		return "/deny";
 	}
 
