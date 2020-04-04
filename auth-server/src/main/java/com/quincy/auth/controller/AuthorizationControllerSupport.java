@@ -133,7 +133,7 @@ public abstract class AuthorizationControllerSupport {
 		} else {
 			if(result.getStatus()==1) {
 				String redirectTo = CommonHelper.trim(_redirectTo);
-				mv = new ModelAndView("redirect:"+(redirectTo!=null?redirectTo:AuthConstants.URI_INDEX));
+				mv = new ModelAndView("redirect:"+(redirectTo!=null?redirectTo:""));
 			} else
 				mv = createModelAndView(result);
 		}

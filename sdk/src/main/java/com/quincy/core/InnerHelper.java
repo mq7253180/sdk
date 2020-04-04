@@ -27,13 +27,16 @@ public class InnerHelper {
 				if(e.getValue()!=null&&e.getValue().length>0&&!e.getKey().equals(InnerConstants.KEY_LOCALE))
 					request.setAttribute(e.getKey(), e.getValue()[0]);
 			}
-			request.getRequestDispatcher(appendBackTo?new StringBuilder(250)
-					.append(redirectTo)
-					.append(redirectTo.indexOf("?")>=0?"&":"?")
+			StringBuilder uri = new StringBuilder(250).append(redirectTo);
+			if(appendBackTo) {
+				String queryString = CommonHelper.trim(request.getQueryString());
+				if(queryString!=null||request.getRequestURI().length()>1)
+					uri.append(redirectTo.indexOf("?")>=0?"&":"?")
 					.append(InnerConstants.PARAM_REDIRECT_TO)
 					.append("=")
-					.append(URLEncoder.encode(request.getRequestURI()+(request.getQueryString()==null?"":("?"+request.getQueryString())), "UTF-8"))
-					.toString():redirectTo).forward(request, response);
+					.append(URLEncoder.encode(request.getRequestURI()+(queryString==null?"":("?"+queryString)), "UTF-8"));
+			}
+			request.getRequestDispatcher(uri.toString()).forward(request, response);
 		}
 	}
 }
