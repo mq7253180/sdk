@@ -57,10 +57,9 @@ public abstract class AuthorizationControllerSupport {
 	 * 登出
 	 */
 	@RequestMapping("/signout")
-	public ModelAndView logout(HttpServletRequest request, HttpServletResponse response) throws Exception {
+	public String logout(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		authorizationService.logout(request, response);
-		RequestContext requestContext = new RequestContext(request);
-		return new ModelAndView(InnerConstants.VIEW_PATH_RESULT).addObject("status", 1).addObject("msg", requestContext.getMessage("status.success"));
+		return InnerConstants.VIEW_PATH_RESULT;
 	}
 	/**
 	 * 点超链接没权限要进入的页面
