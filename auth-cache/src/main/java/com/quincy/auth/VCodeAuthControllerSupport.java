@@ -10,8 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.support.RequestContext;
 
 import com.quincy.auth.controller.AuthorizationControllerSupport;
 import com.quincy.core.InnerConstants;
@@ -21,6 +21,7 @@ import com.quincy.sdk.Result;
 import com.quincy.sdk.VCodeCharsFrom;
 import com.quincy.sdk.annotation.JedisInjector;
 import com.quincy.sdk.annotation.VCodeRequired;
+import com.quincy.sdk.helper.CommonHelper;
 
 import redis.clients.jedis.Jedis;
 
@@ -115,20 +116,37 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 	protected abstract String getPwdSetEmailContent(String uri);
 
 	@RequestMapping("/vcode/pwdset")
-	@ResponseBody
-	public void vcode(HttpServletRequest request, @RequestParam(required = true, name = "email")String email) throws Exception {
-		String uri = new StringBuilder(100)
-				.append("/auth")
-				.append(RedisInnerConstants.URI_VCODE_PWDSET_SIGNIN)
-				.append("?")
-				.append(PWDSET_CLIENT_TOKEN_NAME)
-				.append("=")
-				.append(URLEncoder.encode(email, "UTF-8"))
-				.append("&vcode={0}&")
-				.append(InnerConstants.PARAM_REDIRECT_TO)
-				.append("=")
-				.append(URLEncoder.encode("/auth"+URI_PWD_SET, "UTF-8"))
-				.toString();
-		redisProcessor.vcode(request, VCodeCharsFrom.MIXED, 32, "email", email, getPwdSetEmailSubject(), getPwdSetEmailContent(uri));
+	public ModelAndView vcode(HttpServletRequest request, @RequestParam(required = true, name = "email")String _email) throws Exception {
+		Integer status = null;
+		String msgI18N = null;
+		String email = CommonHelper.trim(_email);
+		if(email==null) {
+			status = 0;
+			msgI18N = "email.null";
+		} else {
+			if(!CommonHelper.isEmail(email)) {
+				status = -1;
+				msgI18N = "email.illegal";
+			} else {
+				status = 1;
+				msgI18N = Result.I18N_KEY_SUCCESS;
+				String uri = new StringBuilder(100)
+						.append("/auth")
+						.append(RedisInnerConstants.URI_VCODE_PWDSET_SIGNIN)
+						.append("?")
+						.append(PWDSET_CLIENT_TOKEN_NAME)
+						.append("=")
+						.append(URLEncoder.encode(email, "UTF-8"))
+						.append("&vcode={0}&")
+						.append(InnerConstants.PARAM_REDIRECT_TO)
+						.append("=")
+						.append(URLEncoder.encode("/auth"+URI_PWD_SET, "UTF-8"))
+						.toString();
+				redisProcessor.vcode(request, VCodeCharsFrom.MIXED, 32, "email", email, getPwdSetEmailSubject(), getPwdSetEmailContent(uri));
+			}
+		}
+		return new ModelAndView(InnerConstants.VIEW_PATH_RESULT)
+				.addObject("status", status)
+				.addObject("msg", new RequestContext(request).getMessage(msgI18N));
 	}
 }

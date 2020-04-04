@@ -19,6 +19,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.zip.ZipInputStream;
 
 import javax.servlet.http.Cookie;
@@ -521,6 +522,11 @@ public class CommonHelper {
 		Method method = clazz.getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
 		String key = fullMethodPath(clazz, methodSignature, method, joinPoint.getArgs(), separator0, separator1, separator2);
 		return key;
+	}
+
+	public static boolean isEmail(String _content) {
+		String content = trim(_content);
+		return content==null?false:Pattern.matches("^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$", content);
 	}
 
 	public static void main(String[] args) throws IOException {

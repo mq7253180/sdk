@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContext;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quincy.auth.AuthConstants;
 import com.quincy.auth.annotation.LoginRequired;
 import com.quincy.auth.o.DSession;
@@ -123,7 +125,7 @@ public abstract class AuthorizationControllerSupport {
 		return result;
 	}
 
-	protected ModelAndView createModelAndView(HttpServletRequest request, Result result, String _redirectTo) {
+	protected ModelAndView createModelAndView(HttpServletRequest request, Result result, String _redirectTo) throws JsonProcessingException {
 		String clientType = CommonHelper.clientType(request);
 		ModelAndView mv = null;
 		if(InnerConstants.CLIENT_TYPE_J.equals(clientType)) {
@@ -138,10 +140,10 @@ public abstract class AuthorizationControllerSupport {
 		return mv;
 	}
 
-	private ModelAndView createModelAndView(Result result) {
+	private ModelAndView createModelAndView(Result result) throws JsonProcessingException {
 		return new ModelAndView("/result_login")
 				.addObject("status", result.getStatus())
 				.addObject("msg", result.getMsg())
-				.addObject("data", result.getData());
+				.addObject("data", new ObjectMapper().writeValueAsString(result.getData()));
 	}
 }
