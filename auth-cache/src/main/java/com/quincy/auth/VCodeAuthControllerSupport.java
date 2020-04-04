@@ -111,8 +111,6 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 		return InnerConstants.VIEW_PATH_RESULT;
 	}
 
-	@Value("${clientTokenName}")
-	private String clientTokenName;
 	protected abstract String getPwdSetEmailSubject();
 	protected abstract String getPwdSetEmailContent(String uri);
 
