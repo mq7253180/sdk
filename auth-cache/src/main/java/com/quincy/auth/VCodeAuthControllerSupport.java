@@ -37,8 +37,8 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 	@JedisInjector
 	@PostMapping("/signin/pwd")
 	public ModelAndView doLogin(HttpServletRequest request, 
-			@RequestParam(required = false, value = "username")String username, 
-			@RequestParam(required = false, value = "password")String password, 
+			@RequestParam(required = false, value = AuthConstants.PARA_NAME_USERNAME)String username, 
+			@RequestParam(required = false, value = AuthConstants.PARA_NAME_PASSWORD)String password, 
 			@RequestParam(required = false, value = "vcode")String vcode, 
 			@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo, 
 			Jedis jedis) throws Exception {
@@ -77,18 +77,28 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 	@VCodeRequired
 	@RequestMapping("/signin/vcode")
 	public ModelAndView doLogin(HttpServletRequest request, 
-			@RequestParam(required = false, value = "username")String username, 
+			@RequestParam(required = false, value = AuthConstants.PARA_NAME_USERNAME)String username, 
 			@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
 		Result result = login(request, username, null);
 		return createModelAndView(request, result, redirectTo);
 	}
 
-	@VCodeRequired(clientTokenName = "username", timeoutForwardTo = "/auth"+RedisInnerConstants.URI_VCODE_PWDSET_TIMEOUT)
-	@RequestMapping(RedisInnerConstants.URI_VCODE_PWDSET_SIGNIN)
-	public ModelAndView doLoginAsPwdReset(HttpServletRequest request, 
-			@RequestParam(required = false, value = "username")String username, 
+	@VCodeRequired(clientTokenName = AuthConstants.PARA_NAME_USERNAME)
+	@RequestMapping("/signin/vcode/x")
+	public ModelAndView vcodeLogin(HttpServletRequest request, 
+			@RequestParam(required = false, value = AuthConstants.PARA_NAME_USERNAME)String username, 
 			@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
 		return this.doLogin(request, username, redirectTo);
+	}
+
+	private final static String PWDSET_CLIENT_TOKEN_NAME = "email";
+
+	@VCodeRequired(clientTokenName = PWDSET_CLIENT_TOKEN_NAME, timeoutForwardTo = "/auth"+RedisInnerConstants.URI_VCODE_PWDSET_TIMEOUT)
+	@RequestMapping(RedisInnerConstants.URI_VCODE_PWDSET_SIGNIN)
+	public ModelAndView doLoginAsPwdReset(HttpServletRequest request, 
+			@RequestParam(required = false, value = PWDSET_CLIENT_TOKEN_NAME)String email, 
+			@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
+		return this.doLogin(request, email, redirectTo);
 	}
 
 	@RequestMapping(RedisInnerConstants.URI_VCODE_PWDSET_TIMEOUT)
@@ -109,7 +119,18 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 	@RequestMapping("/vcode/pwdset")
 	@ResponseBody
 	public void vcode(HttpServletRequest request, @RequestParam(required = true, name = "email")String email) throws Exception {
-		String uri = "/auth"+RedisInnerConstants.URI_VCODE_PWDSET_SIGNIN+"?username="+URLEncoder.encode(email, "UTF-8")+"&vcode={0}&"+InnerConstants.PARAM_REDIRECT_TO+"="+URLEncoder.encode("/auth"+URI_PWD_SET, "UTF-8");
+		String uri = new StringBuilder(100)
+				.append("/auth")
+				.append(RedisInnerConstants.URI_VCODE_PWDSET_SIGNIN)
+				.append("?")
+				.append(PWDSET_CLIENT_TOKEN_NAME)
+				.append("=")
+				.append(URLEncoder.encode(email, "UTF-8"))
+				.append("&vcode={0}&")
+				.append(InnerConstants.PARAM_REDIRECT_TO)
+				.append("=")
+				.append(URLEncoder.encode("/auth"+URI_PWD_SET, "UTF-8"))
+				.toString();
 		redisProcessor.vcode(request, VCodeCharsFrom.MIXED, 32, "email", email, getPwdSetEmailSubject(), getPwdSetEmailContent(uri));
 	}
 }
