@@ -1,5 +1,7 @@
 package com.quincy.auth;
 
+import java.net.URLEncoder;
+
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
@@ -8,12 +10,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.quincy.auth.controller.AuthorizationControllerSupport;
 import com.quincy.core.InnerConstants;
+import com.quincy.core.RedisInnerConstants;
 import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.Result;
+import com.quincy.sdk.VCodeCharsFrom;
 import com.quincy.sdk.annotation.JedisInjector;
 import com.quincy.sdk.annotation.VCodeRequired;
 
@@ -78,8 +83,33 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 		return createModelAndView(request, result, redirectTo);
 	}
 
-	@RequestMapping("/vcode/failure")
+	@VCodeRequired(clientTokenName = "username", timeoutForwardTo = "/auth"+RedisInnerConstants.URI_VCODE_PWDSET_TIMEOUT)
+	@RequestMapping(RedisInnerConstants.URI_VCODE_PWDSET_SIGNIN)
+	public ModelAndView doLoginAsPwdReset(HttpServletRequest request, 
+			@RequestParam(required = false, value = "username")String username, 
+			@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
+		return this.doLogin(request, username, redirectTo);
+	}
+
+	@RequestMapping(RedisInnerConstants.URI_VCODE_PWDSET_TIMEOUT)
+	public String pwdResetTimeout() {
+		return "/pwdset_timeout";
+	}
+
+	@RequestMapping(RedisInnerConstants.URI_VCODE_FAILURE)
 	public String vcodeFailure(HttpServletRequest request) {
-		return "/result";
+		return InnerConstants.VIEW_PATH_RESULT;
+	}
+
+	@Value("${clientTokenName}")
+	private String clientTokenName;
+	protected abstract String getPwdSetEmailSubject();
+	protected abstract String getPwdSetEmailContent(String uri);
+
+	@RequestMapping("/vcode/pwdset")
+	@ResponseBody
+	public void vcode(HttpServletRequest request, @RequestParam(required = true, name = "email")String email) throws Exception {
+		String uri = "/auth"+RedisInnerConstants.URI_VCODE_PWDSET_SIGNIN+"?username="+URLEncoder.encode(email, "UTF-8")+"&vcode={0}&"+InnerConstants.PARAM_REDIRECT_TO+"="+URLEncoder.encode("/auth"+URI_PWD_SET, "UTF-8");
+		redisProcessor.vcode(request, VCodeCharsFrom.MIXED, 32, "email", email, getPwdSetEmailSubject(), getPwdSetEmailContent(uri));
 	}
 }
