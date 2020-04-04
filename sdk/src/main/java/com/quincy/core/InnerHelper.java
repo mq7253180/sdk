@@ -24,7 +24,7 @@ public class InnerHelper {
 			Iterator<Entry<String, String[]>> it = request.getParameterMap().entrySet().iterator();
 			while(it.hasNext()) {
 				Entry<String, String[]> e = it.next();
-				if(e.getValue()!=null&&e.getValue().length>0)
+				if(e.getValue()!=null&&e.getValue().length>0&&!e.getKey().equals(InnerConstants.KEY_LOCALE))
 					request.setAttribute(e.getKey(), e.getValue()[0]);
 			}
 			request.getRequestDispatcher(appendBackTo?new StringBuilder(250)
