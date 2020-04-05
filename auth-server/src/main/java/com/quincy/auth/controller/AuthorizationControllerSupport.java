@@ -46,11 +46,13 @@ public abstract class AuthorizationControllerSupport {
 	 * 进登录跳转页
 	 */
 	@RequestMapping("/signin/broker")
-	public ModelAndView toLoginBroker(@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String _redirectTo) {
+	public ModelAndView toLoginBroker(@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String _redirectTo, @RequestParam(required = false, value = InnerConstants.KEY_LOCALE)String _locale) {
 		ModelAndView mv = new ModelAndView("/login_broker");
 		String redirectTo = CommonHelper.trim(_redirectTo);
 		if(redirectTo!=null)
 			mv.addObject(InnerConstants.PARAM_REDIRECT_TO, redirectTo);
+		String locale = CommonHelper.trim(_locale);
+		mv.addObject(InnerConstants.KEY_LOCALE, locale==null?"":locale);
 		return mv;
 	}
 	/**

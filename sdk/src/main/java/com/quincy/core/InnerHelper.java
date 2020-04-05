@@ -27,16 +27,20 @@ public class InnerHelper {
 				if(e.getValue()!=null&&e.getValue().length>0&&!e.getKey().equals(InnerConstants.KEY_LOCALE))
 					request.setAttribute(e.getKey(), e.getValue()[0]);
 			}
-			StringBuilder uri = new StringBuilder(250).append(redirectTo);
+			StringBuilder uri = new StringBuilder(280).append(redirectTo);
 			if(appendBackTo) {
 				String queryString = CommonHelper.trim(request.getQueryString());
 				if(queryString!=null||request.getRequestURI().length()>1)
-					uri.append(redirectTo.indexOf("?")>=0?"&":"?")
+					uri.append(getSeparater(uri.toString()))
 					.append(InnerConstants.PARAM_REDIRECT_TO)
 					.append("=")
 					.append(URLEncoder.encode(request.getRequestURI()+(queryString==null?"":("?"+queryString)), "UTF-8"));
 			}
 			request.getRequestDispatcher(uri.toString()).forward(request, response);
 		}
+	}
+
+	private static char getSeparater(String uri) {
+		return uri.indexOf("?")>=0?'&':'?';
 	}
 }
