@@ -22,7 +22,7 @@ public class RootController implements AuthContext {
 	public ModelAndView root(HttpServletRequest request, HttpServletResponse response) {
 		ModelAndView mv = null;
 		if(authHandler!=null) {
-			mv = authHandler.indexView(request, response);
+			mv = authHandler.rootView(request, response);
 			if(mv==null)
 				mv = new ModelAndView("/index");
 		}
