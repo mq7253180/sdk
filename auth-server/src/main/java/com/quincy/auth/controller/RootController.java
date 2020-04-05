@@ -19,7 +19,6 @@ public class RootController implements AuthContext {
 	private AuthHandler authHandler;
 
 	@LoginRequired
-	@RequestMapping("")
 	public ModelAndView root(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		ModelAndView mv = null;
 		if(authHandler!=null) {
