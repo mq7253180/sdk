@@ -140,7 +140,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 						.append("&vcode={0}&")
 						.append(InnerConstants.PARAM_REDIRECT_TO)
 						.append("=")
-						.append(URLEncoder.encode("/auth"+URI_PWD_SET, "UTF-8"))
+						.append(URLEncoder.encode(AuthConstants.URI_PWD_SET, "UTF-8"))
 						.toString();
 				redisProcessor.vcode(request, VCodeCharsFrom.MIXED, 32, "email", email, getPwdSetEmailSubject(), getPwdSetEmailContent(uri));
 			}

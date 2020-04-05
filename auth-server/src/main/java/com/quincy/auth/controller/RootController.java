@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.quincy.auth.AuthConstants;
 import com.quincy.auth.AuthContext;
 import com.quincy.auth.AuthHandler;
 import com.quincy.auth.annotation.LoginRequired;
@@ -29,5 +30,13 @@ public class RootController implements AuthContext {
 	@Override
 	public void setAuthHandler(AuthHandler authHandler) {
 		this.authHandler = authHandler;
+	}
+	/**
+	 * 进入密码设置页
+	 */
+	@LoginRequired
+	@RequestMapping(AuthConstants.URI_PWD_SET)
+	public String toPwdSet() {
+		return "/password";
 	}
 }

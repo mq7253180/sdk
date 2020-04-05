@@ -4,7 +4,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
@@ -13,7 +12,6 @@ import org.springframework.web.servlet.support.RequestContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quincy.auth.AuthConstants;
-import com.quincy.auth.annotation.LoginRequired;
 import com.quincy.auth.o.DSession;
 import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthCallback;
@@ -69,16 +67,6 @@ public abstract class AuthorizationControllerSupport {
 	@RequestMapping("/deny")
 	public String deny() {
 		return "/deny";
-	}
-
-	protected final static String URI_PWD_SET = "/pwd/set";
-	/**
-	 * 进入密码设置页
-	 */
-	@LoginRequired
-	@GetMapping(URI_PWD_SET)
-	public String toPwdSet() {
-		return "/password";
 	}
 
 	protected Result doPwdLogin(HttpServletRequest request, String username, String _password) throws Exception {
