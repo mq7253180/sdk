@@ -21,7 +21,13 @@ public class RootController implements AuthContext {
 	@LoginRequired
 	@RequestMapping("")
 	public ModelAndView root(HttpServletRequest request, HttpServletResponse response) throws Exception {
-		return authHandler==null?new ModelAndView("/index"):authHandler.indexView(request, response);
+		ModelAndView mv = null;
+		if(authHandler!=null) {
+			mv = authHandler.indexView(request, response);
+			if(mv==null)
+				mv = new ModelAndView("/index");
+		}
+		return mv;
 	}
 
 	@GetMapping(value = "/static/**")
