@@ -29,7 +29,7 @@ public class RootController implements AuthContext {
 		return mv;
 	}
 
-	@GetMapping(value = "/static/**")
+	@GetMapping("/static/**")
 	public void handleStatic() {}
 
 	@Override
