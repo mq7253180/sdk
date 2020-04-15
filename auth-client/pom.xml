@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>quincy-auth-client</artifactId>
+	<name>Auth</name>
+	<url>https://github.com/mq7253180/sdk/tree/master/auth</url>
+	<parent>
+		<groupId>com.maqiangcgq</groupId>
+		<artifactId>all</artifactId>
+		<version>1.0.8</version>
+	</parent>
+	<dependencies>
+		<dependency>
+		    <groupId>com.maqiangcgq</groupId>
+		    <artifactId>quincy-auth</artifactId>
+		    <version>1.0.8</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.springframework.security</groupId>
+		    <artifactId>spring-security-oauth2-client</artifactId>
+		    <version>5.1.5.RELEASE</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.springframework.security</groupId>
+		    <artifactId>spring-security-oauth2-resource-server</artifactId>
+		    <version>5.1.5.RELEASE</version>
+		</dependency>
+		<!-- <dependency>
+		    <groupId>org.springframework.security.oauth</groupId>
+		    <artifactId>spring-security-oauth2</artifactId>
+		    <version>2.4.0.RELEASE</version>
+		</dependency> -->
+	</dependencies>
+</project>
