@@ -76,23 +76,21 @@ public abstract class OAuth2ControllerSupport {
 			uri = CommonHelper.trim(oauthRequest.getParam(OAuth.OAUTH_REDIRECT_URI));
 		} catch(Exception e) {
 			log.error("OAUTH2_ERR_AUTHORIZATION: ", e);
-			builder = OAuthASResponse
-					.errorResponse(HttpServletResponse.SC_BAD_REQUEST)
-					.setError(OAuthError.CodeResponse.SERVER_ERROR)
-					.setErrorDescription(e.toString());
+			builder = OAuthASResponse.errorResponse(HttpServletResponse.SC_BAD_REQUEST);
 			if(e instanceof OAuthProblemException) {
 				OAuthProblemException oauth2E = (OAuthProblemException)e;
 				builder = ((OAuthErrorResponseBuilder)builder).error(oauth2E);
 				uri = CommonHelper.trim(oauth2E.getRedirectUri());
-			}
+			} else
+				builder = ((OAuthErrorResponseBuilder)builder).setError(OAuthError.CodeResponse.SERVER_ERROR).setErrorDescription(e.getMessage());
 		}
 		HttpHeaders headers = new HttpHeaders();
 		if(uri!=null) {
 			builder = builder.location(uri);
 			headers.setLocation(new URI(uri));
 		}
-//		String clientType = CommonHelper.clientType(request);
-		String clientType = InnerConstants.CLIENT_TYPE_J;
+		String clientType = CommonHelper.clientType(request);
+//		String clientType = InnerConstants.CLIENT_TYPE_J;
 		OAuthResponse response = null;
 		if(InnerConstants.CLIENT_TYPE_J.equals(clientType)) {
 			response = builder.buildJSONMessage();
@@ -173,9 +171,8 @@ public abstract class OAuth2ControllerSupport {
 	}
 
 	private OAuthAuthorizationResponseBuilder buildResponse(HttpServletRequest request, OAuthAuthzRequest oauthRequest, String authorizationCode) throws OAuthSystemException {
-		OAuthAuthorizationResponseBuilder builder = OAuthASResponse.authorizationResponse(request, HttpServletResponse.SC_OK);
-		builder.setCode(authorizationCode);
-		String redirectURI = CommonHelper.trim(oauthRequest.getParam(OAuth.OAUTH_REDIRECT_URI));
-		return redirectURI==null?builder:builder.location(redirectURI);
+		return OAuthASResponse
+				.authorizationResponse(request, HttpServletResponse.SC_OK)
+				.setCode(authorizationCode);
 	}
 }
