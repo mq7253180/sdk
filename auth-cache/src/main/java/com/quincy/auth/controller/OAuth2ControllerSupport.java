@@ -133,14 +133,13 @@ public abstract class OAuth2ControllerSupport {
 			redirectUri = ERROR_URI+errorStatus;
 		String locale = CommonHelper.trim(request.getParameter(InnerConstants.KEY_LOCALE));
 		if(locale!=null)
-			redirectUri = new StringBuilder(200)
+			redirectUri = new StringBuilder(100)//长度35
 			.append(redirectUri)
 			.append("&")
 			.append(InnerConstants.KEY_LOCALE)
 			.append("=")
 			.append(locale)
 			.toString();
-		log.info("LENGTH_3==========={}", redirectUri.length());
 		HttpHeaders headers = new HttpHeaders();
 		builder = builder.location(redirectUri);
 		headers.setLocation(new URI(redirectUri));
