@@ -80,7 +80,13 @@ public abstract class OAuth2ControllerSupport {
 					errorDescription = "The client platform for this resource has not been authorized by the owner.";
 					redirectUri = "/oauth2/signin";
 				} else {
-					redirectUri = CommonHelper.trim(oauthRequest.getParam(OAuth.OAUTH_REDIRECT_URI));
+					redirectUri = new StringBuilder(250)
+							.append(CommonHelper.trim(oauthRequest.getParam(OAuth.OAUTH_REDIRECT_URI)))
+							.append("?")
+							.append(OAuth.OAUTH_CODE)
+							.append("=")
+							.append(authorizationCode)
+							.toString();
 					builder = this.buildResponse(request, oauthRequest, isNotJson, authorizationCode);
 				}
 			}
