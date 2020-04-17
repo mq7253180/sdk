@@ -50,8 +50,8 @@ public abstract class OAuth2ControllerSupport {
 
 	@RequestMapping("/code")
 	public Object authorizationCode(HttpServletRequest request) throws OAuthSystemException, URISyntaxException {
-//		String clientType = CommonHelper.clientType(request);
-		String clientType = InnerConstants.CLIENT_TYPE_J;
+		String clientType = CommonHelper.clientType(request);
+//		String clientType = InnerConstants.CLIENT_TYPE_J;
 		boolean isNotJson = !InnerConstants.CLIENT_TYPE_J.equals(clientType);
 		OAuthResponseBuilder builder = null;
 		String redirectUri = null;
