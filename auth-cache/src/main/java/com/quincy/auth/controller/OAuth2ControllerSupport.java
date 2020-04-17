@@ -2,6 +2,7 @@ package com.quincy.auth.controller;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -47,7 +48,7 @@ public abstract class OAuth2ControllerSupport {
 	@Autowired
 	private OAuth2Service oauth2Service;
 	protected abstract OAuth2Info getOAuth2Info(Long clientSystemId, String username, String scope);
-	protected abstract void saveInfo(Long clientSystemId, Long userId, String scope, String authorizationCode);
+	protected abstract void saveOAuth2Info(Long clientSystemId, Long userId, String scope, String authorizationCode);
 	protected abstract ModelAndView signinView(HttpServletRequest request);
 	private final static String ERROR_URI = "/oauth2/error?status=";
 	private final static String ERROR_MSG_KEY_PREFIX = "oauth2.error.";
@@ -57,6 +58,7 @@ public abstract class OAuth2ControllerSupport {
 		String clientType = CommonHelper.clientType(request);
 //		String clientType = InnerConstants.CLIENT_TYPE_J;
 		boolean isNotJson = !InnerConstants.CLIENT_TYPE_J.equals(clientType);
+		String locale = CommonHelper.trim(request.getParameter(InnerConstants.KEY_LOCALE));
 		OAuthResponseBuilder builder = null;
 		String redirectUri = null;
 		Integer errorStatus = null;
@@ -64,42 +66,39 @@ public abstract class OAuth2ControllerSupport {
 			OAuthAuthzRequest oauthRequest = new OAuthAuthzRequest(request);
 			String username = CommonHelper.trim(oauthRequest.getParam(OAuth.OAUTH_USERNAME));
 			String scpoe = CommonHelper.trim(oauthRequest.getParam(OAuth.OAUTH_SCOPE));
-			Integer errorResponse = null;
-			String error = null;
+			String _redirectUri = CommonHelper.trim(oauthRequest.getParam(OAuth.OAUTH_REDIRECT_URI));
+			Integer errorResponse = HttpServletResponse.SC_BAD_REQUEST;
+			String error = OAuthError.CodeResponse.INVALID_REQUEST;
 			if(username==null) {
-				errorResponse = HttpServletResponse.SC_BAD_REQUEST;
-				error = OAuthError.CodeResponse.INVALID_REQUEST;
 				errorStatus = 1;
 			} else if(scpoe==null) {
-				errorResponse = HttpServletResponse.SC_BAD_REQUEST;
-				error = OAuthError.CodeResponse.INVALID_REQUEST;
 				errorStatus = 2;
+			} else if(isNotJson&&_redirectUri==null) {
+				errorStatus = 3;
 			} else {
 				ClientSystem clientSystem = oauth2Service.findClientSystem(oauthRequest.getClientId());
 				if(clientSystem==null) {
-					errorResponse = HttpServletResponse.SC_BAD_REQUEST;
-					error = OAuthError.TokenResponse.INVALID_CLIENT;
-					errorStatus = 3;
+					errorStatus = 4;
 				} else {
 					OAuth2Info oauth2Info = getOAuth2Info(clientSystem.getId(), username, scpoe);
 					if(oauth2Info.getUserId()==null) {
-						errorResponse = HttpServletResponse.SC_BAD_REQUEST;
-						error = OAuthError.CodeResponse.INVALID_REQUEST;
-						errorStatus = 4;
+						errorStatus = 5;
 					} else {
 						String authorizationCode = CommonHelper.trim(oauth2Info.getAuthorizationCode());
 						if(authorizationCode==null) {
 							errorResponse = HttpServletResponse.SC_UNAUTHORIZED;
 							error = OAuthError.CodeResponse.UNAUTHORIZED_CLIENT;
-							errorStatus = 5;
-							redirectUri = new StringBuilder(100)
-									.append("/oauth2/signin?userId=")
-									.append(oauth2Info.getUserId())
+							errorStatus = 6;
+							redirectUri = this.appendLocale(new StringBuilder(100).append("/oauth2/signin?userId=").append(oauth2Info.getUserId()), locale)
+									.append("&")
+									.append(OAuth.OAUTH_REDIRECT_URI)
+									.append("=")
+									.append(URLEncoder.encode(_redirectUri, "UTF-8"))
 									.toString();
 							log.info("LENGTH_1==========={}", redirectUri.length());
 						} else {
 							redirectUri = new StringBuilder(250)
-									.append(CommonHelper.trim(oauthRequest.getParam(OAuth.OAUTH_REDIRECT_URI)))
+									.append(_redirectUri)
 									.append("?")
 									.append(OAuth.OAUTH_CODE)
 									.append("=")
@@ -111,7 +110,7 @@ public abstract class OAuth2ControllerSupport {
 					}
 				}
 			}
-			if(errorResponse!=null)
+			if(builder==null)
 				builder = OAuthASResponse
 				.errorResponse(isNotJson?HttpServletResponse.SC_FOUND:errorResponse)
 				.setError(error)
@@ -123,23 +122,14 @@ public abstract class OAuth2ControllerSupport {
 				OAuthProblemException oauth2E = (OAuthProblemException)e;
 				builder = ((OAuthErrorResponseBuilder)builder).error(oauth2E);
 				redirectUri = CommonHelper.trim(oauth2E.getRedirectUri());
-				errorStatus = 6;
+				errorStatus = 7;
 			} else {
 				builder = ((OAuthErrorResponseBuilder)builder).setError(OAuthError.CodeResponse.SERVER_ERROR).setErrorDescription(e.getMessage());
-				errorStatus = 7;
+				errorStatus = 8;
 			}
 		}
 		if(redirectUri==null)
-			redirectUri = ERROR_URI+errorStatus;
-		String locale = CommonHelper.trim(request.getParameter(InnerConstants.KEY_LOCALE));
-		if(locale!=null)
-			redirectUri = new StringBuilder(100)//长度35
-			.append(redirectUri)
-			.append("&")
-			.append(InnerConstants.KEY_LOCALE)
-			.append("=")
-			.append(locale)
-			.toString();
+			redirectUri = this.appendLocale(new StringBuilder(100).append(ERROR_URI).append(errorStatus), locale).toString();
 		HttpHeaders headers = new HttpHeaders();
 		builder = builder.location(redirectUri);
 		headers.setLocation(new URI(redirectUri));
@@ -151,6 +141,13 @@ public abstract class OAuth2ControllerSupport {
 			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
 		}
 		return new ResponseEntity<>(response.getBody(), headers, HttpStatus.valueOf(response.getResponseStatus()));
+	}
+
+	private StringBuilder appendLocale(StringBuilder s, String locale) {
+		return locale==null?s:s.append("&")
+				.append(InnerConstants.KEY_LOCALE)
+				.append("=")
+				.append(locale);
 	}
 
 	@RequestMapping("/error")
@@ -227,7 +224,7 @@ public abstract class OAuth2ControllerSupport {
 	protected OAuthAuthorizationResponseBuilder generateAuthorizationCode(HttpServletRequest request, Long clientSystemId, Long userId, String scope) throws OAuthSystemException, OAuthProblemException {
 		OAuthIssuer oauthIssuer = new OAuthIssuerImpl(new MD5Generator());
 		String authorizationCode = oauthIssuer.authorizationCode();
-		saveInfo(clientSystemId, userId, scope, authorizationCode);
+		saveOAuth2Info(clientSystemId, userId, scope, authorizationCode);
 		return this.buildResponse(request, new OAuthAuthzRequest(request), true, authorizationCode);
 	}
 
