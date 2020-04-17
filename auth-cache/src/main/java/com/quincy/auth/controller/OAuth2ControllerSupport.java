@@ -89,15 +89,17 @@ public abstract class OAuth2ControllerSupport {
 							errorResponse = HttpServletResponse.SC_UNAUTHORIZED;
 							error = OAuthError.CodeResponse.UNAUTHORIZED_CLIENT;
 							errorStatus = 6;
-							redirectUri = this.appendLocale(new StringBuilder(100).append("/oauth2/signin?userId=").append(oauth2Info.getUserId()), locale)
-									.append("&")
+							StringBuilder s = this.appendLocale(new StringBuilder(100).append("/oauth2/signin?userId=").append(oauth2Info.getUserId()), locale);
+							if(_redirectUri!=null)
+								s = s.append("&")
 									.append(OAuth.OAUTH_REDIRECT_URI)
 									.append("=")
-									.append(URLEncoder.encode(_redirectUri, "UTF-8"))
-									.toString();
+									.append(URLEncoder.encode(_redirectUri, "UTF-8"));
+							redirectUri = s.toString();
 							log.info("LENGTH_1==========={}", redirectUri.length());
 						} else {
-							redirectUri = new StringBuilder(250)
+							if(_redirectUri!=null)
+								redirectUri = new StringBuilder(250)
 									.append(_redirectUri)
 									.append("?")
 									.append(OAuth.OAUTH_CODE)
