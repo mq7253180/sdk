@@ -8,11 +8,11 @@ import org.springframework.stereotype.Service;
 
 import com.quincy.auth.dao.ClientSystemRepository;
 import com.quincy.auth.entity.ClientSystem;
-import com.quincy.auth.service.GeneralService;
+import com.quincy.auth.service.OAuth2Service;
 import com.quincy.sdk.annotation.ReadOnly;
 
 @Service
-public class GeneralServiceImpl implements GeneralService {
+public class GeneralServiceImpl implements OAuth2Service {
 	@Autowired
 	private ClientSystemRepository clientSystemRepository;
 

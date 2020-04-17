@@ -2,6 +2,6 @@ package com.quincy.auth.service;
 
 import com.quincy.auth.entity.ClientSystem;
 
-public interface GeneralService {
+public interface OAuth2Service {
 	public ClientSystem findClientSystem(String clientId);
 }

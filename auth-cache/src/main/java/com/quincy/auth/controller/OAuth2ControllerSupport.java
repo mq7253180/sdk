@@ -33,7 +33,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContext;
 
+import com.quincy.auth.entity.ClientSystem;
 import com.quincy.auth.o.OAuth2Info;
+import com.quincy.auth.service.OAuth2Service;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.helper.CommonHelper;
 
@@ -42,7 +44,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequestMapping("/oauth2")
 public abstract class OAuth2ControllerSupport {
-	protected abstract OAuth2Info getOAuth2Info(String clientId, String username, String scope);
+	@Autowired
+	private OAuth2Service oauth2Service;
+	protected abstract OAuth2Info getOAuth2Info(Long clientSystemId, String username, String scope);
 	protected abstract void saveInfo(Long clientSystemId, Long userId, String scope, String authorizationCode);
 	protected abstract ModelAndView signinView(HttpServletRequest request);
 	private final static String ERROR_URI = "/oauth2/error?status=";
@@ -71,34 +75,39 @@ public abstract class OAuth2ControllerSupport {
 				error = OAuthError.CodeResponse.INVALID_REQUEST;
 				errorStatus = 2;
 			} else {
-				OAuth2Info oauth2Info = getOAuth2Info(oauthRequest.getClientId(), username, scpoe);
-				if(oauth2Info.getUserId()==null) {
-					errorResponse = HttpServletResponse.SC_BAD_REQUEST;
-					error = OAuthError.CodeResponse.INVALID_REQUEST;
-					errorStatus = 3;
-				} else if(oauth2Info.getClientSystemId()==null) {
+				ClientSystem clientSystem = oauth2Service.findClientSystem(oauthRequest.getClientId());
+				if(clientSystem==null) {
 					errorResponse = HttpServletResponse.SC_BAD_REQUEST;
 					error = OAuthError.TokenResponse.INVALID_CLIENT;
-					errorStatus = 4;
+					errorStatus = 3;
 				} else {
-					String authorizationCode = CommonHelper.trim(oauth2Info.getAuthorizationCode());
-					if(authorizationCode==null) {
-						errorResponse = HttpServletResponse.SC_UNAUTHORIZED;
-						error = OAuthError.CodeResponse.UNAUTHORIZED_CLIENT;
-						errorStatus = 5;
-						redirectUri = new StringBuilder(100)
-								.append("/oauth2/signin?userId=")
-								.append(oauth2Info.getUserId())
-								.toString();
+					OAuth2Info oauth2Info = getOAuth2Info(clientSystem.getId(), username, scpoe);
+					if(oauth2Info.getUserId()==null) {
+						errorResponse = HttpServletResponse.SC_BAD_REQUEST;
+						error = OAuthError.CodeResponse.INVALID_REQUEST;
+						errorStatus = 4;
 					} else {
-						redirectUri = new StringBuilder(250)
-								.append(CommonHelper.trim(oauthRequest.getParam(OAuth.OAUTH_REDIRECT_URI)))
-								.append("?")
-								.append(OAuth.OAUTH_CODE)
-								.append("=")
-								.append(authorizationCode)
-								.toString();
-						builder = this.buildResponse(request, oauthRequest, isNotJson, authorizationCode);
+						String authorizationCode = CommonHelper.trim(oauth2Info.getAuthorizationCode());
+						if(authorizationCode==null) {
+							errorResponse = HttpServletResponse.SC_UNAUTHORIZED;
+							error = OAuthError.CodeResponse.UNAUTHORIZED_CLIENT;
+							errorStatus = 5;
+							redirectUri = new StringBuilder(100)
+									.append("/oauth2/signin?userId=")
+									.append(oauth2Info.getUserId())
+									.toString();
+							log.info("LENGTH_1==========={}", redirectUri.length());
+						} else {
+							redirectUri = new StringBuilder(250)
+									.append(CommonHelper.trim(oauthRequest.getParam(OAuth.OAUTH_REDIRECT_URI)))
+									.append("?")
+									.append(OAuth.OAUTH_CODE)
+									.append("=")
+									.append(authorizationCode)
+									.toString();
+							log.info("LENGTH_2==========={}", redirectUri.length());
+							builder = this.buildResponse(request, oauthRequest, isNotJson, authorizationCode);
+						}
 					}
 				}
 			}
@@ -122,6 +131,16 @@ public abstract class OAuth2ControllerSupport {
 		}
 		if(redirectUri==null)
 			redirectUri = ERROR_URI+errorStatus;
+		String locale = CommonHelper.trim(request.getParameter(InnerConstants.KEY_LOCALE));
+		if(locale!=null)
+			redirectUri = new StringBuilder(200)
+			.append(redirectUri)
+			.append("&")
+			.append(InnerConstants.KEY_LOCALE)
+			.append("=")
+			.append(locale)
+			.toString();
+		log.info("LENGTH_3==========={}", redirectUri.length());
 		HttpHeaders headers = new HttpHeaders();
 		builder = builder.location(redirectUri);
 		headers.setLocation(new URI(redirectUri));
