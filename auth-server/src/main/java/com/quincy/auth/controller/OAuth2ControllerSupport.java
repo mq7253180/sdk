@@ -52,51 +52,67 @@ public abstract class OAuth2ControllerSupport {
 	private GeneralService generalService;
 	public abstract void saveInfo(String clientId, String scope, String authorizationCode, Long userId);
 	public abstract String getAuthorizationCode(String clientId, String scope, String username);
-	private final static String SIGNIN_URI = "/oauth2/signin";
 
 	@RequestMapping("/code")
 	public Object authorizationCode(HttpServletRequest request) throws OAuthSystemException, URISyntaxException {
+		String clientType = CommonHelper.clientType(request);
+//		String clientType = InnerConstants.CLIENT_TYPE_J;
+		boolean isNotJson = !InnerConstants.CLIENT_TYPE_J.equals(clientType);
 		OAuthResponseBuilder builder = null;
-		String uri = null;
+		String redirectUri = null;
 		try {
 			OAuthAuthzRequest oauthRequest = new OAuthAuthzRequest(request);
 			ClientSystem clientSystem = generalService.findClientSystem(oauthRequest.getClientId());
+			Integer errorResponse = null;
+			String error = null;
+			String errorDescription = null;
+			String authorizationCode = null;
 			if(clientSystem==null) {
-				builder = OAuthASResponse
-						.errorResponse(HttpServletResponse.SC_BAD_REQUEST)
-						.setError(OAuthError.TokenResponse.INVALID_CLIENT)
-						.setErrorDescription("The client platform has not been registered into our platform.");
+				errorResponse = HttpServletResponse.SC_BAD_REQUEST;
+				error = OAuthError.TokenResponse.INVALID_CLIENT;
+				errorDescription = "The client platform has not been registered into our platform.";
+				redirectUri = "/oauth2/error";
 			} else {
-				String authorizationCode = CommonHelper.trim(getAuthorizationCode(null, null, ""));
-				builder = authorizationCode==null?OAuthASResponse
-						.errorResponse(HttpServletResponse.SC_UNAUTHORIZED)
-						.setError(OAuthError.CodeResponse.UNAUTHORIZED_CLIENT)
-						.setErrorDescription("The client platform for this resource has not been authorized by the owner."):this.buildResponse(request, oauthRequest, authorizationCode);
+				authorizationCode = CommonHelper.trim(getAuthorizationCode(null, null, ""));
+				if(authorizationCode==null) {
+					errorResponse = HttpServletResponse.SC_UNAUTHORIZED;
+					error = OAuthError.TokenResponse.UNAUTHORIZED_CLIENT;
+					errorDescription = "The client platform for this resource has not been authorized by the owner.";
+					redirectUri = "/oauth2/signin";
+				} else {
+					redirectUri = CommonHelper.trim(oauthRequest.getParam(OAuth.OAUTH_REDIRECT_URI));
+					builder = this.buildResponse(request, oauthRequest, isNotJson, authorizationCode);
+				}
 			}
-			uri = CommonHelper.trim(oauthRequest.getParam(OAuth.OAUTH_REDIRECT_URI));
+			if(errorResponse!=null)
+				builder = OAuthASResponse
+				.errorResponse(isNotJson?HttpServletResponse.SC_FOUND:errorResponse)
+				.setError(error)
+				.setErrorDescription(errorDescription);
 		} catch(Exception e) {
 			log.error("OAUTH2_ERR_AUTHORIZATION: ", e);
-			builder = OAuthASResponse.errorResponse(HttpServletResponse.SC_BAD_REQUEST);
+			builder = OAuthASResponse.errorResponse(isNotJson?HttpServletResponse.SC_FOUND:HttpServletResponse.SC_BAD_REQUEST);
 			if(e instanceof OAuthProblemException) {
 				OAuthProblemException oauth2E = (OAuthProblemException)e;
 				builder = ((OAuthErrorResponseBuilder)builder).error(oauth2E);
-				uri = CommonHelper.trim(oauth2E.getRedirectUri());
+				redirectUri = CommonHelper.trim(oauth2E.getRedirectUri());
 			} else
 				builder = ((OAuthErrorResponseBuilder)builder).setError(OAuthError.CodeResponse.SERVER_ERROR).setErrorDescription(e.getMessage());
+			if(redirectUri==null)
+				redirectUri = "/oauth2/error";
 		}
 		HttpHeaders headers = new HttpHeaders();
-		if(uri!=null) {
-			builder = builder.location(uri);
-			headers.setLocation(new URI(uri));
+		if(redirectUri!=null) {
+			builder = builder.location(redirectUri);
+			headers.setLocation(new URI(redirectUri));
 		}
-		String clientType = CommonHelper.clientType(request);
-//		String clientType = InnerConstants.CLIENT_TYPE_J;
 		OAuthResponse response = null;
-		if(InnerConstants.CLIENT_TYPE_J.equals(clientType)) {
+		if(isNotJson) {
+			response = builder.buildBodyMessage();
+		} else {
 			response = builder.buildJSONMessage();
 			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
-		} else
-			response = builder.buildBodyMessage();
+		}
 		return new ResponseEntity<>(response.getBody(), headers, HttpStatus.valueOf(response.getResponseStatus()));
 	}
 
@@ -167,12 +183,12 @@ public abstract class OAuth2ControllerSupport {
 		OAuthIssuer oauthIssuer = new OAuthIssuerImpl(new MD5Generator());
 		String authorizationCode = oauthIssuer.authorizationCode();
 		saveInfo(clientId, scope, authorizationCode, userId);
-		return this.buildResponse(request, new OAuthAuthzRequest(request), authorizationCode);
+		return this.buildResponse(request, new OAuthAuthzRequest(request), true, authorizationCode);
 	}
 
-	private OAuthAuthorizationResponseBuilder buildResponse(HttpServletRequest request, OAuthAuthzRequest oauthRequest, String authorizationCode) throws OAuthSystemException {
+	private OAuthAuthorizationResponseBuilder buildResponse(HttpServletRequest request, OAuthAuthzRequest oauthRequest, boolean isNotJson, String authorizationCode) throws OAuthSystemException {
 		return OAuthASResponse
-				.authorizationResponse(request, HttpServletResponse.SC_OK)
+				.authorizationResponse(request, isNotJson?HttpServletResponse.SC_FOUND:HttpServletResponse.SC_OK)
 				.setCode(authorizationCode);
 	}
 }
