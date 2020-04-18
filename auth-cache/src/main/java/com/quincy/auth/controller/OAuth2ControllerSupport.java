@@ -239,14 +239,13 @@ public abstract class OAuth2ControllerSupport {
 				.authorizationResponse(request, isNotJson?HttpServletResponse.SC_FOUND:HttpServletResponse.SC_OK)
 				.setCode(authorizationCode));
 		if(redirectUri!=null) {
-			result.setRedirectUri(new StringBuilder(250)
+			result.setRedirectUri(new StringBuilder(100)//一般长度46
 					.append(redirectUri)
 					.append("?")
 					.append(OAuth.OAUTH_CODE)
 					.append("=")
 					.append(authorizationCode)
 					.toString());
-			log.info("LENGTH_2==========={}", result.getRedirectUri().length());
 		}
 		return result;
 	}
