@@ -51,7 +51,7 @@ public abstract class OAuth2ControllerSupport {
 	private OAuth2Service oauth2Service;
 	protected abstract OAuth2Info getOAuth2Info(Long clientSystemId, String username, String scope);
 	protected abstract void saveOAuth2Info(Long clientSystemId, String username, String scope, String authorizationCode);
-	protected abstract ModelAndView signinView(HttpServletRequest request);
+	protected abstract ModelAndView signinView(HttpServletRequest request, Long userId, String scope);
 	private final static String ERROR_URI = "/oauth2/error?status=";
 	private final static String ERROR_MSG_KEY_PREFIX = "oauth2.error.";
 
@@ -157,14 +157,20 @@ public abstract class OAuth2ControllerSupport {
 						errorResponse = HttpServletResponse.SC_UNAUTHORIZED;
 						error = OAuthError.CodeResponse.UNAUTHORIZED_CLIENT;
 						errorStatus = 12;
-						StringBuilder s = appendLocale(new StringBuilder(100).append("/oauth2/signin?userId=").append(oauth2Info.getUserId()), locale);
+						StringBuilder s = appendLocale(new StringBuilder(150)//一般长度92
+								.append("/oauth2/signin?client_system_id=")
+								.append(clientSystemId)
+								.append("&user_id=")
+								.append(oauth2Info.getUserId())
+								.append("&scope=")
+								.append(scope)
+							, locale);
 						if(_redirectUri!=null)
 							s = s.append("&")
 								.append(OAuth.OAUTH_REDIRECT_URI)
 								.append("=")
 								.append(URLEncoder.encode(_redirectUri, "UTF-8"));
 						redirectUri = s.toString();
-						log.info("LENGTH_1==========={}", redirectUri.length());
 					} else
 						result = buildResponse(request, oauthRequest, isNotJson, authorizationCode, _redirectUri);
 				}
@@ -194,11 +200,17 @@ public abstract class OAuth2ControllerSupport {
 	}
 
 	@RequestMapping("/signin")
-	public ModelAndView signin(HttpServletRequest request) {
-		ModelAndView mv = signinView(request);
+	public ModelAndView signin(HttpServletRequest request, 
+			@RequestParam(required = true, value = "client_system_id")Long clientSystemId, 
+			@RequestParam(required = true, value = "user_id")Long userId, 
+			@RequestParam(required = true, value = OAuth.OAUTH_SCOPE)String scope, 
+			@RequestParam(required = false, value = OAuth.OAUTH_REDIRECT_URI)String redirectUri) {
+		ModelAndView mv = signinView(request, userId, scope);
 		if(mv==null)
 			mv = new ModelAndView("/oauth2_login");
-		return mv;
+		ClientSystem clientSystem = oauth2Service.findClientSystem(clientSystemId);
+		return mv.addObject(OAuth.OAUTH_REDIRECT_URI, redirectUri)
+				.addObject("client", clientSystem);
 	}
 	/**
 	 * 生成授权码

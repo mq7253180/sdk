@@ -1,5 +1,7 @@
 package com.quincy.auth.service.impl;
 
+import java.util.Optional;
+
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.oltu.oauth2.common.OAuth;
@@ -12,7 +14,7 @@ import com.quincy.auth.service.OAuth2Service;
 import com.quincy.sdk.annotation.ReadOnly;
 
 @Service
-public class GeneralServiceImpl implements OAuth2Service {
+public class OAuth2ServiceImpl implements OAuth2Service {
 	@Autowired
 	private ClientSystemRepository clientSystemRepository;
 
@@ -20,6 +22,13 @@ public class GeneralServiceImpl implements OAuth2Service {
 	@Override
 	public ClientSystem findClientSystem(String clientId) {
 		return clientSystemRepository.findByClientId(clientId);
+	}
+
+	@ReadOnly
+	@Override
+	public ClientSystem findClientSystem(Long id) {
+		Optional<ClientSystem> o = clientSystemRepository.findById(id);
+		return o.isPresent()?o.get():null;
 	}
 
 	public static void main(String[] args) {
