@@ -30,6 +30,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
@@ -158,15 +159,15 @@ public abstract class OAuth2ControllerSupport {
 						error = OAuthError.CodeResponse.UNAUTHORIZED_CLIENT;
 						errorStatus = 12;
 						StringBuilder s = appendLocale(new StringBuilder(150)//一般长度92
-								.append("/oauth2/signin?client_system_id=")
+								.append("/oauth2/signin/")
 								.append(clientSystemId)
-								.append("&user_id=")
+								.append("/")
 								.append(oauth2Info.getUserId())
-								.append("&scope=")
+								.append("/")
 								.append(scope)
 							, locale);
 						if(_redirectUri!=null)
-							s = s.append("&")
+							s = s.append(s.indexOf("?")<0?"?":"&")
 								.append(OAuth.OAUTH_REDIRECT_URI)
 								.append("=")
 								.append(URLEncoder.encode(_redirectUri, "UTF-8"));
@@ -188,7 +189,7 @@ public abstract class OAuth2ControllerSupport {
 	}
 
 	private static StringBuilder appendLocale(StringBuilder s, String locale) {
-		return locale==null?s:s.append("&")
+		return locale==null?s:s.append(s.indexOf("?")<0?"?":"&")
 				.append(InnerConstants.KEY_LOCALE)
 				.append("=")
 				.append(locale);
@@ -199,11 +200,11 @@ public abstract class OAuth2ControllerSupport {
 		return new ModelAndView("/oauth2_error").addObject("msg", new RequestContext(request).getMessage(ERROR_MSG_KEY_PREFIX+status));
 	}
 
-	@RequestMapping("/signin")
+	@RequestMapping("/signin/{client_system_id}/{user_id}/{"+OAuth.OAUTH_SCOPE+"}")
 	public ModelAndView signin(HttpServletRequest request, 
-			@RequestParam(required = true, value = "client_system_id")Long clientSystemId, 
-			@RequestParam(required = true, value = "user_id")Long userId, 
-			@RequestParam(required = true, value = OAuth.OAUTH_SCOPE)String scope, 
+			@PathVariable(required = true, value = "client_system_id")Long clientSystemId, 
+			@PathVariable(required = true, value = "user_id")Long userId, 
+			@PathVariable(required = true, value = OAuth.OAUTH_SCOPE)String scope, 
 			@RequestParam(required = false, value = OAuth.OAUTH_REDIRECT_URI)String redirectUri) {
 		ModelAndView mv = signinView(request, userId, scope);
 		if(mv==null)
