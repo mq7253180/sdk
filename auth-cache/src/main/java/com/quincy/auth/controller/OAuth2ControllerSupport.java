@@ -98,15 +98,16 @@ public abstract class OAuth2ControllerSupport {
 							redirectUri = s.toString();
 							log.info("LENGTH_1==========={}", redirectUri.length());
 						} else {
-							if(_redirectUri!=null)
+							if(_redirectUri!=null) {
 								redirectUri = new StringBuilder(250)
-									.append(_redirectUri)
-									.append("?")
-									.append(OAuth.OAUTH_CODE)
-									.append("=")
-									.append(authorizationCode)
-									.toString();
-							log.info("LENGTH_2==========={}", redirectUri.length());
+										.append(_redirectUri)
+										.append("?")
+										.append(OAuth.OAUTH_CODE)
+										.append("=")
+										.append(authorizationCode)
+										.toString();
+								log.info("LENGTH_2==========={}", redirectUri.length());
+							}
 							builder = this.buildResponse(request, oauthRequest, isNotJson, authorizationCode);
 						}
 					}
@@ -130,18 +131,20 @@ public abstract class OAuth2ControllerSupport {
 				errorStatus = 8;
 			}
 		}
-		if(redirectUri==null)
-			redirectUri = this.appendLocale(new StringBuilder(100).append(ERROR_URI).append(errorStatus), locale).toString();
-		HttpHeaders headers = new HttpHeaders();
-		builder = builder.location(redirectUri);
-		headers.setLocation(new URI(redirectUri));
 		OAuthResponse response = null;
+		HttpHeaders headers = new HttpHeaders();
 		if(isNotJson) {
 			response = builder.buildBodyMessage();
+			if(redirectUri==null) {
+				redirectUri = this.appendLocale(new StringBuilder(100).append(ERROR_URI).append(errorStatus), locale).toString();
+				builder = builder.location(redirectUri);
+			}
 		} else {
 			response = builder.buildJSONMessage();
 			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
 		}
+		if(redirectUri!=null)
+			headers.setLocation(new URI(redirectUri));
 		return new ResponseEntity<>(response.getBody(), headers, HttpStatus.valueOf(response.getResponseStatus()));
 	}
 
