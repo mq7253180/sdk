@@ -4,6 +4,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.util.List;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -12,6 +14,7 @@ import org.apache.oltu.oauth2.as.issuer.MD5Generator;
 import org.apache.oltu.oauth2.as.issuer.OAuthIssuer;
 import org.apache.oltu.oauth2.as.issuer.OAuthIssuerImpl;
 import org.apache.oltu.oauth2.as.request.OAuthAuthzRequest;
+import org.apache.oltu.oauth2.as.request.OAuthRequest;
 import org.apache.oltu.oauth2.as.request.OAuthTokenRequest;
 import org.apache.oltu.oauth2.as.response.OAuthASResponse;
 import org.apache.oltu.oauth2.as.response.OAuthASResponse.OAuthAuthorizationResponseBuilder;
@@ -50,12 +53,14 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class OAuth2ControllerSupport {
 	@Autowired
 	private OAuth2Service oauth2Service;
-	protected abstract OAuth2Info getOAuth2Info(Long clientSystemId, String username, String scope);
-	protected abstract String saveOAuth2Info(Long clientSystemId, String username, String scope);
-	protected abstract String saveOAuth2Info(String oauth2Id, String authorizationCode);
-	protected abstract ModelAndView signinView(HttpServletRequest request, String oauth2Id);
+	protected abstract OAuth2Info getOAuth2Info(Long clientSystemId, String username);
+	protected abstract String saveOAuth2Info(Long clientSystemId, Long userId, String authorizationCode);
+	protected abstract List<String> notAuthorizedScopes(String codeId, Set<String> scopes);
+	protected abstract ModelAndView signinView(HttpServletRequest request, String codeId, String scopes);
 	private final static String ERROR_URI = "/oauth2/error?status=";
 	private final static String ERROR_MSG_KEY_PREFIX = "oauth2.error.";
+	private final static int REQ_CASE_CODE = 0;
+	private final static int REQ_CASE_TOKEN = 1;
 
 	@Data
 	private static class XxxResult {
@@ -67,10 +72,11 @@ public abstract class OAuth2ControllerSupport {
 	}
 
 	private interface Customization {
-		public XxxResult doXXX(String redirectUri, boolean isNotJson, String locale, Long clientSystemId, String username, String scope) throws OAuthSystemException, UnsupportedEncodingException;
+		public XxxResult authorize(String redirectUri, boolean isNotJson, String locale, Long clientSystemId, String username, Set<String> scopesSet, String scopesStr) throws OAuthSystemException, UnsupportedEncodingException;
+		public XxxResult grant(String redirectUri, boolean isNotJson, String locale, String clientId, String authorizationCode) throws OAuthSystemException;
 	}
 
-	private ResponseEntity<?> doTemplate(HttpServletRequest request, Customization c) throws URISyntaxException, OAuthSystemException {
+	private ResponseEntity<?> doTemplate(HttpServletRequest request, Customization c, int reqCase) throws URISyntaxException, OAuthSystemException {
 		String clientType = CommonHelper.clientType(request);
 //		String clientType = InnerConstants.CLIENT_TYPE_J;
 		boolean isNotJson = !InnerConstants.CLIENT_TYPE_J.equals(clientType);
@@ -79,29 +85,37 @@ public abstract class OAuth2ControllerSupport {
 		String redirectUri = null;
 		Integer errorStatus = null;
 		try {
-			OAuthAuthzRequest oauthRequest = new OAuthAuthzRequest(request);
-			String username = CommonHelper.trim(oauthRequest.getParam(OAuth.OAUTH_USERNAME));
-			String scope = CommonHelper.trim(oauthRequest.getParam(OAuth.OAUTH_SCOPE));
-			String _redirectUri = CommonHelper.trim(oauthRequest.getParam(OAuth.OAUTH_REDIRECT_URI));
 			Integer errorResponse = HttpServletResponse.SC_BAD_REQUEST;
 			String error = OAuthError.CodeResponse.INVALID_REQUEST;
-			if(username==null) {
+			OAuthRequest oauthRequest = null;
+			String _redirectUri = CommonHelper.trim(request.getParameter(OAuth.OAUTH_REDIRECT_URI));
+			if(isNotJson&&_redirectUri==null) {
 				errorStatus = 1;
-			} else if(scope==null) {
-				errorStatus = 2;
-			} else if(isNotJson&&_redirectUri==null) {
-				errorStatus = 3;
 			} else {
-				ClientSystem clientSystem = oauth2Service.findClientSystem(oauthRequest.getClientId());
-				if(clientSystem==null) {
-					errorStatus = 4;
+				if(reqCase==REQ_CASE_CODE) {
+					oauthRequest = new OAuthAuthzRequest(request);
+					String username = CommonHelper.trim(oauthRequest.getParam(OAuth.OAUTH_USERNAME));
+					Set<String> scopes = oauthRequest.getScopes();
+					if(username==null) {
+						errorStatus = 2;
+					} else if(scopes==null||scopes.size()==0) {
+						errorStatus = 3;
+					} else {
+						ClientSystem clientSystem = oauth2Service.findClientSystem(oauthRequest.getClientId());
+						if(clientSystem==null) {
+							errorStatus = 4;
+						} else {
+							XxxResult result = c.authorize(_redirectUri, isNotJson, locale, clientSystem.getId(), username, scopes, oauthRequest.getParam(OAuth.OAUTH_SCOPE));
+							errorResponse = result.getErrorResponse();
+							error = result.getError();
+							errorStatus = result.getErrorStatus();
+							redirectUri = result.getRedirectUri();
+							builder =  result.getBuilder();
+						}
+					}
 				} else {
-					XxxResult result = c.doXXX(_redirectUri, isNotJson, locale, clientSystem.getId(), username, scope);
-					errorResponse = result.getErrorResponse();
-					error = result.getError();
-					errorStatus = result.getErrorStatus();
-					redirectUri = result.getRedirectUri();
-					builder =  result.getBuilder();
+					oauthRequest = new OAuthTokenRequest(request);
+//					c.grant(redirectUri, isNotJson, locale, clientId, authorizationCode);
 				}
 			}
 			if(builder==null)
@@ -143,26 +157,36 @@ public abstract class OAuth2ControllerSupport {
 	public ResponseEntity<?> authorizationCode(HttpServletRequest request) throws OAuthSystemException, URISyntaxException {
 		return this.doTemplate(request, new Customization() {
 			@Override
-			public XxxResult doXXX(String _redirectUri, boolean isNotJson, String locale, Long clientSystemId, String username, String scope) throws OAuthSystemException, UnsupportedEncodingException {
+			public XxxResult authorize(String _redirectUri, boolean isNotJson, String locale, Long clientSystemId, String username, Set<String> scopesSet, String scopesStr) throws OAuthSystemException, UnsupportedEncodingException {
 				Integer errorStatus = null;
 				Integer errorResponse = null;
 				String error = null;
 				String redirectUri = null;
 				OAuthResponseBuilder builder = null;
-				OAuth2Info oauth2Info = getOAuth2Info(clientSystemId, username, scope);
 				XxxResult result = null;
+				OAuth2Info oauth2Info = getOAuth2Info(clientSystemId, username);
 				if(oauth2Info.getUserId()==null) {
 					errorStatus = 11;
 				} else {
+					String codeId = CommonHelper.trim(oauth2Info.getId());
 					String authorizationCode = CommonHelper.trim(oauth2Info.getAuthorizationCode());
 					if(authorizationCode==null) {
+						OAuthIssuer oauthIssuer = new OAuthIssuerImpl(new MD5Generator());
+						authorizationCode = oauthIssuer.authorizationCode();
+						codeId = saveOAuth2Info(clientSystemId, oauth2Info.getUserId(), authorizationCode);
+					}
+					List<String> notAuthorizedScopes = notAuthorizedScopes(codeId, scopesSet);
+					if(notAuthorizedScopes!=null&&notAuthorizedScopes.size()>0) {
 						errorResponse = HttpServletResponse.SC_UNAUTHORIZED;
 						error = OAuthError.CodeResponse.UNAUTHORIZED_CLIENT;
 						errorStatus = 12;
-						String oauth2Id = saveOAuth2Info(clientSystemId, username, scope);
 						StringBuilder s = appendLocale(new StringBuilder(150)//一般长度92
 								.append("/oauth2/signin/")
-								.append(oauth2Id)
+								.append(codeId)
+								.append("?")
+								.append(OAuth.OAUTH_SCOPE)
+								.append("=")
+								.append(scopesStr)
 							, locale);
 						if(_redirectUri!=null)
 							s = s.append(s.indexOf("?")<0?"?":"&")
@@ -171,7 +195,7 @@ public abstract class OAuth2ControllerSupport {
 								.append(URLEncoder.encode(_redirectUri, "UTF-8"));
 						redirectUri = s.toString();
 					} else
-						result = buildResponse(request, isNotJson, authorizationCode, _redirectUri);
+						result = buildResponse(request, isNotJson, _redirectUri, authorizationCode, REQ_CASE_CODE);
 				}
 				if(result==null) {
 					result = new XxxResult();
@@ -183,7 +207,13 @@ public abstract class OAuth2ControllerSupport {
 				result.setErrorStatus(errorStatus);
 				return result;
 			}
-		});
+
+			@Override
+			public XxxResult grant(String redirectUri, boolean isNotJson, String locale, String clientId,
+					String authorizationCode) {
+				return null;
+			}
+		}, REQ_CASE_CODE);
 	}
 
 	private static StringBuilder appendLocale(StringBuilder s, String locale) {
@@ -198,26 +228,24 @@ public abstract class OAuth2ControllerSupport {
 		return new ModelAndView("/oauth2_error").addObject("msg", new RequestContext(request).getMessage(ERROR_MSG_KEY_PREFIX+status));
 	}
 
-	@RequestMapping("/signin/{oauth2_id}")
+	@RequestMapping("/signin/{code_id}")
 	public ModelAndView signin(HttpServletRequest request, 
-			@PathVariable(required = true, value = "oauth2_id")String oauth2Id, 
+			@PathVariable(required = true, value = "code_id")String codeId, 
+			@RequestParam(required = true, value = "scope")String scopes, 
 			@RequestParam(required = false, value = OAuth.OAUTH_REDIRECT_URI)String redirectUri) {
-		ModelAndView mv = signinView(request, oauth2Id);
+		ModelAndView mv = signinView(request, codeId, scopes);
 		if(mv==null)
 			mv = new ModelAndView("/oauth2_login");
-		return mv.addObject("oauth2Id", oauth2Id).addObject(OAuth.OAUTH_REDIRECT_URI, redirectUri);
+		return mv.addObject("codeId", codeId)
+				.addObject(OAuth.OAUTH_SCOPE, scopes)
+				.addObject(OAuth.OAUTH_REDIRECT_URI, redirectUri);
 	}
-	/**
-	 * 生成授权码
-	 */
-	protected ResponseEntity<?> generateAuthorizationCode(HttpServletRequest request, String oauth2Id) throws URISyntaxException, OAuthSystemException {
-		OAuthIssuer oauthIssuer = new OAuthIssuerImpl(new MD5Generator());
-		String authorizationCode = oauthIssuer.authorizationCode();
-		saveOAuth2Info(oauth2Id, authorizationCode);
+
+	protected ResponseEntity<?> buildResponse(HttpServletRequest request, String authorizationCode) throws URISyntaxException, OAuthSystemException {
 		String clientType = CommonHelper.clientType(request);
 //		String clientType = InnerConstants.CLIENT_TYPE_J;
 		boolean isNotJson = !InnerConstants.CLIENT_TYPE_J.equals(clientType);
-		XxxResult result =  buildResponse(request, isNotJson, authorizationCode, CommonHelper.trim(request.getParameter(OAuth.OAUTH_REDIRECT_URI)));
+		XxxResult result =  buildResponse(request, isNotJson, CommonHelper.trim(request.getParameter(OAuth.OAUTH_REDIRECT_URI)), authorizationCode, REQ_CASE_CODE);
 		OAuthResponseBuilder builder = result.getBuilder();
 		String redirectUri = result.getRedirectUri();
 		OAuthResponse response = null;
@@ -233,11 +261,14 @@ public abstract class OAuth2ControllerSupport {
 		return new ResponseEntity<>(response.getBody(), headers, HttpStatus.valueOf(response.getResponseStatus()));
 	}
 
-	private static XxxResult buildResponse(HttpServletRequest request, boolean isNotJson, String authorizationCode, String redirectUri) throws OAuthSystemException {
+	private static XxxResult buildResponse(HttpServletRequest request, boolean isNotJson, String redirectUri, String authorizationCode, int reqCase) throws OAuthSystemException {
 		XxxResult result = new XxxResult();
-		result.setBuilder(OAuthASResponse
+		result.setBuilder(reqCase==REQ_CASE_CODE?OAuthASResponse
 				.authorizationResponse(request, isNotJson?HttpServletResponse.SC_FOUND:HttpServletResponse.SC_OK)
-				.setCode(authorizationCode));
+				.setCode(authorizationCode):OAuthASResponse.tokenResponse(isNotJson?HttpServletResponse.SC_FOUND:HttpServletResponse.SC_OK)
+				.setAccessToken(null)
+				.setRefreshToken(null)
+				.setExpiresIn(null));
 		if(redirectUri!=null) {
 			result.setRedirectUri(new StringBuilder(100)//一般长度46
 					.append(redirectUri)
@@ -250,8 +281,26 @@ public abstract class OAuth2ControllerSupport {
 		return result;
 	}
 
-	/*@RequestMapping("/token")
-	public Object accessToken(HttpServletRequest request) {
+	@RequestMapping("/token")
+	public Object accessToken(HttpServletRequest request) throws URISyntaxException, OAuthSystemException {
+		return this.doTemplate(request, new Customization() {
+			@Override
+			public XxxResult grant(String redirectUri, boolean isNotJson, String locale, String clientId,
+					String authorizationCode) throws OAuthSystemException {
+				OAuthIssuer oauthIssuer = new OAuthIssuerImpl(new MD5Generator());
+				String accessToken = oauthIssuer.accessToken();
+				return null;
+			}
+
+			@Override
+			public XxxResult authorize(String redirectUri, boolean isNotJson, String locale, Long clientSystemId,
+					String username, Set<String> scopesSet, String scopesStr)
+					throws OAuthSystemException, UnsupportedEncodingException {
+				// TODO Auto-generated method stub
+				return null;
+			}
+		}, REQ_CASE_TOKEN);
+		/*
 		OAuthResponse response = null;
 		try {
 			OAuthTokenRequest oauthRequest = new OAuthTokenRequest(request);
@@ -288,15 +337,10 @@ public abstract class OAuth2ControllerSupport {
 					return new ResponseEntity<>(response.getBody(), HttpStatus.valueOf(response.getResponseStatus()));
 				}
 			}
-			//生成Access Token
-			OAuthIssuer oauthIssuer = new OAuthIssuerImpl(new MD5Generator());
-			final String accessToken = oauthIssuer.accessToken();
+			
 			oAuthService.addAccessToken(accessToken, oAuthService.getUsernameByAuthCode(authCode));
 			//生成OAuth响应
-			OAuthResponse response = OAuthASResponse
-					.tokenResponse(HttpServletResponse.SC_OK)
-					.setAccessToken(accessToken)
-					.setExpiresIn(String.valueOf(oAuthService.getExpireIn()))
+			OAuthResponse response = 
 					.buildJSONMessage();
 			return new ResponseEntity<>(response.getBody(), HttpStatus.valueOf(response.getResponseStatus()));
 		} catch(OAuthProblemException e) {
@@ -304,5 +348,6 @@ public abstract class OAuth2ControllerSupport {
 			OAuthResponse res = OAuthASResponse.errorResponse(HttpServletResponse.SC_BAD_REQUEST).error(e).buildJSONMessage();
 			return new ResponseEntity<>(res.getBody(), HttpStatus.valueOf(res.getResponseStatus()));
 		}
-	}*/
+		*/
+	}
 }
