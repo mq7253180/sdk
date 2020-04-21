@@ -89,18 +89,18 @@ public abstract class OAuth2ControllerSupport {
 			if(isNotJson&&_redirectUri==null) {
 				errorStatus = 1;
 			} else {
-				if(reqCase==REQ_CASE_CODE) {
-					oauthRequest = new OAuthAuthzRequest(request);
-					String username = CommonHelper.trim(oauthRequest.getParam(OAuth.OAUTH_USERNAME));
-					Set<String> scopes = oauthRequest.getScopes();
-					if(username==null) {
-						errorStatus = 2;
-					} else if(scopes==null||scopes.size()==0) {
-						errorStatus = 3;
-					} else {
-						ClientSystem clientSystem = oauth2Service.findClientSystem(oauthRequest.getClientId());
-						if(clientSystem==null) {
-							errorStatus = 4;
+				oauthRequest = reqCase==REQ_CASE_CODE?new OAuthAuthzRequest(request):new OAuthTokenRequest(request);
+				ClientSystem clientSystem = oauth2Service.findClientSystem(oauthRequest.getClientId());
+				if(clientSystem==null) {
+					errorStatus = 2;
+				} else {
+					if(reqCase==REQ_CASE_CODE) {
+						String username = CommonHelper.trim(oauthRequest.getParam(OAuth.OAUTH_USERNAME));
+						Set<String> scopes = oauthRequest.getScopes();
+						if(username==null) {
+							errorStatus = 5;
+						} else if(scopes==null||scopes.size()==0) {
+							errorStatus = 6;
 						} else {
 							XxxResult result = c.authorize(_redirectUri, isNotJson, locale, clientSystem.getId(), username, scopes, oauthRequest.getParam(OAuth.OAUTH_SCOPE));
 							errorResponse = result.getErrorResponse();
@@ -109,10 +109,10 @@ public abstract class OAuth2ControllerSupport {
 							redirectUri = result.getRedirectUri();
 							builder =  result.getBuilder();
 						}
+					} else {
+						oauthRequest = new OAuthTokenRequest(request);
+//						c.grant(redirectUri, isNotJson, locale, clientId, authorizationCode);
 					}
-				} else {
-					oauthRequest = new OAuthTokenRequest(request);
-//					c.grant(redirectUri, isNotJson, locale, clientId, authorizationCode);
 				}
 			}
 			if(builder==null)
@@ -127,10 +127,10 @@ public abstract class OAuth2ControllerSupport {
 				OAuthProblemException oauth2E = (OAuthProblemException)e;
 				builder = ((OAuthErrorResponseBuilder)builder).error(oauth2E);
 				redirectUri = CommonHelper.trim(oauth2E.getRedirectUri());
-				errorStatus = 5;
+				errorStatus = 3;
 			} else {
 				builder = ((OAuthErrorResponseBuilder)builder).setError(OAuthError.CodeResponse.SERVER_ERROR).setErrorDescription(e.getMessage());
-				errorStatus = 6;
+				errorStatus = 4;
 			}
 		}
 		OAuthResponse response = null;
@@ -163,7 +163,7 @@ public abstract class OAuth2ControllerSupport {
 				XxxResult result = null;
 				OAuth2Info oauth2Info = getOAuth2Info(clientSystemId, username);
 				if(oauth2Info.getUserId()==null) {
-					errorStatus = 11;
+					errorStatus = 7;
 				} else {
 					String codeId = CommonHelper.trim(oauth2Info.getId());
 					String authorizationCode = CommonHelper.trim(oauth2Info.getAuthorizationCode());
@@ -176,7 +176,7 @@ public abstract class OAuth2ControllerSupport {
 					if(notAuthorizedScopes!=null&&notAuthorizedScopes.size()>0) {
 						errorResponse = HttpServletResponse.SC_UNAUTHORIZED;
 						error = OAuthError.CodeResponse.UNAUTHORIZED_CLIENT;
-						errorStatus = 12;
+						errorStatus = 8;
 						StringBuilder s = appendLocale(new StringBuilder(150)//一般长度92
 								.append("/oauth2/signin/")
 								.append(codeId)
