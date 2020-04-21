@@ -5,10 +5,9 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class OAuth2Info {
-	private String id;
-	private Long userId;
+public class Oauth2TokenInfo {
 	private String clientId;
-	private String authorizationCode;
+	private Long userId;
 	private List<String> scopes;
+	private Long validBefore;
 }

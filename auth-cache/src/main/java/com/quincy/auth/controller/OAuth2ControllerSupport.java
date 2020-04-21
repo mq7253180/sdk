@@ -1,8 +1,15 @@
 package com.quincy.auth.controller;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
 import java.util.List;
 import java.util.Set;
 
@@ -34,11 +41,17 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContext;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.quincy.auth.entity.ClientSystem;
 import com.quincy.auth.o.OAuth2Info;
+import com.quincy.auth.o.Oauth2Token;
+import com.quincy.auth.o.Oauth2TokenInfo;
 import com.quincy.auth.service.OAuth2Service;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.helper.CommonHelper;
+import com.quincy.sdk.helper.RSASecurityHelper;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -49,10 +62,12 @@ public abstract class OAuth2ControllerSupport {
 	@Autowired
 	private OAuth2Service oauth2Service;
 	protected abstract OAuth2Info getOAuth2Info(Long clientSystemId, String username);
+	protected abstract OAuth2Info getOAuth2Info(String authorizationCode);
 	protected abstract String saveOAuth2Info(Long clientSystemId, Long userId, String authorizationCode);
 	protected abstract List<String> notAuthorizedScopes(String codeId, Set<String> scopes);
 	protected abstract ModelAndView signinView(HttpServletRequest request, String codeId, String scopes);
-	protected abstract int accessTokenExpireSeconds();
+	protected abstract long accessTokenExpireMillis();
+	protected abstract int refreshTokenExpireDays();
 	protected abstract boolean authenticateSecret(String inputed, String dbStored);
 	private final static String ERROR_URI = "/oauth2/error?status=";
 	private final static String ERROR_MSG_KEY_PREFIX = "oauth2.error.";
@@ -70,7 +85,7 @@ public abstract class OAuth2ControllerSupport {
 
 	private interface Customization {
 		public XxxResult authorize(OAuthRequest oauthRequest, String redirectUri, boolean isNotJson, String locale, String state, Long clientSystemId) throws OAuthSystemException, UnsupportedEncodingException;
-		public XxxResult grant(String redirectUri, boolean isNotJson, String locale, String state, String clientId, String authorizationCode) throws OAuthSystemException;
+		public XxxResult grant(String redirectUri, boolean isNotJson, String locale, String state, String clientId, String authorizationCode) throws OAuthSystemException, InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, IOException;
 	}
 
 	private ResponseEntity<?> doTemplate(HttpServletRequest request, Customization c, int reqCase) throws URISyntaxException, OAuthSystemException {
@@ -278,38 +293,68 @@ public abstract class OAuth2ControllerSupport {
 		return result;
 	}
 
+	@Autowired
+	private PrivateKey privateKey;
+
 	@RequestMapping("/token")
 	public Object accessToken(HttpServletRequest request) throws URISyntaxException, OAuthSystemException {
 		return this.doTemplate(request, new Customization() {
 			@Override
 			public XxxResult grant(String redirectUri, boolean isNotJson, String locale, String state, String clientId,
-					String authorizationCode) throws OAuthSystemException {
-				OAuthIssuer oauthIssuer = new OAuthIssuerImpl(new MD5Generator());
-				String accessToken = oauthIssuer.accessToken();
-				String refreshToken = oauthIssuer.refreshToken();
+					String authorizationCode) throws OAuthSystemException, InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, IOException {
 				XxxResult result = new XxxResult();
-				result.setBuilder(OAuthASResponse
-						.tokenResponse(isNotJson?HttpServletResponse.SC_FOUND:HttpServletResponse.SC_OK)
-						.setAccessToken(accessToken)
-						.setRefreshToken(refreshToken)
-						.setExpiresIn(String.valueOf(accessTokenExpireSeconds()))
-					);
-				if(redirectUri!=null)
-					result.setRedirectUri(appendParam(new StringBuilder(100)//一般长度46
-							.append(redirectUri)
-							.append("?")
-							.append(OAuth.OAUTH_ACCESS_TOKEN)
-							.append("=")
-							.append(accessToken)
-							.append("&")
-							.append(OAuth.OAUTH_REFRESH_TOKEN)
-							.append("=")
-							.append(refreshToken)
-							.append("&")
-							.append(OAuth.OAUTH_EXPIRES_IN)
-							.append("=")
-							.append(accessTokenExpireSeconds())
-						, OAuth.OAUTH_STATE, state).toString());
+				OAuth2Info info = getOAuth2Info(authorizationCode);
+				if(!clientId.equals(info.getClientId())) {
+					result.setErrorResponse(HttpServletResponse.SC_BAD_REQUEST);
+					result.setError(OAuthError.CodeResponse.INVALID_REQUEST);
+					result.setErrorStatus(10);
+				} else {
+					ObjectMapper mapper = new ObjectMapper();
+					mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+					mapper.setSerializationInclusion(Include.NON_NULL);
+					long currentTimeMillis = System.currentTimeMillis();
+					Oauth2TokenInfo tokenInfo = new Oauth2TokenInfo();
+					tokenInfo.setClientId(clientId);
+					tokenInfo.setUserId(info.getUserId());
+					tokenInfo.setScopes(info.getScopes());
+					tokenInfo.setValidBefore(currentTimeMillis+accessTokenExpireMillis());
+					String json = mapper.writeValueAsString(tokenInfo);
+					String signature = RSASecurityHelper.sign(privateKey, RSASecurityHelper.SIGNATURE_ALGORITHMS_SHA1_RSA, "UTF-8", json);
+					Oauth2Token token = new Oauth2Token();
+					token.setInfo(tokenInfo);
+					token.setSignature(signature);
+					json = mapper.writeValueAsString(token);
+					String accessToken = Base64.getEncoder().encodeToString(json.getBytes());
+
+					tokenInfo.setValidBefore(currentTimeMillis+(refreshTokenExpireDays()*24*3600*1000));
+					json = mapper.writeValueAsString(tokenInfo);
+					signature = RSASecurityHelper.sign(privateKey, RSASecurityHelper.SIGNATURE_ALGORITHMS_SHA1_RSA, "UTF-8", json);
+					token.setSignature(signature);
+					json = mapper.writeValueAsString(token);
+					String refreshToken = Base64.getEncoder().encodeToString(json.getBytes());
+					result.setBuilder(OAuthASResponse
+							.tokenResponse(isNotJson?HttpServletResponse.SC_FOUND:HttpServletResponse.SC_OK)
+							.setAccessToken(accessToken)
+							.setRefreshToken(refreshToken)
+							.setExpiresIn(String.valueOf(accessTokenExpireMillis()))
+						);
+					if(redirectUri!=null)
+						result.setRedirectUri(appendParam(new StringBuilder(100)//一般长度46
+								.append(redirectUri)
+								.append("?")
+								.append(OAuth.OAUTH_ACCESS_TOKEN)
+								.append("=")
+								.append(accessToken)
+								.append("&")
+								.append(OAuth.OAUTH_REFRESH_TOKEN)
+								.append("=")
+								.append(refreshToken)
+								.append("&")
+								.append(OAuth.OAUTH_EXPIRES_IN)
+								.append("=")
+								.append(accessTokenExpireMillis())
+							, OAuth.OAUTH_STATE, state).toString());
+				}
 				return result;
 			}
 
