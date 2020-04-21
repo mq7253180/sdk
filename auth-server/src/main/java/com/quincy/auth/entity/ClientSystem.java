@@ -27,6 +27,6 @@ public class ClientSystem implements Serializable {
 	private String name;
 	@Column(name="client_id")
 	private String clientId;
-	@Column(name="private_key")
-	private String privateKey;
+	@Column(name="secret")
+	private String secret;
 }

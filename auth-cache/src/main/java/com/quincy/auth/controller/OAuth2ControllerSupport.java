@@ -54,6 +54,7 @@ public abstract class OAuth2ControllerSupport {
 	protected abstract List<String> notAuthorizedScopes(String codeId, Set<String> scopes);
 	protected abstract ModelAndView signinView(HttpServletRequest request, String codeId, String scopes);
 	protected abstract int accessTokenExpireSeconds();
+	protected abstract boolean authenticateSecret(String inputed, String dbStored);
 	private final static String ERROR_URI = "/oauth2/error?status=";
 	private final static String ERROR_MSG_KEY_PREFIX = "oauth2.error.";
 	private final static int REQ_CASE_CODE = 0;
@@ -94,12 +95,22 @@ public abstract class OAuth2ControllerSupport {
 				if(clientSystem==null) {
 					errorStatus = 2;
 				} else {
-					XxxResult result = reqCase==REQ_CASE_CODE?c.authorize(_redirectUri, isNotJson, locale, clientSystem.getId(), oauthRequest):c.grant(redirectUri, isNotJson, locale, null, null);
-					errorResponse = result.getErrorResponse();
-					error = result.getError();
-					errorStatus = result.getErrorStatus();
-					redirectUri = result.getRedirectUri();
-					builder =  result.getBuilder();
+					String _secret = CommonHelper.trim(oauthRequest.getClientSecret());
+					if(_secret==null) {
+						errorStatus = 3;
+					} else {
+						String secret = CommonHelper.trim(clientSystem.getSecret());
+						if(!this.authenticateSecret(_secret, secret)) {
+							errorStatus = 3;
+						} else {
+							XxxResult result = reqCase==REQ_CASE_CODE?c.authorize(_redirectUri, isNotJson, locale, clientSystem.getId(), oauthRequest):c.grant(redirectUri, isNotJson, locale, null, null);
+							errorResponse = result.getErrorResponse();
+							error = result.getError();
+							errorStatus = result.getErrorStatus();
+							redirectUri = result.getRedirectUri();
+							builder =  result.getBuilder();
+						}
+					}
 				}
 			}
 			if(builder==null)
