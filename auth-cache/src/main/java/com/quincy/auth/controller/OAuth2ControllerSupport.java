@@ -79,6 +79,7 @@ public abstract class OAuth2ControllerSupport {
 //		String clientType = InnerConstants.CLIENT_TYPE_J;
 		boolean isNotJson = !InnerConstants.CLIENT_TYPE_J.equals(clientType);
 		String locale = CommonHelper.trim(request.getParameter(InnerConstants.KEY_LOCALE));
+		String state = CommonHelper.trim(request.getParameter(OAuth.OAUTH_STATE));
 		OAuthResponseBuilder builder = null;
 		String redirectUri = null;
 		Integer errorStatus = null;
@@ -103,6 +104,11 @@ public abstract class OAuth2ControllerSupport {
 						if(!this.authenticateSecret(_secret, secret)) {
 							errorStatus = 3;
 						} else {
+							if(state!=null&&_redirectUri!=null)
+								_redirectUri = new StringBuilder().append(_redirectUri.indexOf("?")<0?"?":"&")
+										.append(OAuth.OAUTH_STATE)
+										.append("=")
+										.append(state).toString();
 							XxxResult result = reqCase==REQ_CASE_CODE?c.authorize(_redirectUri, isNotJson, locale, clientSystem.getId(), oauthRequest):c.grant(redirectUri, isNotJson, locale, null, null);
 							errorResponse = result.getErrorResponse();
 							error = result.getError();
@@ -131,6 +137,8 @@ public abstract class OAuth2ControllerSupport {
 				errorStatus = 5;
 			}
 		}
+		if(state!=null)
+			builder.setParam(OAuth.OAUTH_STATE, state);
 		OAuthResponse response = null;
 		HttpHeaders headers = new HttpHeaders();
 		if(isNotJson) {
