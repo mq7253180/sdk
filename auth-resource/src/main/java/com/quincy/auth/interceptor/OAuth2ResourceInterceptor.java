@@ -105,7 +105,6 @@ public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 						builder = OAuthRSResponse
 								.errorResponse(isNotJson?HttpServletResponse.SC_FOUND:HttpServletResponse.SC_FORBIDDEN)
 								.setError(error)
-								.setErrorUri(errorUri)
 								.setErrorDescription(new RequestContext(request).getMessage(OAuth2ResourceConstants.RESOURCE_ERROR_MSG_KEY_PREFIX+errorStatus));
 				} catch(Exception e) {
 					log.error("OAUTH2_ERR_AUTHORIZATION: ", e);
@@ -128,7 +127,7 @@ public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 					if(state!=null)
 						builder.setParam(OAuth.OAUTH_STATE, state);
 					if(errorUri==null)
-						errorUri = Oauth2Helper.serverErrorUri(errorStatus, CommonHelper.trim(request.getParameter(InnerConstants.KEY_LOCALE)));
+						errorUri = Oauth2Helper.resourceErrorUri(errorStatus, CommonHelper.trim(request.getParameter(InnerConstants.KEY_LOCALE)));
 					headers.setLocation(new URI(errorUri));
 					builder.location(errorUri);
 					((OAuthErrorResponseBuilder)builder).setErrorUri(errorUri);
