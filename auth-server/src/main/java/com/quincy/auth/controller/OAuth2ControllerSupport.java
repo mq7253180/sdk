@@ -121,12 +121,14 @@ public abstract class OAuth2ControllerSupport {
 					builder =  result.getBuilder();
 				}
 			}
-			if(builder==null)
+			if(builder==null) {
+				String errorDescription = new RequestContext(request).getMessage(ERROR_MSG_KEY_PREFIX+errorStatus);
 				builder = OAuthASResponse
 						.errorResponse(isNotJson?HttpServletResponse.SC_FOUND:errorResponse)
 						.setError(error)
 						.setErrorUri(errorUri)
-						.setErrorDescription(new RequestContext(request).getMessage(ERROR_MSG_KEY_PREFIX+errorStatus));
+						.setErrorDescription(errorDescription);
+			}
 		} catch(Exception e) {
 			log.error("OAUTH2_ERR_AUTHORIZATION: ", e);
 			builder = OAuthASResponse.errorResponse(HttpServletResponse.SC_BAD_REQUEST);
