@@ -125,7 +125,6 @@ public abstract class OAuth2ControllerSupport {
 				builder = OAuthASResponse
 						.errorResponse(isNotJson?HttpServletResponse.SC_FOUND:errorResponse)
 						.setError(error)
-						.setErrorUri(errorUri)
 						.setErrorDescription(new RequestContext(request).getMessage(ERROR_MSG_KEY_PREFIX+errorStatus));
 		} catch(Exception e) {
 			log.error("OAUTH2_ERR_AUTHORIZATION: ", e);
@@ -230,7 +229,7 @@ public abstract class OAuth2ControllerSupport {
 		}, REQ_CASE_CODE);
 	}
 
-	@RequestMapping("/error")
+	@RequestMapping("/error/server")
 	public ModelAndView error(HttpServletRequest request, @RequestParam(required = true, value = "status")int status) {
 		return new ModelAndView("/oauth2_error").addObject("msg", new RequestContext(request).getMessage(ERROR_MSG_KEY_PREFIX+status));
 	}

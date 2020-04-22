@@ -35,6 +35,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.quincy.auth.OAuth2ResourceConstants;
 import com.quincy.auth.Oauth2Helper;
 import com.quincy.auth.annotation.OAuth2Resource;
 import com.quincy.auth.o.Oauth2Token;
@@ -105,7 +106,7 @@ public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 								.errorResponse(isNotJson?HttpServletResponse.SC_FOUND:HttpServletResponse.SC_FORBIDDEN)
 								.setError(error)
 								.setErrorUri(errorUri)
-								.setErrorDescription(new RequestContext(request).getMessage("oauth2.error.resource."+errorStatus));
+								.setErrorDescription(new RequestContext(request).getMessage(OAuth2ResourceConstants.RESOURCE_ERROR_MSG_KEY_PREFIX+errorStatus));
 				} catch(Exception e) {
 					log.error("OAUTH2_ERR_AUTHORIZATION: ", e);
 					builder = OAuthRSResponse.errorResponse(HttpServletResponse.SC_BAD_REQUEST);
