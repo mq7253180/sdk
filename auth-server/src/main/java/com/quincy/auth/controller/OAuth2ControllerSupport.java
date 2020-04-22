@@ -102,32 +102,23 @@ public abstract class OAuth2ControllerSupport {
 		try {
 			Integer errorResponse = HttpServletResponse.SC_BAD_REQUEST;
 			String error = OAuthError.CodeResponse.INVALID_REQUEST;
-			OAuthRequest oauthRequest = null;
 			String _redirectUri = CommonHelper.trim(request.getParameter(OAuth.OAUTH_REDIRECT_URI));
-			if(isNotJson&&_redirectUri==null) {
+			OAuthRequest oauthRequest = reqCase==REQ_CASE_CODE?new OAuthAuthzRequest(request):new OAuthTokenRequest(request);
+			ClientSystem clientSystem = oauth2Service.findClientSystem(oauthRequest.getClientId());
+			if(clientSystem==null) {
 				errorStatus = 3;
 			} else {
-				oauthRequest = reqCase==REQ_CASE_CODE?new OAuthAuthzRequest(request):new OAuthTokenRequest(request);
-				ClientSystem clientSystem = oauth2Service.findClientSystem(oauthRequest.getClientId());
-				if(clientSystem==null) {
+				String _secret = CommonHelper.trim(oauthRequest.getClientSecret());
+				String secret = CommonHelper.trim(clientSystem.getSecret());
+				if(_secret==null||!this.authenticateSecret(_secret, secret)) {
 					errorStatus = 4;
 				} else {
-					String _secret = CommonHelper.trim(oauthRequest.getClientSecret());
-					if(_secret==null) {
-						errorStatus = 5;
-					} else {
-						String secret = CommonHelper.trim(clientSystem.getSecret());
-						if(!this.authenticateSecret(_secret, secret)) {
-							errorStatus = 5;
-						} else {
-							XxxResult result = reqCase==REQ_CASE_CODE?c.authorize(oauthRequest, _redirectUri, isNotJson, locale, state, clientSystem.getId()):c.grant(oauthRequest, redirectUri, isNotJson, locale, state);
-							errorResponse = result.getErrorResponse();
-							error = result.getError();
-							errorStatus = result.getErrorStatus();
-							redirectUri = result.getRedirectUri();
-							builder =  result.getBuilder();
-						}
-					}
+					XxxResult result = reqCase==REQ_CASE_CODE?c.authorize(oauthRequest, _redirectUri, isNotJson, locale, state, clientSystem.getId()):c.grant(oauthRequest, _redirectUri, isNotJson, locale, state);
+					errorResponse = result.getErrorResponse();
+					error = result.getError();
+					errorStatus = result.getErrorStatus();
+					redirectUri = result.getRedirectUri();
+					builder =  result.getBuilder();
 				}
 			}
 			if(builder==null)
@@ -184,7 +175,9 @@ public abstract class OAuth2ControllerSupport {
 				XxxResult result = null;
 				String username = CommonHelper.trim(oauthRequest.getParam(OAuth.OAUTH_USERNAME));
 				Set<String> scopes = oauthRequest.getScopes();
-				if(username==null) {
+				if(isNotJson&&_redirectUri==null) {
+					errorStatus = 5;
+				} if(username==null) {
 					errorStatus = 6;
 				} else if(scopes==null||scopes.size()==0) {
 					errorStatus = 7;
