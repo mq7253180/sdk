@@ -529,6 +529,13 @@ public class CommonHelper {
 		return content==null?false:Pattern.matches("^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$", content);
 	}
 
+	public static StringBuilder appendUriParam(StringBuilder s, String key, String val) {
+		return val==null?s:s.append(s.indexOf("?")<0?"?":"&")
+				.append(key)
+				.append("=")
+				.append(val);
+	}
+
 	public static void main(String[] args) throws IOException {
 //		zip(new String[] {"D:/fxcupload/quincy"}, "D:/fxcupload/quincy.zip");
 //		CommonHelper.unzip("D:/fxcupload/quincy.zip", "D:/fxcupload/xxx", 2*1024*1024);

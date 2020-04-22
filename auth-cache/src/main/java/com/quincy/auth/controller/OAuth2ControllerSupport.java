@@ -44,6 +44,7 @@ import org.springframework.web.servlet.support.RequestContext;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.quincy.auth.Oauth2Helper;
 import com.quincy.auth.entity.ClientSystem;
 import com.quincy.auth.o.OAuth2Info;
 import com.quincy.auth.o.Oauth2Token;
@@ -69,8 +70,7 @@ public abstract class OAuth2ControllerSupport {
 	protected abstract long accessTokenExpireMillis();
 	protected abstract int refreshTokenExpireDays();
 	protected abstract boolean authenticateSecret(String inputed, String dbStored);
-	private final static String ERROR_URI = "/oauth2/error?status=";
-	private final static String ERROR_MSG_KEY_PREFIX = "oauth2.error.";
+	private final static String ERROR_MSG_KEY_PREFIX = "oauth2.error.server.";
 	private final static int REQ_CASE_CODE = 0;
 	private final static int REQ_CASE_TOKEN = 1;
 
@@ -97,6 +97,7 @@ public abstract class OAuth2ControllerSupport {
 		OAuthResponseBuilder builder = null;
 		String redirectUri = null;
 		Integer errorStatus = null;
+		String errorUri = null;
 		try {
 			Integer errorResponse = HttpServletResponse.SC_BAD_REQUEST;
 			String error = OAuthError.CodeResponse.INVALID_REQUEST;
@@ -130,38 +131,41 @@ public abstract class OAuth2ControllerSupport {
 			}
 			if(builder==null)
 				builder = OAuthASResponse
-				.errorResponse(isNotJson?HttpServletResponse.SC_FOUND:errorResponse)
-				.setError(error)
-				.setErrorDescription(new RequestContext(request).getMessage(ERROR_MSG_KEY_PREFIX+errorStatus));
+						.errorResponse(isNotJson?HttpServletResponse.SC_FOUND:errorResponse)
+						.setError(error)
+						.setErrorUri(errorUri)
+						.setErrorDescription(new RequestContext(request).getMessage(ERROR_MSG_KEY_PREFIX+errorStatus));
 		} catch(Exception e) {
 			log.error("OAUTH2_ERR_AUTHORIZATION: ", e);
 			builder = OAuthASResponse.errorResponse(HttpServletResponse.SC_BAD_REQUEST);
 			if(e instanceof OAuthProblemException) {
 				OAuthProblemException oauth2E = (OAuthProblemException)e;
-				builder = ((OAuthErrorResponseBuilder)builder).error(oauth2E);
-				redirectUri = CommonHelper.trim(oauth2E.getRedirectUri());
+				((OAuthErrorResponseBuilder)builder).error(oauth2E);
 				errorStatus = 4;
+				errorUri = CommonHelper.trim(oauth2E.getRedirectUri());
 			} else {
-				builder = ((OAuthErrorResponseBuilder)builder).setError(OAuthError.CodeResponse.SERVER_ERROR).setErrorDescription(e.getMessage());
+				((OAuthErrorResponseBuilder)builder)
+						.setError(OAuthError.CodeResponse.SERVER_ERROR)
+						.setErrorDescription(e.getMessage());
 				errorStatus = 5;
 			}
 		}
+		HttpHeaders headers = new HttpHeaders();
 		if(state!=null)
 			builder.setParam(OAuth.OAUTH_STATE, state);
+		if(redirectUri==null)
+			redirectUri = errorUri==null?Oauth2Helper.errorUri(errorStatus, locale):errorUri;
+		headers.setLocation(new URI(redirectUri));
+		builder.location(redirectUri);
+		if(builder instanceof OAuthErrorResponseBuilder)
+			((OAuthErrorResponseBuilder)builder).setErrorUri(redirectUri);
 		OAuthResponse response = null;
-		HttpHeaders headers = new HttpHeaders();
 		if(isNotJson) {
 			response = builder.buildBodyMessage();
-			if(redirectUri==null) {
-				redirectUri = appendParam(new StringBuilder(100).append(ERROR_URI).append(errorStatus), InnerConstants.KEY_LOCALE, locale).toString();
-				builder = builder.location(redirectUri);
-			}
 		} else {
 			response = builder.buildJSONMessage();
 			headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
 		}
-		if(redirectUri!=null)
-			headers.setLocation(new URI(redirectUri));
 		return new ResponseEntity<>(response.getBody(), headers, HttpStatus.valueOf(response.getResponseStatus()));
 	}
 
@@ -198,7 +202,7 @@ public abstract class OAuth2ControllerSupport {
 							errorResponse = HttpServletResponse.SC_UNAUTHORIZED;
 							error = OAuthError.CodeResponse.UNAUTHORIZED_CLIENT;
 							errorStatus = 9;
-							StringBuilder s = appendParam(new StringBuilder(150)//一般长度92
+							StringBuilder s = CommonHelper.appendUriParam(new StringBuilder(150)//一般长度92
 									.append("/oauth2/signin/")
 									.append(codeId)
 									.append("?")
@@ -206,8 +210,8 @@ public abstract class OAuth2ControllerSupport {
 									.append("=")
 									.append(oauthRequest.getParam(OAuth.OAUTH_SCOPE))
 								, InnerConstants.KEY_LOCALE, locale);
-							s = appendParam(s, OAuth.OAUTH_STATE, state);
-							s = appendParam(s, OAuth.OAUTH_REDIRECT_URI, _redirectUri);
+							s = CommonHelper.appendUriParam(s, OAuth.OAUTH_STATE, state);
+							s = CommonHelper.appendUriParam(s, OAuth.OAUTH_REDIRECT_URI, _redirectUri);
 							redirectUri = s.toString();
 						} else
 							result = buildResponse(request, isNotJson, _redirectUri, authorizationCode);
@@ -228,13 +232,6 @@ public abstract class OAuth2ControllerSupport {
 				return null;
 			}
 		}, REQ_CASE_CODE);
-	}
-
-	private static StringBuilder appendParam(StringBuilder s, String key, String val) {
-		return val==null?s:s.append(s.indexOf("?")<0?"?":"&")
-				.append(key)
-				.append("=")
-				.append(val);
 	}
 
 	@RequestMapping("/error")
@@ -281,7 +278,7 @@ public abstract class OAuth2ControllerSupport {
 				.authorizationResponse(request, isNotJson?HttpServletResponse.SC_FOUND:HttpServletResponse.SC_OK)
 				.setCode(authorizationCode));
 		if(redirectUri!=null) {
-			StringBuilder s = appendParam(new StringBuilder(100)//一般长度46
+			StringBuilder s = CommonHelper.appendUriParam(new StringBuilder(100)//一般长度46
 					.append(redirectUri)
 					.append("?")
 					.append(OAuth.OAUTH_CODE)
@@ -304,8 +301,8 @@ public abstract class OAuth2ControllerSupport {
 				XxxResult result = new XxxResult();
 				OAuth2Info info = getOAuth2Info(oauthRequest.getParam(OAuth.OAUTH_CODE));
 				if(!clientId.equals(info.getClientId())) {
-					result.setErrorResponse(HttpServletResponse.SC_BAD_REQUEST);
-					result.setError(OAuthError.CodeResponse.INVALID_REQUEST);
+					result.setErrorResponse(HttpServletResponse.SC_FORBIDDEN);
+					result.setError(OAuthError.TokenResponse.INVALID_GRANT);
 					result.setErrorStatus(10);
 				} else {
 					ObjectMapper mapper = new ObjectMapper();
@@ -318,13 +315,13 @@ public abstract class OAuth2ControllerSupport {
 					tokenInfo.setScopes(info.getScopes());
 					tokenInfo.setValidBefore(currentTimeMillis+accessTokenExpireMillis());
 					String json = mapper.writeValueAsString(tokenInfo);
+					log.info("A=================={}", json);
 					String signature = RSASecurityHelper.sign(privateKey, RSASecurityHelper.SIGNATURE_ALGORITHMS_SHA1_RSA, "UTF-8", json);
 					Oauth2Token token = new Oauth2Token();
 					token.setInfo(tokenInfo);
 					token.setSignature(signature);
 					json = mapper.writeValueAsString(token);
 					String accessToken = Base64.getEncoder().encodeToString(json.getBytes());
-
 					tokenInfo.setValidBefore(currentTimeMillis+(refreshTokenExpireDays()*24*3600*1000));
 					json = mapper.writeValueAsString(tokenInfo);
 					signature = RSASecurityHelper.sign(privateKey, RSASecurityHelper.SIGNATURE_ALGORITHMS_SHA1_RSA, "UTF-8", json);
@@ -338,7 +335,7 @@ public abstract class OAuth2ControllerSupport {
 							.setExpiresIn(String.valueOf(accessTokenExpireMillis()))
 						);
 					if(redirectUri!=null)
-						result.setRedirectUri(appendParam(new StringBuilder(100)//一般长度46
+						result.setRedirectUri(CommonHelper.appendUriParam(new StringBuilder(100)//一般长度46
 								.append(redirectUri)
 								.append("?")
 								.append(OAuth.OAUTH_ACCESS_TOKEN)
