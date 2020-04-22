@@ -65,8 +65,8 @@ public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 				mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 				mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 				mapper.setSerializationInclusion(Include.NON_NULL);
-				String clientType = CommonHelper.clientType(request);
-//				String clientType = InnerConstants.CLIENT_TYPE_J;
+//				String clientType = CommonHelper.clientType(request);
+				String clientType = InnerConstants.CLIENT_TYPE_J;
 				boolean isNotJson = !InnerConstants.CLIENT_TYPE_J.equals(clientType);
 				Integer errorStatus = null;
 				String errorUri = null;
@@ -113,13 +113,13 @@ public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 					if(e instanceof OAuthProblemException) {
 						OAuthProblemException oauth2E = (OAuthProblemException)e;
 						((OAuthErrorResponseBuilder)builder).error(oauth2E);
-						errorStatus = 4;
+						errorStatus = 1;
 						errorUri = CommonHelper.trim(oauth2E.getRedirectUri());
 					} else {
 						((OAuthErrorResponseBuilder)builder)
 								.setError(OAuthError.CodeResponse.SERVER_ERROR)
 								.setErrorDescription(e.getMessage());
-						errorStatus = 5;
+						errorStatus = 2;
 					}
 				}
 				if(builder!=null) {
@@ -132,23 +132,27 @@ public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 					headers.setLocation(new URI(errorUri));
 					builder.location(errorUri);
 					((OAuthErrorResponseBuilder)builder).setErrorUri(errorUri);
+					response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 					OAuthResponse oauthResponse = null;
 					if(isNotJson) {
 						oauthResponse = builder.buildBodyMessage();
 					} else {
 						oauthResponse = builder.buildJSONMessage();
 						headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
+						response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
 					}
 					ResponseEntity<?> responseEntity = new ResponseEntity<>(oauthResponse.getBody(), headers, HttpStatus.valueOf(oauthResponse.getResponseStatus()));
 					PrintWriter out = null;
 					try {
 						out = response.getWriter();
-						out.println(responseEntity.toString());
-						return false;
+						out.println(responseEntity.getBody().toString());
+					} catch(Exception e) {
+						log.error("OAUTH2_OUT_ERR: ", e);
 					} finally {
 						if(out!=null)
 							out.close();
 					}
+					return false;
 				}
 			}
 		}

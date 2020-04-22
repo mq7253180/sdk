@@ -104,20 +104,20 @@ public abstract class OAuth2ControllerSupport {
 			OAuthRequest oauthRequest = null;
 			String _redirectUri = CommonHelper.trim(request.getParameter(OAuth.OAUTH_REDIRECT_URI));
 			if(isNotJson&&_redirectUri==null) {
-				errorStatus = 1;
+				errorStatus = 3;
 			} else {
 				oauthRequest = reqCase==REQ_CASE_CODE?new OAuthAuthzRequest(request):new OAuthTokenRequest(request);
 				ClientSystem clientSystem = oauth2Service.findClientSystem(oauthRequest.getClientId());
 				if(clientSystem==null) {
-					errorStatus = 2;
+					errorStatus = 4;
 				} else {
 					String _secret = CommonHelper.trim(oauthRequest.getClientSecret());
 					if(_secret==null) {
-						errorStatus = 3;
+						errorStatus = 5;
 					} else {
 						String secret = CommonHelper.trim(clientSystem.getSecret());
 						if(!this.authenticateSecret(_secret, secret)) {
-							errorStatus = 3;
+							errorStatus = 5;
 						} else {
 							XxxResult result = reqCase==REQ_CASE_CODE?c.authorize(oauthRequest, _redirectUri, isNotJson, locale, state, clientSystem.getId()):c.grant(oauthRequest, redirectUri, isNotJson, locale, state);
 							errorResponse = result.getErrorResponse();
@@ -141,13 +141,13 @@ public abstract class OAuth2ControllerSupport {
 			if(e instanceof OAuthProblemException) {
 				OAuthProblemException oauth2E = (OAuthProblemException)e;
 				((OAuthErrorResponseBuilder)builder).error(oauth2E);
-				errorStatus = 4;
+				errorStatus = 1;
 				errorUri = CommonHelper.trim(oauth2E.getRedirectUri());
 			} else {
 				((OAuthErrorResponseBuilder)builder)
 						.setError(OAuthError.CodeResponse.SERVER_ERROR)
 						.setErrorDescription(e.getMessage());
-				errorStatus = 5;
+				errorStatus = 2;
 			}
 		}
 		HttpHeaders headers = new HttpHeaders();
