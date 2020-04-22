@@ -84,17 +84,35 @@ public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 							errorStatus = 4;
 							error = OAuthError.ResourceResponse.EXPIRED_TOKEN;
 						} else {
-							List<String> scopes = tokenInfo.getScopes();
-							boolean pass = false;
-							for(String s:scopes) {
-								if(s.equals(scope)) {
-									pass = true;
-									break;
-								}
-							}
-							if(!pass) {
+							String username = CommonHelper.trim(request.getParameter(OAuth.OAUTH_USERNAME));
+							if(username==null) {
 								errorStatus = 5;
-								error = OAuthError.ResourceResponse.INSUFFICIENT_SCOPE;
+							} else {
+								boolean pass = false;
+								List<String> accounts = tokenInfo.getAccounts();
+								for(String account:accounts) {
+									if(account.equals(username)) {
+										pass = true;
+										break;
+									}
+								}
+								if(pass) {
+									pass = false;
+									List<String> scopes = tokenInfo.getScopes();
+									for(String s:scopes) {
+										if(s.equals(scope)) {
+											pass = true;
+											break;
+										}
+									}
+									if(!pass) {
+										errorStatus = 7;
+										error = OAuthError.ResourceResponse.INSUFFICIENT_SCOPE;
+									}
+								} else {
+									errorStatus = 6;
+									error = OAuthError.ResourceResponse.INVALID_TOKEN;
+								}
 							}
 						}
 					} else {

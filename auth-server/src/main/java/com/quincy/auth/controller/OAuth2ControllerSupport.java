@@ -306,7 +306,7 @@ public abstract class OAuth2ControllerSupport {
 					long currentTimeMillis = System.currentTimeMillis();
 					Oauth2TokenInfo tokenInfo = new Oauth2TokenInfo();
 					tokenInfo.setClientId(clientId);
-					tokenInfo.setUserId(info.getUserId());
+					tokenInfo.setAccounts(info.getAccounts());
 					tokenInfo.setScopes(info.getScopes());
 					tokenInfo.setValidBefore(currentTimeMillis+accessTokenExpireMillis());
 					String json = mapper.writeValueAsString(tokenInfo);
