@@ -127,7 +127,7 @@ public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 					if(state!=null)
 						builder.setParam(OAuth.OAUTH_STATE, state);
 					if(errorUri==null)
-						errorUri = Oauth2Helper.errorUri(errorStatus, CommonHelper.trim(request.getParameter(InnerConstants.KEY_LOCALE)));
+						errorUri = Oauth2Helper.serverErrorUri(errorStatus, CommonHelper.trim(request.getParameter(InnerConstants.KEY_LOCALE)));
 					headers.setLocation(new URI(errorUri));
 					builder.location(errorUri);
 					((OAuthErrorResponseBuilder)builder).setErrorUri(errorUri);

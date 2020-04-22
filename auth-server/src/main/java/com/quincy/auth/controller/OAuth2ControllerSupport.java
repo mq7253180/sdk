@@ -121,14 +121,12 @@ public abstract class OAuth2ControllerSupport {
 					builder =  result.getBuilder();
 				}
 			}
-			if(builder==null) {
-				String errorDescription = new RequestContext(request).getMessage(ERROR_MSG_KEY_PREFIX+errorStatus);
+			if(builder==null)
 				builder = OAuthASResponse
 						.errorResponse(isNotJson?HttpServletResponse.SC_FOUND:errorResponse)
 						.setError(error)
 						.setErrorUri(errorUri)
-						.setErrorDescription(errorDescription);
-			}
+						.setErrorDescription(new RequestContext(request).getMessage(ERROR_MSG_KEY_PREFIX+errorStatus));
 		} catch(Exception e) {
 			log.error("OAUTH2_ERR_AUTHORIZATION: ", e);
 			builder = OAuthASResponse.errorResponse(HttpServletResponse.SC_BAD_REQUEST);
@@ -148,7 +146,7 @@ public abstract class OAuth2ControllerSupport {
 		if(state!=null)
 			builder.setParam(OAuth.OAUTH_STATE, state);
 		if(redirectUri==null&&errorStatus!=null)
-			redirectUri = errorUri==null?Oauth2Helper.errorUri(errorStatus, locale):errorUri;
+			redirectUri = errorUri==null?Oauth2Helper.serverErrorUri(errorStatus, locale):errorUri;
 		if(redirectUri!=null) {
 			headers.setLocation(new URI(redirectUri));
 			builder.location(redirectUri);
