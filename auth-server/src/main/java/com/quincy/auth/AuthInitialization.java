@@ -1,5 +1,8 @@
 package com.quincy.auth;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
@@ -13,6 +16,7 @@ import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -28,6 +32,7 @@ import com.quincy.auth.freemarker.HyperlinkTemplateDirectiveModelBean;
 import com.quincy.auth.freemarker.InputTemplateDirectiveModelBean;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.helper.CommonHelper;
+import com.quincy.sdk.helper.RSASecurityHelper;
 
 @Configuration
 public class AuthInitialization {
@@ -39,6 +44,8 @@ public class AuthInitialization {
 	private RootController rootController;
 	@Resource(name = InnerConstants.BEAN_NAME_PROPERTIES)
 	private Properties properties;
+	@Value("${secret.rsa.privateKey}")
+	private String privateKeyStr;
 
 	@PostConstruct
 	public void init() throws NoSuchMethodException, SecurityException {
@@ -87,5 +94,10 @@ public class AuthInitialization {
 				AuthConstants.SESSIONS.remove(hse.getSession().getId());
 			}
 		};
+	}
+
+	@Bean("selfPrivateKey")
+	public PrivateKey privateKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
+		return RSASecurityHelper.extractPrivateKey(privateKeyStr);
 	}
 }
