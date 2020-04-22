@@ -319,7 +319,6 @@ public abstract class OAuth2ControllerSupport {
 					tokenInfo.setScopes(info.getScopes());
 					tokenInfo.setValidBefore(currentTimeMillis+accessTokenExpireMillis());
 					String json = mapper.writeValueAsString(tokenInfo);
-					log.info("A=================={}", json);
 					String signature = RSASecurityHelper.sign(privateKey, RSASecurityHelper.SIGNATURE_ALGORITHMS_SHA1_RSA, "UTF-8", json);
 					Oauth2Token token = new Oauth2Token();
 					token.setInfo(tokenInfo);

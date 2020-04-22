@@ -76,7 +76,6 @@ public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 					Oauth2Token oauth2Token = mapper.readValue(Base64.getDecoder().decode(accessResourceRequest.getAccessToken()), Oauth2Token.class);
 					Oauth2TokenInfo tokenInfo = oauth2Token.getInfo();
 					String json = mapper.writeValueAsString(tokenInfo);
-					log.info("B=================={}", json);
 					String error = OAuthError.ResourceResponse.INVALID_REQUEST;
 					boolean success = RSASecurityHelper.verify(publicKey, RSASecurityHelper.SIGNATURE_ALGORITHMS_SHA1_RSA, oauth2Token.getSignature(), json, "UTF-8");
 					if(success) {
