@@ -15,7 +15,7 @@ public class AuthResourceConfiguration {
 	@Value("${secret.rsa.publicKey}")
 	private String publicKeyStr;
 
-	@Bean("publicKey")
+	@Bean("selfPublicKey")
 	public PublicKey publicKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
 		return RSASecurityHelper.extractPublicKeyByStr(publicKeyStr);
 	}

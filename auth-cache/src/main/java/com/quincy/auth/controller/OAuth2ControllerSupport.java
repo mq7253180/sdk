@@ -90,8 +90,8 @@ public abstract class OAuth2ControllerSupport {
 	}
 
 	private ResponseEntity<?> doTemplate(HttpServletRequest request, Customization c, int reqCase) throws URISyntaxException, OAuthSystemException {
-//		String clientType = CommonHelper.clientType(request);
-		String clientType = InnerConstants.CLIENT_TYPE_J;
+		String clientType = CommonHelper.clientType(request);
+//		String clientType = InnerConstants.CLIENT_TYPE_J;
 		boolean isNotJson = !InnerConstants.CLIENT_TYPE_J.equals(clientType);
 		String locale = CommonHelper.trim(request.getParameter(InnerConstants.KEY_LOCALE));
 		String state = CommonHelper.trim(request.getParameter(OAuth.OAUTH_STATE));
@@ -256,8 +256,8 @@ public abstract class OAuth2ControllerSupport {
 	}
 
 	protected ResponseEntity<?> buildResponse(HttpServletRequest request, String authorizationCode) throws URISyntaxException, OAuthSystemException {
-//		String clientType = CommonHelper.clientType(request);
-		String clientType = InnerConstants.CLIENT_TYPE_J;
+		String clientType = CommonHelper.clientType(request);
+//		String clientType = InnerConstants.CLIENT_TYPE_J;
 		boolean isNotJson = !InnerConstants.CLIENT_TYPE_J.equals(clientType);
 		XxxResult result =  buildResponse(request, isNotJson, CommonHelper.trim(request.getParameter(OAuth.OAUTH_REDIRECT_URI)), authorizationCode);
 		OAuthResponseBuilder builder = result.getBuilder();
@@ -293,7 +293,6 @@ public abstract class OAuth2ControllerSupport {
 	}
 
 	@Resource(name = "selfPrivateKey")
-	@Autowired
 	private PrivateKey privateKey;
 
 	@RequestMapping("/token")

@@ -8,6 +8,7 @@ import java.security.PublicKey;
 import java.util.Base64;
 import java.util.List;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -20,7 +21,6 @@ import org.apache.oltu.oauth2.common.message.OAuthResponse.OAuthErrorResponseBui
 import org.apache.oltu.oauth2.common.message.OAuthResponse.OAuthResponseBuilder;
 import org.apache.oltu.oauth2.rs.request.OAuthAccessResourceRequest;
 import org.apache.oltu.oauth2.rs.response.OAuthRSResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -48,7 +48,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
-	@Autowired
+	@Resource(name = "selfPublicKey")
 	private PublicKey publicKey;
 
 	@Override
@@ -65,8 +65,8 @@ public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 				mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 				mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 				mapper.setSerializationInclusion(Include.NON_NULL);
-//				String clientType = CommonHelper.clientType(request);
-				String clientType = InnerConstants.CLIENT_TYPE_J;
+				String clientType = CommonHelper.clientType(request);
+//				String clientType = InnerConstants.CLIENT_TYPE_J;
 				boolean isNotJson = !InnerConstants.CLIENT_TYPE_J.equals(clientType);
 				Integer errorStatus = null;
 				String errorUri = null;
