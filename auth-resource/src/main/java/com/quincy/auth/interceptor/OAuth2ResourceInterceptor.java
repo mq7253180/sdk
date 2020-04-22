@@ -112,7 +112,7 @@ public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 					builder = OAuthRSResponse.errorResponse(HttpServletResponse.SC_BAD_REQUEST);
 					if(e instanceof OAuthProblemException) {
 						OAuthProblemException oauth2E = (OAuthProblemException)e;
-						((OAuthErrorResponseBuilder)builder).error(oauth2E);
+						((OAuthErrorResponseBuilder)builder).error(oauth2E).setError(OAuthError.ResourceResponse.INVALID_REQUEST);
 						errorStatus = 1;
 						errorUri = CommonHelper.trim(oauth2E.getRedirectUri());
 					} else {

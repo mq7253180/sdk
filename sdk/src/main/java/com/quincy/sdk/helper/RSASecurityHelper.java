@@ -76,6 +76,30 @@ public class RSASecurityHelper {
 		return publicKey;
 	}
 
+    public static RSAPublicKey loadPublicKeyByStr(String publicKeyStr) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
+		Decoder base64Decoder = Base64.getDecoder();
+		byte[] buffer = base64Decoder.decode(publicKeyStr);
+		KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
+		X509EncodedKeySpec keySpec = new X509EncodedKeySpec(buffer);
+		return (RSAPublicKey) keyFactory.generatePublic(keySpec);
+	}
+
+    public static PrivateKey extractPrivateKey(String _privateKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    	Decoder base64Decoder = Base64.getDecoder();
+		PKCS8EncodedKeySpec priPKCS8 = new PKCS8EncodedKeySpec(base64Decoder.decode(_privateKey));
+		KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
+		PrivateKey privateKey = keyFactory.generatePrivate(priPKCS8);
+		return privateKey;
+	}
+
+	public static RSAPrivateKey loadPrivateKeyByStr(String privateKeyStr) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
+		Decoder base64Decoder = Base64.getDecoder();
+		byte[] buffer = base64Decoder.decode(privateKeyStr);
+		PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(buffer);
+		KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
+		return (RSAPrivateKey) keyFactory.generatePrivate(keySpec);
+	}
+
     public static KeyStore loadKeyStore(String jksLocation, String jksPwd) throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
     	KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
     	InputStream in = null;
@@ -104,14 +128,6 @@ public class RSASecurityHelper {
 		return keyStore.getKey(alias, jksPwd.toCharArray());
 	}
 
-    public static PrivateKey extractPrivateKey(String _privateKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
-    	Decoder base64Decoder = Base64.getDecoder();
-		PKCS8EncodedKeySpec priPKCS8 = new PKCS8EncodedKeySpec(base64Decoder.decode(_privateKey));
-		KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
-		PrivateKey privateKey = keyFactory.generatePrivate(priPKCS8);
-		return privateKey;
-	}
-
     //map对象中存放公私钥
     public static Map<String, Object> generateKeyPair() throws NoSuchAlgorithmException {
         //获得对象 KeyPairGenerator 参数 RSA 1024个字节
@@ -135,22 +151,6 @@ public class RSASecurityHelper {
         keyMap.put(PRIVATE_KEY_BASE64, base64edPriKey);
         return keyMap;
     }
-
-	public static RSAPublicKey loadPublicKeyByStr(String publicKeyStr) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
-		Decoder base64Decoder = Base64.getDecoder();
-		byte[] buffer = base64Decoder.decode(publicKeyStr);
-		KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
-		X509EncodedKeySpec keySpec = new X509EncodedKeySpec(buffer);
-		return (RSAPublicKey) keyFactory.generatePublic(keySpec);
-	}
-
-	public static RSAPrivateKey loadPrivateKeyByStr(String privateKeyStr) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
-		Decoder base64Decoder = Base64.getDecoder();
-		byte[] buffer = base64Decoder.decode(privateKeyStr);
-		PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(buffer);
-		KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
-		return (RSAPrivateKey) keyFactory.generatePrivate(keySpec);
-	}
 
     public static byte[] crypt(Key key, byte[] plainTextData, int opmode) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, IOException {  
 		int MAX_CRYPT_BLOCK = -1;
@@ -242,11 +242,13 @@ public class RSASecurityHelper {
 
     	String publicKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCMYDMqMFSJL+nUMzF7MQjCYe/Y3P26wjVn90CdrSE8H9Ed4dg0/BteWn5+ZK65DwWev2F79hBIpprPrtVe+wplCTkpyR+mPiNL+WKkvo7miMegRYJFZLvh9QrFuDzMJZ+rAiu4ldxkVB0CMKfYEWbukKGmAinxVAqUr/HcW2mWjwIDAQAB";
         String privateKey = "MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAIxgMyowVIkv6dQzMXsxCMJh79jc/brCNWf3QJ2tITwf0R3h2DT8G15afn5krrkPBZ6/YXv2EEimms+u1V77CmUJOSnJH6Y+I0v5YqS+juaIx6BFgkVku+H1CsW4PMwln6sCK7iV3GRUHQIwp9gRZu6QoaYCKfFUCpSv8dxbaZaPAgMBAAECgYBS1kobMV4RftbLxFIE0pDKtKSnIvIQDZ8adQwKgCpGorfynF3MFqHH8jsHNz7sMfMtFN7gGfrOBJMCz7dWT2p4CVV9uAJjBiUgMk06zMTetViQY3I1SRH883nNIDkuQTOAwjAK5cKlrbCkL63iupRoPx8jzgXGr7lJ7s+PLE9rcQJBAL7ywe4oalCO/aK5LJmvWEGa6sNcrj7Z645ssNJquiPfAlKfclc8CHfe/3dK/VQLi4Evy58OMrwi3NR1qHYpQk0CQQC8MthL3bqsZ0Pe0Ha22OMIJjJ/GRMpRtDpc8eK+TOGbyJdwL7/ZoxkS8RCzuQwa/TgWEvB0m+qo2hsaheQsNJLAkEAnBTO1J+Ql5zqUlLO1CjyGV5KO7rMa2+yDk9mEflPgfbObT8MNaZKvcE4TQitHj/5nnW1GaR/cC2HGNu8AiojmQJAbiRHqCbtQEbzVqykPaCzRiqstOuk5ixWyboD11a/C/dwonPSlECc+3nIM91HePtFhiLGu3l/9trJm2F/xyNk/wJBAJI+64RoJFvgSH7nhv5RHS0+aZeUMj4hA0qZmvTr3XyBwy1Ct5K0EQrDTWEEwFVy8Hws46DQF/fLdNzu1T3gCCM=";
+        PrivateKey realPrivateKey = RSASecurityHelper.extractPrivateKey(privateKey);
+//        RSAPrivateKey rsaPrivateKey = RSASecurityHelper.loadPrivateKeyByStr(privateKey);
         Map<String, Object> keyMap = new HashMap<String, Object>(2);
         keyMap.put(PUBLIC_KEY, publicKey);
         keyMap.put(PRIVATE_KEY, privateKey);
 
-        String signature = sign(privateKey, signatureAlgorithms, charset, content);
+        String signature = sign(realPrivateKey, signatureAlgorithms, charset, content);
         byte[] encryption = crypt(loadPrivateKeyByStr(privateKey), content.getBytes(), Cipher.ENCRYPT_MODE);
         String decryption = new String(crypt(loadPublicKeyByStr(publicKey), encryption, Cipher.DECRYPT_MODE));
 

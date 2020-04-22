@@ -13,6 +13,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -89,8 +90,8 @@ public abstract class OAuth2ControllerSupport {
 	}
 
 	private ResponseEntity<?> doTemplate(HttpServletRequest request, Customization c, int reqCase) throws URISyntaxException, OAuthSystemException {
-		String clientType = CommonHelper.clientType(request);
-//		String clientType = InnerConstants.CLIENT_TYPE_J;
+//		String clientType = CommonHelper.clientType(request);
+		String clientType = InnerConstants.CLIENT_TYPE_J;
 		boolean isNotJson = !InnerConstants.CLIENT_TYPE_J.equals(clientType);
 		String locale = CommonHelper.trim(request.getParameter(InnerConstants.KEY_LOCALE));
 		String state = CommonHelper.trim(request.getParameter(OAuth.OAUTH_STATE));
@@ -153,12 +154,14 @@ public abstract class OAuth2ControllerSupport {
 		HttpHeaders headers = new HttpHeaders();
 		if(state!=null)
 			builder.setParam(OAuth.OAUTH_STATE, state);
-		if(redirectUri==null)
+		if(redirectUri==null&&errorStatus!=null)
 			redirectUri = errorUri==null?Oauth2Helper.errorUri(errorStatus, locale):errorUri;
-		headers.setLocation(new URI(redirectUri));
-		builder.location(redirectUri);
-		if(builder instanceof OAuthErrorResponseBuilder)
-			((OAuthErrorResponseBuilder)builder).setErrorUri(redirectUri);
+		if(redirectUri!=null) {
+			headers.setLocation(new URI(redirectUri));
+			builder.location(redirectUri);
+			if(builder instanceof OAuthErrorResponseBuilder)
+				((OAuthErrorResponseBuilder)builder).setErrorUri(redirectUri);
+		}
 		OAuthResponse response = null;
 		if(isNotJson) {
 			response = builder.buildBodyMessage();
@@ -253,8 +256,8 @@ public abstract class OAuth2ControllerSupport {
 	}
 
 	protected ResponseEntity<?> buildResponse(HttpServletRequest request, String authorizationCode) throws URISyntaxException, OAuthSystemException {
-		String clientType = CommonHelper.clientType(request);
-//		String clientType = InnerConstants.CLIENT_TYPE_J;
+//		String clientType = CommonHelper.clientType(request);
+		String clientType = InnerConstants.CLIENT_TYPE_J;
 		boolean isNotJson = !InnerConstants.CLIENT_TYPE_J.equals(clientType);
 		XxxResult result =  buildResponse(request, isNotJson, CommonHelper.trim(request.getParameter(OAuth.OAUTH_REDIRECT_URI)), authorizationCode);
 		OAuthResponseBuilder builder = result.getBuilder();
@@ -289,6 +292,7 @@ public abstract class OAuth2ControllerSupport {
 		return result;
 	}
 
+	@Resource(name = "selfPrivateKey")
 	@Autowired
 	private PrivateKey privateKey;
 

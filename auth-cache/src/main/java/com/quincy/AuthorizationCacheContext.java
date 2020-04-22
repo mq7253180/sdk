@@ -23,7 +23,7 @@ public class AuthorizationCacheContext {
 	@Value("${secret.rsa.privateKey}")
 	private String privateKeyStr;
 
-	@Bean("privateKey")
+	@Bean("selfPrivateKey")
 	public PrivateKey privateKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
 		return RSASecurityHelper.extractPrivateKey(privateKeyStr);
 	}
