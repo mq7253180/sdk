@@ -18,7 +18,12 @@
 		</dependency>
 		<dependency>
 		    <groupId>com.maqiangcgq</groupId>
-		    <artifactId>quincy-auth</artifactId>
+		    <artifactId>quincy-sdk</artifactId>
+		    <version>1.0.8</version>
+		</dependency>
+		<dependency>
+		    <groupId>com.maqiangcgq</groupId>
+		    <artifactId>quincy-auth-oauth2</artifactId>
 		    <version>1.0.8</version>
 		</dependency>
 		<dependency>

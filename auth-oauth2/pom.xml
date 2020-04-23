@@ -2,8 +2,8 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>quincy-auth</artifactId>
-	<name>Auth</name>
+	<artifactId>quincy-auth-oauth2</artifactId>
+	<name>Auth-OAuth2</name>
 	<url>https://github.com/mq7253180/sdk/tree/master/auth</url>
 	<parent>
 		<groupId>com.maqiangcgq</groupId>
