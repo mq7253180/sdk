@@ -38,8 +38,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.quincy.auth.OAuth2ResourceConstants;
 import com.quincy.auth.Oauth2Helper;
 import com.quincy.auth.annotation.OAuth2Resource;
-import com.quincy.auth.o.Oauth2Token;
-import com.quincy.auth.o.Oauth2TokenInfo;
+import com.quincy.auth.o.OAuth2TokenJWTPayload;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.helper.RSASecurityHelper;
@@ -73,51 +72,58 @@ public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 				String errorUri = null;
 				OAuthResponseBuilder builder = null;
 				try {
-					OAuthAccessResourceRequest accessResourceRequest = new OAuthAccessResourceRequest(request);
-					Oauth2Token oauth2Token = mapper.readValue(Base64.getDecoder().decode(accessResourceRequest.getAccessToken()), Oauth2Token.class);
-					Oauth2TokenInfo tokenInfo = oauth2Token.getInfo();
-					String json = mapper.writeValueAsString(tokenInfo);
 					String error = OAuthError.ResourceResponse.INVALID_REQUEST;
-					boolean success = RSASecurityHelper.verify(publicKey, RSASecurityHelper.SIGNATURE_ALGORITHMS_SHA1_RSA, oauth2Token.getSignature(), json, "UTF-8");
-					if(success) {
-						if(System.currentTimeMillis()>tokenInfo.getValidBefore()) {
-							errorStatus = 4;
-							error = OAuthError.ResourceResponse.EXPIRED_TOKEN;
-						} else {
-							String username = CommonHelper.trim(request.getParameter(OAuth.OAUTH_USERNAME));
-							if(username==null) {
+					OAuthAccessResourceRequest accessResourceRequest = new OAuthAccessResourceRequest(request);
+					String accessToken = accessResourceRequest.getAccessToken();
+					String[] accessTokenFields = accessToken.split("\\.");
+					if(accessTokenFields.length<3) {
+						errorStatus = 3;
+						error = OAuthError.ResourceResponse.INVALID_TOKEN;
+					} else {
+						String payload = accessTokenFields[1];
+						String signature = accessTokenFields[2];
+						boolean success = RSASecurityHelper.verify(publicKey, RSASecurityHelper.SIGNATURE_ALGORITHMS_SHA1_RSA, signature, accessTokenFields[0]+"."+payload, "UTF-8");
+						if(success) {
+							OAuth2TokenJWTPayload jwtPayload = mapper.readValue(Base64.getDecoder().decode(payload), OAuth2TokenJWTPayload.class);
+							if(System.currentTimeMillis()>jwtPayload.getValidBefore()) {
 								errorStatus = 5;
+								error = OAuthError.ResourceResponse.EXPIRED_TOKEN;
 							} else {
-								boolean pass = false;
-								List<String> accounts = tokenInfo.getAccounts();
-								for(String account:accounts) {
-									if(account.equals(username)) {
-										pass = true;
-										break;
-									}
-								}
-								if(pass) {
-									pass = false;
-									List<String> scopes = tokenInfo.getScopes();
-									for(String s:scopes) {
-										if(s.equals(scope)) {
+								String username = CommonHelper.trim(request.getParameter(OAuth.OAUTH_USERNAME));
+								if(username==null) {
+									errorStatus = 6;
+								} else {
+									boolean pass = false;
+									List<String> accounts = jwtPayload.getAccounts();
+									for(String account:accounts) {
+										if(account.equals(username)) {
 											pass = true;
 											break;
 										}
 									}
-									if(!pass) {
+									if(pass) {
+										pass = false;
+										List<String> scopes = jwtPayload.getScopes();
+										for(String s:scopes) {
+											if(s.equals(scope)) {
+												pass = true;
+												break;
+											}
+										}
+										if(!pass) {
+											errorStatus = 8;
+											error = OAuthError.ResourceResponse.INSUFFICIENT_SCOPE;
+										}
+									} else {
 										errorStatus = 7;
-										error = OAuthError.ResourceResponse.INSUFFICIENT_SCOPE;
+										error = OAuthError.ResourceResponse.INVALID_TOKEN;
 									}
-								} else {
-									errorStatus = 6;
-									error = OAuthError.ResourceResponse.INVALID_TOKEN;
 								}
 							}
+						} else {
+							errorStatus = 4;
+							error = OAuthError.ResourceResponse.INVALID_TOKEN;
 						}
-					} else {
-						errorStatus = 3;
-						error = OAuthError.ResourceResponse.INVALID_TOKEN;
 					}
 					if(errorStatus!=null)
 						builder = OAuthRSResponse

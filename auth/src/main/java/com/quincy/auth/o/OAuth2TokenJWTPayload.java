@@ -5,7 +5,7 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class Oauth2TokenInfo {
+public class OAuth2TokenJWTPayload {
 	private String clientId;
 	private List<String> accounts;
 	private List<String> scopes;

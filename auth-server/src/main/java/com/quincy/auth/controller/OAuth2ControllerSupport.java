@@ -10,6 +10,7 @@ import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
+import java.util.Base64.Encoder;
 import java.util.List;
 import java.util.Set;
 
@@ -48,8 +49,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.quincy.auth.Oauth2Helper;
 import com.quincy.auth.entity.ClientSystem;
 import com.quincy.auth.o.OAuth2Info;
-import com.quincy.auth.o.Oauth2Token;
-import com.quincy.auth.o.Oauth2TokenInfo;
+import com.quincy.auth.o.OAuth2TokenJWTPayload;
 import com.quincy.auth.service.OAuth2Service;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.helper.CommonHelper;
@@ -70,10 +70,21 @@ public abstract class OAuth2ControllerSupport {
 	protected abstract ModelAndView signinView(HttpServletRequest request, String codeId, String scopes);
 	protected abstract long accessTokenExpireMillis();
 	protected abstract int refreshTokenExpireDays();
-	protected abstract boolean authenticateSecret(String inputed, String dbStored);
+	protected abstract boolean authenticateSecret(String inputed, String dbStored, String content);
 	private final static String ERROR_MSG_KEY_PREFIX = "oauth2.error.server.";
 	private final static int REQ_CASE_CODE = 0;
 	private final static int REQ_CASE_TOKEN = 1;
+	private static String JWT_HEADER = null;
+
+	static {
+		JWT_HEADER = Base64.getEncoder().encodeToString(new StringBuilder(50)
+				.append("{ \"alg\": \"")
+				.append(RSASecurityHelper.SIGNATURE_ALGORITHMS_SHA1_RSA)
+				.append("\", \"typ\": \"JWT\"}")
+				.toString()
+				.getBytes()
+			);
+	}
 
 	@Data
 	private static class XxxResult {
@@ -110,7 +121,7 @@ public abstract class OAuth2ControllerSupport {
 			} else {
 				String _secret = CommonHelper.trim(oauthRequest.getClientSecret());
 				String secret = CommonHelper.trim(clientSystem.getSecret());
-				if(_secret==null||!this.authenticateSecret(_secret, secret)) {
+				if(_secret==null||!this.authenticateSecret(_secret, secret, "")) {
 					errorStatus = 4;
 				} else {
 					XxxResult result = reqCase==REQ_CASE_CODE?c.authorize(oauthRequest, _redirectUri, isNotJson, locale, state, clientSystem.getId()):c.grant(oauthRequest, _redirectUri, isNotJson, locale, state);
@@ -303,25 +314,16 @@ public abstract class OAuth2ControllerSupport {
 					ObjectMapper mapper = new ObjectMapper();
 					mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 					mapper.setSerializationInclusion(Include.NON_NULL);
+					Encoder encoder = Base64.getEncoder();
 					long currentTimeMillis = System.currentTimeMillis();
-					Oauth2TokenInfo tokenInfo = new Oauth2TokenInfo();
-					tokenInfo.setClientId(clientId);
-					tokenInfo.setAccounts(info.getAccounts());
-					tokenInfo.setScopes(info.getScopes());
-					tokenInfo.setValidBefore(currentTimeMillis+accessTokenExpireMillis());
-					String json = mapper.writeValueAsString(tokenInfo);
-					String signature = RSASecurityHelper.sign(privateKey, RSASecurityHelper.SIGNATURE_ALGORITHMS_SHA1_RSA, "UTF-8", json);
-					Oauth2Token token = new Oauth2Token();
-					token.setInfo(tokenInfo);
-					token.setSignature(signature);
-					json = mapper.writeValueAsString(token);
-					String accessToken = Base64.getEncoder().encodeToString(json.getBytes());
-					tokenInfo.setValidBefore(currentTimeMillis+(refreshTokenExpireDays()*24*3600*1000));
-					json = mapper.writeValueAsString(tokenInfo);
-					signature = RSASecurityHelper.sign(privateKey, RSASecurityHelper.SIGNATURE_ALGORITHMS_SHA1_RSA, "UTF-8", json);
-					token.setSignature(signature);
-					json = mapper.writeValueAsString(token);
-					String refreshToken = Base64.getEncoder().encodeToString(json.getBytes());
+					OAuth2TokenJWTPayload payload = new OAuth2TokenJWTPayload();
+					payload.setClientId(clientId);
+					payload.setAccounts(info.getAccounts());
+					payload.setScopes(info.getScopes());
+					payload.setValidBefore(currentTimeMillis+accessTokenExpireMillis());
+					String accessToken = generateToken(mapper, encoder, privateKey, payload);
+					payload.setValidBefore(currentTimeMillis+(refreshTokenExpireDays()*24*3600*1000));
+					String refreshToken = generateToken(mapper, encoder, privateKey, payload);
 					result.setBuilder(OAuthASResponse
 							.tokenResponse(isNotJson?HttpServletResponse.SC_FOUND:HttpServletResponse.SC_OK)
 							.setAccessToken(accessToken)
@@ -353,5 +355,12 @@ public abstract class OAuth2ControllerSupport {
 				return null;
 			}
 		}, REQ_CASE_TOKEN);
+	}
+
+	private static String generateToken(ObjectMapper mapper, Encoder encoder, PrivateKey privateKey, OAuth2TokenJWTPayload payload) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, IOException {
+		String payloadJsonAndBase64 = encoder.encodeToString(mapper.writeValueAsString(payload).getBytes());
+		String headerAndPayload = JWT_HEADER+"."+payloadJsonAndBase64;
+		String signature = RSASecurityHelper.sign(privateKey, RSASecurityHelper.SIGNATURE_ALGORITHMS_SHA1_RSA, "UTF-8", headerAndPayload);
+		return headerAndPayload+"."+signature;
 	}
 }
