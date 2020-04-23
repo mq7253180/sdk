@@ -51,8 +51,8 @@ import lombok.extern.slf4j.Slf4j;
 public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 	@Resource(name = "selfPublicKey")
 	private PublicKey publicKey;
-	@Value("${oauth2.uri.signin}")
-	private String loginUri;
+	@Value("${url.prefix.oauth2}")
+	private String loginUriPrefix;
 
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException, URISyntaxException, OAuthSystemException {
@@ -120,8 +120,8 @@ public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 											errorStatus = 8;
 											error = OAuthError.ResourceResponse.INSUFFICIENT_SCOPE;
 											errorUri = CommonHelper.appendUriParam(CommonHelper.appendUriParam(new StringBuilder(100)
-													.append(loginUri)
-													.append("?")
+													.append(loginUriPrefix)
+													.append("/oauth2/signin?")
 													.append(OAuth.OAUTH_CLIENT_ID)
 													.append("=")
 													.append(jwtPayload.getClientId())
