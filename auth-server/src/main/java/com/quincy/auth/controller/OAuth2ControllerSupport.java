@@ -68,6 +68,7 @@ public abstract class OAuth2ControllerSupport {
 	protected abstract String saveOAuth2Info(Long clientSystemId, Long userId, String authorizationCode);
 	protected abstract List<String> notAuthorizedScopes(String codeId, Set<String> scopes);
 	protected abstract ModelAndView signinView(HttpServletRequest request, String codeId, String scopes);
+	protected abstract ModelAndView signinView(HttpServletRequest request, String clientId, String username, String scopes);
 	protected abstract long accessTokenExpireMillis();
 	protected abstract int refreshTokenExpireDays();
 	protected abstract boolean authenticateSecret(String inputed, String dbStored, String content);
@@ -248,13 +249,26 @@ public abstract class OAuth2ControllerSupport {
 	@RequestMapping("/signin/{code_id}")
 	public ModelAndView signin(HttpServletRequest request, 
 			@PathVariable(required = true, value = "code_id")String codeId, 
-			@RequestParam(required = true, value = "scope")String scopes, 
+			@RequestParam(required = true, value = OAuth.OAUTH_SCOPE)String scopes, 
 			@RequestParam(required = false, value = OAuth.OAUTH_REDIRECT_URI)String redirectUri) {
 		ModelAndView mv = signinView(request, codeId, scopes);
 		if(mv==null)
 			mv = new ModelAndView("/oauth2_login");
 		return mv.addObject("codeId", codeId)
 				.addObject(OAuth.OAUTH_SCOPE, scopes)
+				.addObject(OAuth.OAUTH_REDIRECT_URI, redirectUri);
+	}
+
+	@RequestMapping("/signin")
+	public ModelAndView signin(HttpServletRequest request, 
+			@RequestParam(required = true, value = OAuth.OAUTH_CLIENT_ID)String clientId, 
+			@RequestParam(required = true, value = OAuth.OAUTH_USERNAME)String username, 
+			@RequestParam(required = true, value = OAuth.OAUTH_SCOPE)String scopes, 
+			@RequestParam(required = false, value = OAuth.OAUTH_REDIRECT_URI)String redirectUri) {
+		ModelAndView mv = signinView(request, clientId, username, scopes);
+		if(mv==null)
+			mv = new ModelAndView("/oauth2_login");
+		return mv.addObject(OAuth.OAUTH_SCOPE, scopes)
 				.addObject(OAuth.OAUTH_REDIRECT_URI, redirectUri);
 	}
 

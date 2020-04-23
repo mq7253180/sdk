@@ -21,6 +21,7 @@ import org.apache.oltu.oauth2.common.message.OAuthResponse.OAuthErrorResponseBui
 import org.apache.oltu.oauth2.common.message.OAuthResponse.OAuthResponseBuilder;
 import org.apache.oltu.oauth2.rs.request.OAuthAccessResourceRequest;
 import org.apache.oltu.oauth2.rs.response.OAuthRSResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -50,6 +51,8 @@ import lombok.extern.slf4j.Slf4j;
 public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 	@Resource(name = "selfPublicKey")
 	private PublicKey publicKey;
+	@Value("${oauth2.uri.signin}")
+	private String loginUri;
 
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException, URISyntaxException, OAuthSystemException {
@@ -57,6 +60,8 @@ public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 			HandlerMethod method = (HandlerMethod)handler;
 			OAuth2Resource oauth2Resource = method.getMethod().getDeclaredAnnotation(OAuth2Resource.class);
 			if(oauth2Resource!=null) {
+				String locale = CommonHelper.trim(request.getParameter(InnerConstants.KEY_LOCALE));
+				String state = CommonHelper.trim(request.getParameter(OAuth.OAUTH_STATE));
 				String scope = CommonHelper.trim(oauth2Resource.value());
 				if(scope==null)
 					throw new RuntimeException("Value should be specified a valid string.");
@@ -70,6 +75,7 @@ public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 				boolean isNotJson = !InnerConstants.CLIENT_TYPE_J.equals(clientType);
 				Integer errorStatus = null;
 				String errorUri = null;
+				Integer errorResponse = null;
 				OAuthResponseBuilder builder = null;
 				try {
 					String error = OAuthError.ResourceResponse.INVALID_REQUEST;
@@ -113,6 +119,21 @@ public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 										if(!pass) {
 											errorStatus = 8;
 											error = OAuthError.ResourceResponse.INSUFFICIENT_SCOPE;
+											errorUri = CommonHelper.appendUriParam(CommonHelper.appendUriParam(new StringBuilder(100)
+													.append(loginUri)
+													.append("?")
+													.append(OAuth.OAUTH_CLIENT_ID)
+													.append("=")
+													.append(jwtPayload.getClientId())
+													.append("&")
+													.append(OAuth.OAUTH_USERNAME)
+													.append("=")
+													.append(accounts.get(0))
+													.append("&")
+													.append(OAuth.OAUTH_SCOPE)
+													.append("=")
+													.append(scope), OAuth.OAUTH_STATE, state), InnerConstants.KEY_LOCALE, locale)
+												.toString();
 										}
 									} else {
 										errorStatus = 7;
@@ -125,14 +146,17 @@ public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 							error = OAuthError.ResourceResponse.INVALID_TOKEN;
 						}
 					}
-					if(errorStatus!=null)
+					if(errorStatus!=null) {
+						errorResponse = isNotJson?HttpServletResponse.SC_FOUND:HttpServletResponse.SC_FORBIDDEN;
 						builder = OAuthRSResponse
-								.errorResponse(isNotJson?HttpServletResponse.SC_FOUND:HttpServletResponse.SC_FORBIDDEN)
+								.errorResponse(errorResponse)
 								.setError(error)
 								.setErrorDescription(new RequestContext(request).getMessage(OAuth2ResourceConstants.RESOURCE_ERROR_MSG_KEY_PREFIX+errorStatus));
+					}
 				} catch(Exception e) {
 					log.error("OAUTH2_ERR_AUTHORIZATION: ", e);
-					builder = OAuthRSResponse.errorResponse(HttpServletResponse.SC_BAD_REQUEST);
+					errorResponse = HttpServletResponse.SC_BAD_REQUEST;
+					builder = OAuthRSResponse.errorResponse(errorResponse);
 					if(e instanceof OAuthProblemException) {
 						OAuthProblemException oauth2E = (OAuthProblemException)e;
 						((OAuthErrorResponseBuilder)builder).error(oauth2E).setError(OAuthError.ResourceResponse.INVALID_REQUEST);
@@ -147,33 +171,37 @@ public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 				}
 				if(builder!=null) {
 					HttpHeaders headers = new HttpHeaders();
-					String state = CommonHelper.trim(request.getParameter(OAuth.OAUTH_STATE));
 					if(state!=null)
 						builder.setParam(OAuth.OAUTH_STATE, state);
 					if(errorUri==null)
-						errorUri = Oauth2Helper.resourceErrorUri(errorStatus, CommonHelper.trim(request.getParameter(InnerConstants.KEY_LOCALE)));
+						errorUri = Oauth2Helper.resourceErrorUri(errorStatus, locale);
 					headers.setLocation(new URI(errorUri));
 					builder.location(errorUri);
 					((OAuthErrorResponseBuilder)builder).setErrorUri(errorUri);
-					response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 					OAuthResponse oauthResponse = null;
 					if(isNotJson) {
 						oauthResponse = builder.buildBodyMessage();
+						response.setStatus(errorResponse==null?HttpServletResponse.SC_FORBIDDEN:errorResponse);
 					} else {
 						oauthResponse = builder.buildJSONMessage();
+						response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 						headers.setContentType(MediaType.APPLICATION_JSON_UTF8);
 						response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
 					}
-					ResponseEntity<?> responseEntity = new ResponseEntity<>(oauthResponse.getBody(), headers, HttpStatus.valueOf(oauthResponse.getResponseStatus()));
-					PrintWriter out = null;
-					try {
-						out = response.getWriter();
-						out.println(responseEntity.getBody().toString());
-					} catch(Exception e) {
-						log.error("OAUTH2_OUT_ERR: ", e);
-					} finally {
-						if(out!=null)
-							out.close();
+					if(errorResponse==HttpServletResponse.SC_FOUND) {
+						response.sendRedirect(errorUri);
+					} else {
+						ResponseEntity<?> responseEntity = new ResponseEntity<>(oauthResponse.getBody(), headers, HttpStatus.valueOf(oauthResponse.getResponseStatus()));
+						PrintWriter out = null;
+						try {
+							out = response.getWriter();
+							out.println(responseEntity.getBody().toString());
+						} catch(Exception e) {
+							log.error("OAUTH2_OUT_ERR: ", e);
+						} finally {
+							if(out!=null)
+								out.close();
+						}
 					}
 					return false;
 				}
