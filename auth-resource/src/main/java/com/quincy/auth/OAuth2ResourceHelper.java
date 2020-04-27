@@ -11,6 +11,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.oltu.oauth2.common.OAuth;
 import org.apache.oltu.oauth2.common.error.OAuthError;
@@ -35,17 +36,19 @@ public class OAuth2ResourceHelper {
 	@Value("${url.prefix.oauth2}")
 	private String loginUriPrefix;
 
-	public OAuth2Result validateToken(HttpServletRequest request, String accessToken, String _scope, String state, String locale) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, IOException {
+	public OAuth2Result validateToken(String accessToken, String _scope, String state, String locale, HttpServletRequest request) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, IOException {
 		String scope = CommonHelper.trim(_scope);
 		if(scope==null)
 			throw new RuntimeException("Value should be specified a valid string.");
 		Integer errorStatus = null;
 		String errorUri = null;
-		String error = OAuthError.ResourceResponse.INVALID_REQUEST;
+		String error = null;
+		Integer errorResponse = null;
 		String[] accessTokenFields = accessToken.split("\\.");
 		if(accessTokenFields.length<3) {
 			errorStatus = 3;
 			error = OAuthError.ResourceResponse.INVALID_TOKEN;
+			errorResponse = HttpServletResponse.SC_BAD_REQUEST;
 		} else {
 			String payload = accessTokenFields[1];
 			String signature = accessTokenFields[2];
@@ -60,60 +63,70 @@ public class OAuth2ResourceHelper {
 				if(System.currentTimeMillis()>jwtPayload.getValidBefore()) {
 					errorStatus = 5;
 					error = OAuthError.ResourceResponse.EXPIRED_TOKEN;
+					errorResponse = HttpServletResponse.SC_FORBIDDEN;
 				} else {
-					String username = CommonHelper.trim(request.getParameter(OAuth.OAUTH_USERNAME));
-					if(username==null) {
-						errorStatus = 6;
-					} else {
-						boolean pass = false;
-						List<String> accounts = jwtPayload.getAccounts();
-						for(String account:accounts) {
-							if(account.equals(username)) {
-								pass = true;
-								break;
-							}
-						}
-						if(pass) {
-							pass = false;
-							List<String> scopes = jwtPayload.getScopes();
-							for(String s:scopes) {
-								if(s.equals(scope)) {
+					List<String> accounts = jwtPayload.getAccounts();
+					if(request!=null) {
+						String username = CommonHelper.trim(request.getParameter(OAuth.OAUTH_USERNAME));
+						if(username==null) {
+							errorStatus = 6;
+							error = OAuthError.ResourceResponse.INVALID_REQUEST;
+							errorResponse = HttpServletResponse.SC_BAD_REQUEST;
+						} else {
+							boolean pass = false;
+							for(String account:accounts) {
+								if(account.equals(username)) {
 									pass = true;
 									break;
 								}
 							}
 							if(!pass) {
-								errorStatus = 8;
-								error = OAuthError.ResourceResponse.INSUFFICIENT_SCOPE;
-								errorUri = CommonHelper.appendUriParam(CommonHelper.appendUriParam(new StringBuilder(100)
-										.append(loginUriPrefix)
-										.append("/oauth2/signin?")
-										.append(OAuth.OAUTH_CLIENT_ID)
-										.append("=")
-										.append(jwtPayload.getClientId())
-										.append("&")
-										.append(OAuth.OAUTH_USERNAME)
-										.append("=")
-										.append(accounts.get(0))
-										.append("&")
-										.append(OAuth.OAUTH_SCOPE)
-										.append("=")
-										.append(scope), OAuth.OAUTH_STATE, state), InnerConstants.KEY_LOCALE, locale)
-									.toString();
+								errorStatus = 7;
+								error = OAuthError.ResourceResponse.INVALID_TOKEN;
+								errorResponse = HttpServletResponse.SC_FORBIDDEN;
 							}
-						} else {
-							errorStatus = 7;
-							error = OAuthError.ResourceResponse.INVALID_TOKEN;
+						}
+					}
+					if(errorStatus==null) {
+						boolean pass = false;
+						List<String> scopes = jwtPayload.getScopes();
+						for(String s:scopes) {
+							if(s.equals(scope)) {
+								pass = true;
+								break;
+							}
+						}
+						if(!pass) {
+							errorStatus = 8;
+							error = OAuthError.ResourceResponse.INSUFFICIENT_SCOPE;
+							errorResponse = HttpServletResponse.SC_FORBIDDEN;
+							errorUri = CommonHelper.appendUriParam(CommonHelper.appendUriParam(new StringBuilder(100)
+									.append(loginUriPrefix)
+									.append("/oauth2/signin?")
+									.append(OAuth.OAUTH_CLIENT_ID)
+									.append("=")
+									.append(jwtPayload.getClientId())
+									.append("&")
+									.append(OAuth.OAUTH_USERNAME)
+									.append("=")
+									.append(accounts.get(0))
+									.append("&")
+									.append(OAuth.OAUTH_SCOPE)
+									.append("=")
+									.append(scope), OAuth.OAUTH_STATE, state), InnerConstants.KEY_LOCALE, locale)
+								.toString();
 						}
 					}
 				}
 			} else {
 				errorStatus = 4;
 				error = OAuthError.ResourceResponse.INVALID_TOKEN;
+				errorResponse = HttpServletResponse.SC_FORBIDDEN;
 			}
 		}
 		OAuth2Result result = new OAuth2Result();
 		result.setError(error);
+		result.setErrorResponse(errorResponse);
 		result.setErrorStatus(errorStatus);
 		result.setErrorUri(errorUri);
 		return result;

@@ -61,18 +61,16 @@ public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 				String errorUri = null;
 				OAuthResponseBuilder builder = null;
 				try {
-					String error = OAuthError.ResourceResponse.INVALID_REQUEST;
 					OAuthAccessResourceRequest accessResourceRequest = new OAuthAccessResourceRequest(request);
 					String accessToken = accessResourceRequest.getAccessToken();
-					OAuth2Result result = oauth2ResourceHelper.validateToken(request, accessToken, scope, state, locale);
-					error = result.getError();
+					OAuth2Result result = oauth2ResourceHelper.validateToken(accessToken, scope, state, locale, request);
 					errorStatus = result.getErrorStatus();
 					errorUri = result.getErrorUri();
 					if(errorStatus!=null) {
-						errorResponse = isNotJson?HttpServletResponse.SC_FOUND:HttpServletResponse.SC_FORBIDDEN;
+						errorResponse = isNotJson?HttpServletResponse.SC_FOUND:result.getErrorResponse();
 						builder = OAuthRSResponse
 								.errorResponse(errorResponse)
-								.setError(error)
+								.setError(result.getError())
 								.setErrorDescription(new RequestContext(request).getMessage(OAuth2ResourceHelper.RESOURCE_ERROR_MSG_KEY_PREFIX+errorStatus));
 					}
 				} catch(Exception e) {
