@@ -19,24 +19,32 @@ public class InnerHelper {
 			String outputContent = "{\"status\":"+status+", \"msg\":\""+msg+"\"}";
 			HttpClientHelper.outputJson(response, outputContent);
 		} else {
-			request.setAttribute("status", status);
-			request.setAttribute("msg", msg);
-			Iterator<Entry<String, String[]>> it = request.getParameterMap().entrySet().iterator();
-			while(it.hasNext()) {
-				Entry<String, String[]> e = it.next();
-				if(e.getValue()!=null&&e.getValue().length>0&&!e.getKey().equals(InnerConstants.KEY_LOCALE))
-					request.setAttribute(e.getKey(), e.getValue()[0]);
-			}
-			StringBuilder uri = new StringBuilder(280).append(redirectTo);
+			StringBuilder location = new StringBuilder(280).append(redirectTo);
 			if(appendBackTo) {
+//				String requestURL = request.getRequestURL().toString();
+//				if(requestURL.endsWith("/"))
+//					requestURL = requestURL.substring(0, requestURL.length()-1);
 				String queryString = CommonHelper.trim(request.getQueryString());
 				if(queryString!=null||request.getRequestURI().length()>1)
-					uri.append(getSeparater(uri.toString()))
+					location.append(getSeparater(location.toString()))
 					.append(InnerConstants.PARAM_REDIRECT_TO)
 					.append("=")
 					.append(URLEncoder.encode(request.getRequestURI()+(queryString==null?"":("?"+queryString)), "UTF-8"));
 			}
-			request.getRequestDispatcher(uri.toString()).forward(request, response);
+//			System.out.println(request.getRequestURI()+"============="+request.getRequestURL()+"============="+location.length());
+			if(redirectTo.startsWith("http")) {
+				response.sendRedirect(location.toString());
+			} else {
+				request.setAttribute("status", status);
+				request.setAttribute("msg", msg);
+				Iterator<Entry<String, String[]>> it = request.getParameterMap().entrySet().iterator();
+				while(it.hasNext()) {
+					Entry<String, String[]> e = it.next();
+					if(e.getValue()!=null&&e.getValue().length>0&&!e.getKey().equals(InnerConstants.KEY_LOCALE))
+						request.setAttribute(e.getKey(), e.getValue()[0]);
+				}
+				request.getRequestDispatcher(location.toString()).forward(request, response);
+			}
 		}
 	}
 

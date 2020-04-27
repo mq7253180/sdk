@@ -34,7 +34,7 @@ public class OAuth2ResourceHelper {
 	@Resource(name = "secondarySelfPublicKey")
 	private PublicKey secondarySelfPublicKey;
 	@Value("${url.prefix.oauth2}")
-	private String loginUriPrefix;
+	private String centralUriPrefix;
 
 	public OAuth2Result validateToken(String accessToken, String _scope, String state, String locale, HttpServletRequest request) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, IOException {
 		String scope = CommonHelper.trim(_scope);
@@ -44,6 +44,7 @@ public class OAuth2ResourceHelper {
 		String errorUri = null;
 		String error = null;
 		Integer errorResponse = null;
+		OAuth2Result result = new OAuth2Result();
 		String[] accessTokenFields = accessToken.split("\\.");
 		if(accessTokenFields.length<3) {
 			errorStatus = 3;
@@ -60,7 +61,7 @@ public class OAuth2ResourceHelper {
 				mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
 				mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 				OAuth2TokenJWTPayload jwtPayload = mapper.readValue(Base64.getDecoder().decode(payload), OAuth2TokenJWTPayload.class);
-				if(System.currentTimeMillis()>jwtPayload.getValidBefore()) {
+				if(System.currentTimeMillis()>jwtPayload.getExpirationTime()) {
 					errorStatus = 5;
 					error = OAuthError.ResourceResponse.EXPIRED_TOKEN;
 					errorResponse = HttpServletResponse.SC_FORBIDDEN;
@@ -93,6 +94,14 @@ public class OAuth2ResourceHelper {
 						for(String s:scopes) {
 							if(s.equals(scope)) {
 								pass = true;
+								if(request==null) {//更新token
+									long expire = jwtPayload.getExpirationTime()-jwtPayload.getIssuedAtTime();
+									long remaining = jwtPayload.getExpirationTime()-System.currentTimeMillis();
+									if(remaining<(expire/2)) {
+										errorStatus = 0;
+										result.setUsername(accounts.get(0));
+									}
+								}
 								break;
 							}
 						}
@@ -101,7 +110,7 @@ public class OAuth2ResourceHelper {
 							error = OAuthError.ResourceResponse.INSUFFICIENT_SCOPE;
 							errorResponse = HttpServletResponse.SC_FORBIDDEN;
 							errorUri = CommonHelper.appendUriParam(CommonHelper.appendUriParam(new StringBuilder(100)
-									.append(loginUriPrefix)
+									.append(centralUriPrefix)
 									.append("/oauth2/signin?")
 									.append(OAuth.OAUTH_CLIENT_ID)
 									.append("=")
@@ -124,7 +133,6 @@ public class OAuth2ResourceHelper {
 				errorResponse = HttpServletResponse.SC_FORBIDDEN;
 			}
 		}
-		OAuth2Result result = new OAuth2Result();
 		result.setError(error);
 		result.setErrorResponse(errorResponse);
 		result.setErrorStatus(errorStatus);

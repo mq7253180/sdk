@@ -334,9 +334,10 @@ public abstract class OAuth2ControllerSupport {
 					payload.setClientId(clientId);
 					payload.setAccounts(info.getAccounts());
 					payload.setScopes(info.getScopes());
-					payload.setValidBefore(currentTimeMillis+accessTokenExpireMillis());
+					payload.setIssuedAtTime(currentTimeMillis);
+					payload.setExpirationTime(currentTimeMillis+accessTokenExpireMillis());
 					String accessToken = generateToken(mapper, encoder, privateKey, payload);
-					payload.setValidBefore(currentTimeMillis+(refreshTokenExpireDays()*24*3600*1000));
+					payload.setExpirationTime(currentTimeMillis+(refreshTokenExpireDays()*24*3600*1000));
 					String refreshToken = generateToken(mapper, encoder, privateKey, payload);
 					result.setBuilder(OAuthASResponse
 							.tokenResponse(isNotJson?HttpServletResponse.SC_FOUND:HttpServletResponse.SC_OK)

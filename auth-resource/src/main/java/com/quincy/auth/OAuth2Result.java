@@ -8,4 +8,5 @@ public class OAuth2Result {
 	private String errorUri = null;
 	private String error = null;
 	private Integer errorResponse = null;
+	private String username = null;
 }

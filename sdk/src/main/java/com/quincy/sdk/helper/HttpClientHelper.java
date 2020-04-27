@@ -27,6 +27,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.springframework.http.MediaType;
 
 public class HttpClientHelper {
 //	private final static String ERR_MSG = "Abnormal HTTP Status Code: %s, URI: %s";
@@ -177,7 +178,7 @@ public class HttpClientHelper {
 	}
 
 	public static void outputJson(HttpServletResponse response, String json) throws IOException {
-		output(response, "application/json;charset=UTF-8", json);
+		output(response, MediaType.APPLICATION_JSON_UTF8_VALUE, json);
 	}
 
 	public static void main(String[] args) throws IOException {
