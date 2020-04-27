@@ -12,11 +12,18 @@ import com.quincy.sdk.helper.RSASecurityHelper;
 
 @Configuration
 public class AuthResourceConfiguration {
-	@Value("${secret.rsa.publicKey}")
-	private String publicKeyStr;
+	@Value("${secret.rsa.publicKey.primary}")
+	private String primaryPublicKeyStr;
+	@Value("${secret.rsa.publicKey.secondary}")
+	private String secondaryPublicKeyStr;
 
-	@Bean("selfPublicKey")
-	public PublicKey publicKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
-		return RSASecurityHelper.extractPublicKeyByStr(publicKeyStr);
+	@Bean("primarySelfPublicKey")
+	public PublicKey primaryPublicKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
+		return RSASecurityHelper.extractPublicKeyByStr(primaryPublicKeyStr);
+	}
+
+	@Bean("secondarySelfPublicKey")
+	public PublicKey secondaryPublicKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
+		return RSASecurityHelper.extractPublicKeyByStr(secondaryPublicKeyStr);
 	}
 }

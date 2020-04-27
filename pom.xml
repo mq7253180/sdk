@@ -137,5 +137,6 @@
 		<module>auth-session</module>
 		<module>auth-cache</module>
 		<module>auth-resource</module>
+		<module>auth-sso</module>
 	</modules>
 </project>
