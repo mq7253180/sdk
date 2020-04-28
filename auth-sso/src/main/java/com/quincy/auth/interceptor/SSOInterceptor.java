@@ -19,12 +19,14 @@ import org.springframework.context.NoSuchMessageException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import org.springframework.web.servlet.support.RequestContext;
 
 import com.quincy.auth.OAuth2ResourceHelper;
 import com.quincy.auth.OAuth2Result;
 import com.quincy.auth.Oauth2Helper;
 import com.quincy.auth.annotation.OAuth2Resource;
 import com.quincy.core.InnerConstants;
+import com.quincy.core.InnerHelper;
 import com.quincy.sdk.helper.CommonHelper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -66,16 +68,19 @@ public class SSOInterceptor extends HandlerInterceptorAdapter {
 							response.setStatus(result.getErrorResponse());
 							return false;
 						} else {
-							String msgKey = OAuth2ResourceHelper.RESOURCE_ERROR_MSG_KEY_PREFIX+result.getErrorStatus();
 							Integer status = null;
 							String location = null;
+							String msg = null;
 							if(result.getErrorStatus()==5) {//会话超时、跳登录页
 								status = 0;
+								msg = new RequestContext(request).getMessage("oauth2.error.sso.timeout");
 								location = centralUriPrefix+"/auth/signin/broker";
 							} else if(result.getErrorStatus()==8) {//权限不足
 								status = -1;
+								msg = new RequestContext(request).getMessage("status.error.403")+"["+scope+"]";
 								location = Oauth2Helper.resourceErrorUri(result.getErrorStatus(), locale);
 							}
+							InnerHelper.outputOrForward(request, response, handler, status, msg, location, InnerHelper.APPEND_BACKTO_FLAG_URL);
 							return false;
 						}
 					}
