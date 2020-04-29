@@ -11,8 +11,13 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.oltu.oauth2.client.OAuthClient;
+import org.apache.oltu.oauth2.client.URLConnectionClient;
+import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
+import org.apache.oltu.oauth2.client.response.OAuthJSONAccessTokenResponse;
 import org.apache.oltu.oauth2.common.OAuth;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
+import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.NoSuchMessageException;
@@ -39,7 +44,7 @@ public class SSOInterceptor extends HandlerInterceptorAdapter {
 	@Value("${ssoTokenName}")
 	private String ssoTokenName;
 	@Value("${url.prefix.oauth2}")
-	private String centralUriPrefix;
+	private String centralUrlPrefix;
 
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException, URISyntaxException, OAuthSystemException, InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, NoSuchMessageException, ServletException {
@@ -63,7 +68,16 @@ public class SSOInterceptor extends HandlerInterceptorAdapter {
 					OAuth2Result result = oauth2ResourceHelper.validateToken(accessToken, scope, state, locale, null);
 					if(result.getErrorStatus()!=null) {
 						if(result.getErrorStatus()==0) {//判断是否需要更新token，如果需要调接口更新
-							
+							OAuthClient client = new OAuthClient(new URLConnectionClient());
+							/*OAuthClientRequest oauthClientRequest = OAuthClientRequest
+									.tokenLocation(userCenterTokenUrl)
+									.setClientId(clientId)
+									.setClientSecret(clientSecret)
+									.setRedirectURI(redirectUrl)
+									.setGrantType(GrantType.AUTHORIZATION_CODE)
+									.setCode(accessCode)
+									.buildBodyMessage();
+							String newAccessToken = client.accessToken(request, OAuthJSONAccessTokenResponse.class).getAccessToken();*/
 						} else if(result.getErrorStatus()<5) {//跳错误页
 							response.setStatus(result.getErrorResponse());
 							return false;
@@ -74,7 +88,7 @@ public class SSOInterceptor extends HandlerInterceptorAdapter {
 							if(result.getErrorStatus()==5) {//会话超时、跳登录页
 								status = 0;
 								msg = new RequestContext(request).getMessage("oauth2.error.sso.timeout");
-								location = centralUriPrefix+"/auth/signin/broker";
+								location = centralUrlPrefix+"/auth/signin/broker";
 							} else if(result.getErrorStatus()==8) {//权限不足
 								status = -1;
 								msg = new RequestContext(request).getMessage("status.error.403")+"["+scope+"]";

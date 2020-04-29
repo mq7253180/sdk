@@ -28,13 +28,12 @@ import com.quincy.sdk.helper.RSASecurityHelper;
 
 @Component
 public class OAuth2ResourceHelper {
-	public final static String RESOURCE_ERROR_MSG_KEY_PREFIX = "oauth2.error.resource.";
 	@Resource(name = "primarySelfPublicKey")
 	private PublicKey primarySelfPublicKey;
 	@Resource(name = "secondarySelfPublicKey")
 	private PublicKey secondarySelfPublicKey;
 	@Value("${url.prefix.oauth2}")
-	private String centralUriPrefix;
+	private String centralUrlPrefix;
 
 	public OAuth2Result validateToken(String accessToken, String _scope, String state, String locale, HttpServletRequest request) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, IOException {
 		String scope = CommonHelper.trim(_scope);
@@ -110,7 +109,7 @@ public class OAuth2ResourceHelper {
 							error = OAuthError.ResourceResponse.INSUFFICIENT_SCOPE;
 							errorResponse = HttpServletResponse.SC_FORBIDDEN;
 							errorUri = CommonHelper.appendUriParam(CommonHelper.appendUriParam(new StringBuilder(100)
-									.append(centralUriPrefix)
+									.append(centralUrlPrefix)
 									.append("/oauth2/signin?")
 									.append(OAuth.OAUTH_CLIENT_ID)
 									.append("=")

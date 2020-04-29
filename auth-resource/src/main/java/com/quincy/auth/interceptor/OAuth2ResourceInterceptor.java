@@ -27,6 +27,7 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.support.RequestContext;
 
+import com.quincy.auth.OAuth2Constants;
 import com.quincy.auth.OAuth2ResourceHelper;
 import com.quincy.auth.OAuth2Result;
 import com.quincy.auth.Oauth2Helper;
@@ -71,7 +72,7 @@ public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 						builder = OAuthRSResponse
 								.errorResponse(errorResponse)
 								.setError(result.getError())
-								.setErrorDescription(new RequestContext(request).getMessage(OAuth2ResourceHelper.RESOURCE_ERROR_MSG_KEY_PREFIX+errorStatus));
+								.setErrorDescription(new RequestContext(request).getMessage(OAuth2Constants.RESOURCE_ERROR_MSG_KEY_PREFIX+errorStatus));
 					}
 				} catch(Exception e) {
 					log.error("OAUTH2_ERR_AUTHORIZATION: ", e);
