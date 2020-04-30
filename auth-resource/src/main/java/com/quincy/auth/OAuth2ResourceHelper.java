@@ -33,7 +33,7 @@ public class OAuth2ResourceHelper {
 	@Resource(name = "secondarySelfPublicKey")
 	private PublicKey secondarySelfPublicKey;
 	@Value("${url.prefix.oauth2}")
-	private String centralUrlPrefix;
+	private String centerUrlPrefix;
 
 	public OAuth2Result validateToken(String accessToken, String _scope, String state, String locale, HttpServletRequest request) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, IOException {
 		String scope = CommonHelper.trim(_scope);
@@ -109,7 +109,7 @@ public class OAuth2ResourceHelper {
 							error = OAuthError.ResourceResponse.INSUFFICIENT_SCOPE;
 							errorResponse = HttpServletResponse.SC_FORBIDDEN;
 							errorUri = CommonHelper.appendUriParam(CommonHelper.appendUriParam(new StringBuilder(100)
-									.append(centralUrlPrefix)
+									.append("_self".equals(centerUrlPrefix)?"":centerUrlPrefix)
 									.append("/oauth2/signin?")
 									.append(OAuth.OAUTH_CLIENT_ID)
 									.append("=")

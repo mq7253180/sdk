@@ -32,6 +32,7 @@ import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.OAuthResponse;
 import org.apache.oltu.oauth2.common.message.OAuthResponse.OAuthErrorResponseBuilder;
 import org.apache.oltu.oauth2.common.message.OAuthResponse.OAuthResponseBuilder;
+import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -98,7 +99,7 @@ public abstract class OAuth2ControllerSupport {
 
 	private interface Customization {
 		public XxxResult authorize(OAuthRequest oauthRequest, String redirectUri, boolean isNotJson, String locale, String state, Long clientSystemId) throws OAuthSystemException, UnsupportedEncodingException;
-		public XxxResult grant(OAuthRequest oauthRequest, String redirectUri, boolean isNotJson, String locale, String state) throws OAuthSystemException, InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, IOException;
+		public XxxResult grant(OAuthRequest oauthRequest, String redirectUri, boolean isNotJson, String locale, String state, Long clientSystemId) throws OAuthSystemException, InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, IOException;
 	}
 
 	private ResponseEntity<?> doTemplate(HttpServletRequest request, Customization c, int reqCase) throws URISyntaxException, OAuthSystemException {
@@ -125,7 +126,7 @@ public abstract class OAuth2ControllerSupport {
 				if(_secret==null||!this.authenticateSecret(_secret, secret, "")) {
 					errorStatus = 4;
 				} else {
-					XxxResult result = reqCase==REQ_CASE_CODE?c.authorize(oauthRequest, _redirectUri, isNotJson, locale, state, clientSystem.getId()):c.grant(oauthRequest, _redirectUri, isNotJson, locale, state);
+					XxxResult result = reqCase==REQ_CASE_CODE?c.authorize(oauthRequest, _redirectUri, isNotJson, locale, state, clientSystem.getId()):c.grant(oauthRequest, _redirectUri, isNotJson, locale, state, clientSystem.getId());
 					errorResponse = result.getErrorResponse();
 					error = result.getError();
 					errorStatus = result.getErrorStatus();
@@ -178,7 +179,8 @@ public abstract class OAuth2ControllerSupport {
 	public ResponseEntity<?> authorizationCode(HttpServletRequest request) throws OAuthSystemException, URISyntaxException {
 		return this.doTemplate(request, new Customization() {
 			@Override
-			public XxxResult authorize(OAuthRequest oauthRequest, String _redirectUri, boolean isNotJson, String locale, String state, Long clientSystemId) throws OAuthSystemException, UnsupportedEncodingException {
+			public XxxResult authorize(OAuthRequest _oauthRequest, String _redirectUri, boolean isNotJson, String locale, String state, Long clientSystemId) throws OAuthSystemException, UnsupportedEncodingException {
+				OAuthAuthzRequest oauthRequest = (OAuthAuthzRequest)_oauthRequest;
 				Integer errorResponse = HttpServletResponse.SC_BAD_REQUEST;
 				String error = OAuthError.CodeResponse.INVALID_REQUEST;
 				Integer errorStatus = null;
@@ -235,7 +237,7 @@ public abstract class OAuth2ControllerSupport {
 			}
 
 			@Override
-			public XxxResult grant(OAuthRequest oauthRequest, String redirectUri, boolean isNotJson, String locale, String state) {
+			public XxxResult grant(OAuthRequest oauthRequest, String redirectUri, boolean isNotJson, String locale, String state, Long clientSystemId) {
 				return null;
 			}
 		}, REQ_CASE_CODE);
@@ -316,15 +318,24 @@ public abstract class OAuth2ControllerSupport {
 	public Object accessToken(HttpServletRequest request) throws URISyntaxException, OAuthSystemException {
 		return this.doTemplate(request, new Customization() {
 			@Override
-			public XxxResult grant(OAuthRequest oauthRequest, String redirectUri, boolean isNotJson, String locale, String state) throws OAuthSystemException, InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, IOException {
+			public XxxResult grant(OAuthRequest _oauthRequest, String redirectUri, boolean isNotJson, String locale, String state, Long clientSystemId) throws OAuthSystemException, InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, IOException {
+				OAuthTokenRequest oauthRequest = (OAuthTokenRequest)_oauthRequest;
 				String clientId = oauthRequest.getClientId();
-				XxxResult result = new XxxResult();
-				OAuth2Info info = getOAuth2Info(oauthRequest.getParam(OAuth.OAUTH_CODE));
-				if(!clientId.equals(info.getClientId())) {
-					result.setErrorResponse(HttpServletResponse.SC_FORBIDDEN);
-					result.setError(OAuthError.TokenResponse.INVALID_GRANT);
-					result.setErrorStatus(10);
-				} else {
+				XxxResult result = null;
+				OAuth2Info info = null;
+				if(GrantType.IMPLICIT.toString().equals(oauthRequest.getGrantType())) {
+					info = getOAuth2Info(clientSystemId, oauthRequest.getUsername());
+				} else if(GrantType.AUTHORIZATION_CODE.toString().equals(oauthRequest.getGrantType())) {
+					info = getOAuth2Info(oauthRequest.getCode());
+					if(!clientId.equals(info.getClientId())) {
+						result = new XxxResult();
+						result.setErrorResponse(HttpServletResponse.SC_FORBIDDEN);
+						result.setError(OAuthError.TokenResponse.INVALID_GRANT);
+						result.setErrorStatus(10);
+					}
+				}
+				if(result==null) {
+					result = new XxxResult();
 					ObjectMapper mapper = new ObjectMapper();
 					mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 					mapper.setSerializationInclusion(Include.NON_NULL);

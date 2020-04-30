@@ -14,8 +14,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.oltu.oauth2.client.OAuthClient;
 import org.apache.oltu.oauth2.client.URLConnectionClient;
 import org.apache.oltu.oauth2.client.request.OAuthClientRequest;
+import org.apache.oltu.oauth2.client.response.OAuthAccessTokenResponse;
 import org.apache.oltu.oauth2.client.response.OAuthJSONAccessTokenResponse;
 import org.apache.oltu.oauth2.common.OAuth;
+import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,13 +43,17 @@ import lombok.extern.slf4j.Slf4j;
 public class SSOInterceptor extends HandlerInterceptorAdapter {
 	@Autowired
 	private OAuth2ResourceHelper oauth2ResourceHelper;
-	@Value("${ssoTokenName}")
-	private String ssoTokenName;
 	@Value("${url.prefix.oauth2}")
-	private String centralUrlPrefix;
+	private String centerUrlPrefix;
+	@Value("${oauth2.clientId}")
+	private String clientId;
+	@Value("${oauth2.clientSecret}")
+	private String clientSecret;
+	@Value("${clientTokenName.sso}")
+	private String clientTokenName;
 
 	@Override
-	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException, URISyntaxException, OAuthSystemException, InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, NoSuchMessageException, ServletException {
+	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException, URISyntaxException, OAuthSystemException, InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, NoSuchMessageException, ServletException, OAuthProblemException {
 		if(handler instanceof HandlerMethod) {
 			HandlerMethod method = (HandlerMethod)handler;
 			OAuth2Resource oauth2Resource = method.getMethod().getDeclaredAnnotation(OAuth2Resource.class);
@@ -58,9 +64,8 @@ public class SSOInterceptor extends HandlerInterceptorAdapter {
 				String clientType = CommonHelper.clientType(request);
 //				String clientType = InnerConstants.CLIENT_TYPE_J;
 				boolean isNotJson = !InnerConstants.CLIENT_TYPE_J.equals(clientType);
-				String accessToken = CommonHelper.getValue(request, ssoTokenName);
-				if(accessToken==null) {
-					response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+				String accessToken = CommonHelper.getValue(request, clientTokenName);
+				if(accessToken==null) {//跳登录页
 					return false;
 				} else {
 					String locale = CommonHelper.trim(request.getParameter(InnerConstants.KEY_LOCALE));
@@ -69,16 +74,22 @@ public class SSOInterceptor extends HandlerInterceptorAdapter {
 					if(result.getErrorStatus()!=null) {
 						if(result.getErrorStatus()==0) {//判断是否需要更新token，如果需要调接口更新
 							OAuthClient client = new OAuthClient(new URLConnectionClient());
-							/*OAuthClientRequest oauthClientRequest = OAuthClientRequest
-									.tokenLocation(userCenterTokenUrl)
+							OAuthClientRequest oauthClientRequest = OAuthClientRequest
+									.tokenLocation(new StringBuilder(200)
+											.append(centerUrlPrefix)
+											.append("/oauth2/code")
+											.toString())
+									.setParameter("app_client", "sso")
+									.setGrantType(GrantType.AUTHORIZATION_CODE)
 									.setClientId(clientId)
 									.setClientSecret(clientSecret)
-									.setRedirectURI(redirectUrl)
-									.setGrantType(GrantType.AUTHORIZATION_CODE)
-									.setCode(accessCode)
+									.setScope(scope)
+									.setUsername(result.getUsername())
 									.buildBodyMessage();
-							String newAccessToken = client.accessToken(request, OAuthJSONAccessTokenResponse.class).getAccessToken();*/
-						} else if(result.getErrorStatus()<5) {//跳错误页
+							OAuthAccessTokenResponse oauthAccessTokenResponse = client.accessToken(oauthClientRequest, OAuthJSONAccessTokenResponse.class);
+							String newAccessToken = oauthAccessTokenResponse.getAccessToken();
+							String newRefreshToken = oauthAccessTokenResponse.getRefreshToken();
+						} else if(result.getErrorStatus()<5) {//证书被窜改过，跳错误页
 							response.setStatus(result.getErrorResponse());
 							return false;
 						} else {
@@ -88,7 +99,7 @@ public class SSOInterceptor extends HandlerInterceptorAdapter {
 							if(result.getErrorStatus()==5) {//会话超时、跳登录页
 								status = 0;
 								msg = new RequestContext(request).getMessage("oauth2.error.sso.timeout");
-								location = centralUrlPrefix+"/auth/signin/broker";
+								location = centerUrlPrefix+"/auth/signin/broker";
 							} else if(result.getErrorStatus()==8) {//权限不足
 								status = -1;
 								msg = new RequestContext(request).getMessage("status.error.403")+"["+scope+"]";
