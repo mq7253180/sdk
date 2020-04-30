@@ -32,7 +32,6 @@ import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.oltu.oauth2.common.message.OAuthResponse;
 import org.apache.oltu.oauth2.common.message.OAuthResponse.OAuthErrorResponseBuilder;
 import org.apache.oltu.oauth2.common.message.OAuthResponse.OAuthResponseBuilder;
-import org.apache.oltu.oauth2.common.message.types.GrantType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -321,20 +320,13 @@ public abstract class OAuth2ControllerSupport {
 			public XxxResult grant(OAuthRequest _oauthRequest, String redirectUri, boolean isNotJson, String locale, String state, Long clientSystemId) throws OAuthSystemException, InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, IOException {
 				OAuthTokenRequest oauthRequest = (OAuthTokenRequest)_oauthRequest;
 				String clientId = oauthRequest.getClientId();
-				XxxResult result = null;
-				OAuth2Info info = null;
-				if(GrantType.IMPLICIT.toString().equals(oauthRequest.getGrantType())) {
-					info = getOAuth2Info(clientSystemId, oauthRequest.getUsername());
-				} else if(GrantType.AUTHORIZATION_CODE.toString().equals(oauthRequest.getGrantType())) {
-					info = getOAuth2Info(oauthRequest.getCode());
-					if(!clientId.equals(info.getClientId())) {
-						result = new XxxResult();
-						result.setErrorResponse(HttpServletResponse.SC_FORBIDDEN);
-						result.setError(OAuthError.TokenResponse.INVALID_GRANT);
-						result.setErrorStatus(10);
-					}
-				}
-				if(result==null) {
+				OAuth2Info info = getOAuth2Info(oauthRequest.getCode());
+				XxxResult result = new XxxResult();
+				if(!clientId.equals(info.getClientId())) {
+					result.setErrorResponse(HttpServletResponse.SC_FORBIDDEN);
+					result.setError(OAuthError.TokenResponse.INVALID_GRANT);
+					result.setErrorStatus(10);
+				} else {
 					result = new XxxResult();
 					ObjectMapper mapper = new ObjectMapper();
 					mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
