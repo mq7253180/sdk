@@ -6,7 +6,9 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Properties;
 
+import javax.annotation.Resource;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -43,8 +45,8 @@ import lombok.extern.slf4j.Slf4j;
 public class SSOInterceptor extends HandlerInterceptorAdapter {
 	@Autowired
 	private OAuth2ResourceHelper oauth2ResourceHelper;
-	@Value("${url.prefix.oauth2}")
-	private String centerUrlPrefix;
+	@Resource(name = InnerConstants.BEAN_NAME_PROPERTIES)
+	private Properties properties;
 	@Value("${oauth2.clientId}")
 	private String clientId;
 	@Value("${oauth2.clientSecret}")
@@ -72,15 +74,16 @@ public class SSOInterceptor extends HandlerInterceptorAdapter {
 					String state = CommonHelper.trim(request.getParameter(OAuth.OAUTH_STATE));
 					OAuth2Result result = oauth2ResourceHelper.validateToken(accessToken, scope, state, locale, null);
 					if(result.getErrorStatus()!=null) {
+						String centerUrlPrefix = properties.getProperty("url.prefix.oauth2");
 						if(result.getErrorStatus()==0) {//判断是否需要更新token，如果需要调接口更新
 							OAuthClient client = new OAuthClient(new URLConnectionClient());
 							OAuthClientRequest oauthClientRequest = OAuthClientRequest
 									.tokenLocation(new StringBuilder(200)
 											.append(centerUrlPrefix)
-											.append("/oauth2/code")
+											.append("/oauth2/token")
 											.toString())
 									.setParameter("app_client", "sso")
-									.setGrantType(GrantType.AUTHORIZATION_CODE)
+									.setGrantType(GrantType.IMPLICIT)
 									.setClientId(clientId)
 									.setClientSecret(clientSecret)
 									.setScope(scope)
