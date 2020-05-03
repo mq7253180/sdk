@@ -13,7 +13,7 @@
 	<dependencies>
 		<dependency>
 		    <groupId>com.maqiangcgq</groupId>
-		    <artifactId>quincy-auth-resource</artifactId>
+		    <artifactId>quincy-sdk</artifactId>
 		    <version>1.0.8</version>
 		</dependency>
 		<dependency>

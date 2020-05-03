@@ -29,18 +29,13 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.support.RequestContext;
 
-import com.quincy.auth.OAuth2ResourceHelper;
-import com.quincy.auth.OAuth2Result;
-import com.quincy.auth.Oauth2Helper;
-import com.quincy.auth.annotation.OAuth2Resource;
+import com.quincy.auth.annotation.UserSession;
 import com.quincy.core.InnerConstants;
 import com.quincy.core.InnerHelper;
 import com.quincy.sdk.helper.CommonHelper;
 
 @Component
 public class SSOInterceptor extends HandlerInterceptorAdapter {
-	@Autowired
-	private OAuth2ResourceHelper oauth2ResourceHelper;
 	@Value("${url.prefix.oauth2}")
 	private String centerUrlPrefix;
 	@Value("${oauth2.clientId}")
@@ -54,9 +49,16 @@ public class SSOInterceptor extends HandlerInterceptorAdapter {
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException, URISyntaxException, OAuthSystemException, InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, NoSuchMessageException, ServletException, OAuthProblemException {
 		if(handler instanceof HandlerMethod) {
 			HandlerMethod method = (HandlerMethod)handler;
-			OAuth2Resource oauth2Resource = method.getMethod().getDeclaredAnnotation(OAuth2Resource.class);
-			if(oauth2Resource!=null) {
-				String scope = CommonHelper.trim(oauth2Resource.value());
+			UserSession annotation = method.getMethod().getDeclaredAnnotation(UserSession.class);
+			if(annotation!=null) {
+				/*
+				 * 获取token
+				 * 判断是token是否过期
+				 * 	1如果过期跳登录页或吐json超时状态；
+				 * 	2如果离过期少于一半时间调中心系统重新获取token并刷新token
+				 *	3如果离过期时间超一半调中心系统获取session对象注入给参数
+				 */
+				/*String scope = CommonHelper.trim(oauth2Resource.value());
 				if(scope==null)
 					throw new RuntimeException("Value should be specified a valid string.");
 				String accessToken = CommonHelper.getValue(request, clientTokenName);
@@ -109,7 +111,7 @@ public class SSOInterceptor extends HandlerInterceptorAdapter {
 							return false;
 						}
 					}
-				}
+				}*/
 			}
 		}
 		return true;
