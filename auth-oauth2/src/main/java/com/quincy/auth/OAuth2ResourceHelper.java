@@ -13,8 +13,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.oltu.oauth2.common.OAuth;
-import org.apache.oltu.oauth2.common.error.OAuthError;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -35,6 +33,11 @@ public class OAuth2ResourceHelper {
 	@Value("${url.prefix.oauth2}")
 	private String centerUrlPrefix;
 
+	private String invalidTokenError;
+	private String expiredTokenError;
+	private String invalidRequestError;
+	private String insufficientScopeError;
+
 	public OAuth2Result validateToken(String accessToken, String _scope, String state, String locale, HttpServletRequest request) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, IOException {
 		String scope = CommonHelper.trim(_scope);
 		if(scope==null)
@@ -47,7 +50,7 @@ public class OAuth2ResourceHelper {
 		String[] accessTokenFields = accessToken.split("\\.");
 		if(accessTokenFields.length<3) {
 			errorStatus = 3;
-			error = OAuthError.ResourceResponse.INVALID_TOKEN;
+			error = invalidTokenError;
 			errorResponse = HttpServletResponse.SC_BAD_REQUEST;
 		} else {
 			String payload = accessTokenFields[1];
@@ -62,15 +65,15 @@ public class OAuth2ResourceHelper {
 				OAuth2TokenJWTPayload jwtPayload = mapper.readValue(Base64.getDecoder().decode(payload), OAuth2TokenJWTPayload.class);
 				if(System.currentTimeMillis()>jwtPayload.getExpirationTime()) {
 					errorStatus = 5;
-					error = OAuthError.ResourceResponse.EXPIRED_TOKEN;
+					error = expiredTokenError;
 					errorResponse = HttpServletResponse.SC_FORBIDDEN;
 				} else {
 					List<String> accounts = jwtPayload.getAccounts();
 					if(request!=null) {
-						String username = CommonHelper.trim(request.getParameter(OAuth.OAUTH_USERNAME));
+						String username = CommonHelper.trim(request.getParameter(OAuth2Constants.OAUTH_USERNAME));
 						if(username==null) {
 							errorStatus = 6;
-							error = OAuthError.ResourceResponse.INVALID_REQUEST;
+							error = invalidRequestError;
 							errorResponse = HttpServletResponse.SC_BAD_REQUEST;
 						} else {
 							boolean pass = false;
@@ -82,7 +85,7 @@ public class OAuth2ResourceHelper {
 							}
 							if(!pass) {
 								errorStatus = 7;
-								error = OAuthError.ResourceResponse.INVALID_TOKEN;
+								error = invalidTokenError;
 								errorResponse = HttpServletResponse.SC_FORBIDDEN;
 							}
 						}
@@ -106,29 +109,29 @@ public class OAuth2ResourceHelper {
 						}
 						if(!pass) {
 							errorStatus = 8;
-							error = OAuthError.ResourceResponse.INSUFFICIENT_SCOPE;
+							error = insufficientScopeError;
 							errorResponse = HttpServletResponse.SC_FORBIDDEN;
 							errorUri = CommonHelper.appendUriParam(CommonHelper.appendUriParam(new StringBuilder(100)
 									.append("_self".equals(centerUrlPrefix)?"":centerUrlPrefix)
 									.append("/oauth2/signin?")
-									.append(OAuth.OAUTH_CLIENT_ID)
+									.append(OAuth2Constants.OAUTH_CLIENT_ID)
 									.append("=")
 									.append(jwtPayload.getClientId())
 									.append("&")
-									.append(OAuth.OAUTH_USERNAME)
+									.append(OAuth2Constants.OAUTH_USERNAME)
 									.append("=")
 									.append(accounts.get(0))
 									.append("&")
-									.append(OAuth.OAUTH_SCOPE)
+									.append(OAuth2Constants.OAUTH_SCOPE)
 									.append("=")
-									.append(scope), OAuth.OAUTH_STATE, state), InnerConstants.KEY_LOCALE, locale)
+									.append(scope), OAuth2Constants.OAUTH_STATE, state), InnerConstants.KEY_LOCALE, locale)
 								.toString();
 						}
 					}
 				}
 			} else {
 				errorStatus = 4;
-				error = OAuthError.ResourceResponse.INVALID_TOKEN;
+				error = invalidTokenError;
 				errorResponse = HttpServletResponse.SC_FORBIDDEN;
 			}
 		}
@@ -137,5 +140,18 @@ public class OAuth2ResourceHelper {
 		result.setErrorStatus(errorStatus);
 		result.setErrorUri(errorUri);
 		return result;
+	}
+
+	public void setInvalidTokenError(String invalidTokenError) {
+		this.invalidTokenError = invalidTokenError;
+	}
+	public void setExpiredTokenError(String expiredTokenError) {
+		this.expiredTokenError = expiredTokenError;
+	}
+	public void setInvalidRequestError(String invalidRequestError) {
+		this.invalidRequestError = invalidRequestError;
+	}
+	public void setInsufficientScopeError(String insufficientScopeError) {
+		this.insufficientScopeError = insufficientScopeError;
 	}
 }

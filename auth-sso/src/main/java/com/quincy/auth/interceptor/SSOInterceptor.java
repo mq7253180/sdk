@@ -29,6 +29,9 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.support.RequestContext;
 
+import com.quincy.auth.OAuth2Constants;
+import com.quincy.auth.OAuth2ResourceHelper;
+import com.quincy.auth.OAuth2Result;
 import com.quincy.auth.annotation.UserSession;
 import com.quincy.core.InnerConstants;
 import com.quincy.core.InnerHelper;
@@ -44,6 +47,8 @@ public class SSOInterceptor extends HandlerInterceptorAdapter {
 	private String clientSecret;
 	@Value("${clientTokenName.sso}")
 	private String clientTokenName;
+	@Autowired
+	private OAuth2ResourceHelper oauth2ResourceHelper;
 
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException, URISyntaxException, OAuthSystemException, InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, NoSuchMessageException, ServletException, OAuthProblemException {
@@ -58,6 +63,8 @@ public class SSOInterceptor extends HandlerInterceptorAdapter {
 				 * 	2如果离过期少于一半时间调中心系统重新获取token并刷新token
 				 *	3如果离过期时间超一半调中心系统获取session对象注入给参数
 				 */
+				String accessToken = CommonHelper.getValue(request, clientTokenName);
+				OAuth2Result result = oauth2ResourceHelper.validateToken(accessToken, OAuth2Constants.SCOPE_NAME_USER_INFO, null, null, request);
 				/*String scope = CommonHelper.trim(oauth2Resource.value());
 				if(scope==null)
 					throw new RuntimeException("Value should be specified a valid string.");

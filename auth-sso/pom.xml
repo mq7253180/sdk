@@ -21,5 +21,10 @@
 		    <artifactId>org.apache.oltu.oauth2.client</artifactId>
 		    <version>1.0.2</version>
 		</dependency>
+		<dependency>
+		    <groupId>com.maqiangcgq</groupId>
+		    <artifactId>quincy-auth-oauth2</artifactId>
+		    <version>1.0.8</version>
+		</dependency>
 	</dependencies>
 </project>
