@@ -22,7 +22,7 @@ public class AuthResourceConfiguration {
 	@Value("${secret.rsa.publicKey.secondary}")
 	private String secondaryPublicKeyStr;
 	@Autowired
-	private OAuth2ResourceHelper oauth2ResourceHelper;
+	private OAuth2TokenValidation oauth2TokenValidation;
 
 	@Bean("primarySelfPublicKey")
 	public PublicKey primaryPublicKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
@@ -36,10 +36,10 @@ public class AuthResourceConfiguration {
 
 	@PostConstruct
 	public void init() {
-		oauth2ResourceHelper.setInvalidTokenError(OAuthError.ResourceResponse.INVALID_TOKEN);
-		oauth2ResourceHelper.setExpiredTokenError(OAuthError.ResourceResponse.EXPIRED_TOKEN);
-		oauth2ResourceHelper.setInvalidRequestError(OAuthError.ResourceResponse.INVALID_REQUEST);
-		oauth2ResourceHelper.setInsufficientScopeError(OAuthError.ResourceResponse.INSUFFICIENT_SCOPE);
+		oauth2TokenValidation.setInvalidTokenError(OAuthError.ResourceResponse.INVALID_TOKEN);
+		oauth2TokenValidation.setExpiredTokenError(OAuthError.ResourceResponse.EXPIRED_TOKEN);
+		oauth2TokenValidation.setInvalidRequestError(OAuthError.ResourceResponse.INVALID_REQUEST);
+		oauth2TokenValidation.setInsufficientScopeError(OAuthError.ResourceResponse.INSUFFICIENT_SCOPE);
 		OAuth2Constants.OAUTH_CLIENT_ID = OAuth.OAUTH_CLIENT_ID;
 		OAuth2Constants.OAUTH_SCOPE = OAuth.OAUTH_SCOPE;
 		OAuth2Constants.OAUTH_STATE = OAuth.OAUTH_SCOPE;

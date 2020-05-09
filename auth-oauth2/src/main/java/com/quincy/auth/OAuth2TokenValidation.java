@@ -25,7 +25,7 @@ import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.helper.RSASecurityHelper;
 
 @Component
-public class OAuth2ResourceHelper {
+public class OAuth2TokenValidation {
 	@Resource(name = "primarySelfPublicKey")
 	private PublicKey primarySelfPublicKey;
 	@Resource(name = "secondarySelfPublicKey")

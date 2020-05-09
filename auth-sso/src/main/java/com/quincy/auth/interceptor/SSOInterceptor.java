@@ -37,7 +37,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quincy.auth.OAuth2Constants;
-import com.quincy.auth.OAuth2ResourceHelper;
+import com.quincy.auth.OAuth2TokenValidation;
 import com.quincy.auth.OAuth2Result;
 import com.quincy.auth.Oauth2Helper;
 import com.quincy.auth.annotation.UserSession;
@@ -59,7 +59,7 @@ public class SSOInterceptor extends HandlerInterceptorAdapter {
 	@Value("${clientTokenName.sso}")
 	private String clientTokenName;
 	@Autowired
-	private OAuth2ResourceHelper oauth2ResourceHelper;
+	private OAuth2TokenValidation oauth2TokenValidation;
 
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException, URISyntaxException, OAuthSystemException, InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, NoSuchMessageException, ServletException, OAuthProblemException {
@@ -81,7 +81,7 @@ public class SSOInterceptor extends HandlerInterceptorAdapter {
 				} else {
 					String locale = CommonHelper.trim(request.getParameter(InnerConstants.KEY_LOCALE));
 					String state = CommonHelper.trim(request.getParameter(OAuth.OAUTH_STATE));
-					OAuth2Result result = oauth2ResourceHelper.validateToken(accessToken, OAuth2Constants.SCOPE_NAME_USER_INFO, null, null, request);
+					OAuth2Result result = oauth2TokenValidation.validateToken(accessToken, OAuth2Constants.SCOPE_NAME_USER_INFO, null, null, request);
 					if(result.getErrorStatus()!=null) {
 						if(result.getErrorStatus()==0) {//判断是否需要更新token，如果需要调接口更新
 							OAuthClientRequest oauthClientRequest = OAuthClientRequest

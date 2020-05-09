@@ -28,7 +28,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.support.RequestContext;
 
 import com.quincy.auth.OAuth2ResourceConstants;
-import com.quincy.auth.OAuth2ResourceHelper;
+import com.quincy.auth.OAuth2TokenValidation;
 import com.quincy.auth.OAuth2Result;
 import com.quincy.auth.Oauth2Helper;
 import com.quincy.auth.annotation.OAuth2Resource;
@@ -41,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 	@Autowired
-	private OAuth2ResourceHelper oauth2ResourceHelper;
+	private OAuth2TokenValidation oauth2TokenValidation;
 
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException, URISyntaxException, OAuthSystemException {
@@ -64,7 +64,7 @@ public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 				try {
 					OAuthAccessResourceRequest accessResourceRequest = new OAuthAccessResourceRequest(request);
 					String accessToken = accessResourceRequest.getAccessToken();
-					OAuth2Result result = oauth2ResourceHelper.validateToken(accessToken, scope, state, locale, request);
+					OAuth2Result result = oauth2TokenValidation.validateToken(accessToken, scope, state, locale, request);
 					errorStatus = result.getErrorStatus();
 					errorUri = result.getErrorUri();
 					if(errorStatus!=null) {
