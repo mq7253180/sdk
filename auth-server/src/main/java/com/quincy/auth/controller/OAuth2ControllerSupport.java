@@ -63,7 +63,7 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class OAuth2ControllerSupport {
 	@Autowired
 	private OAuth2Service oauth2Service;
-	protected abstract OAuth2Info getOAuth2Info(Long clientSystemId, String username);
+	protected abstract OAuth2Info getOAuth2Info(Long clientSystemId, String username, HttpServletRequest request);
 	protected abstract OAuth2Info getOAuth2Info(String authorizationCode);
 	protected abstract String saveOAuth2Info(Long clientSystemId, Long userId, String authorizationCode);
 	protected abstract List<String> notAuthorizedScopes(String codeId, Set<String> scopes);
@@ -92,6 +92,7 @@ public abstract class OAuth2ControllerSupport {
 		private Integer errorStatus = null;
 		private Integer errorResponse = null;
 		private String error = null;
+		private String errorDescription = null;
 		private String redirectUri = null;
 		private OAuthResponseBuilder builder = null;
 	}
@@ -114,6 +115,7 @@ public abstract class OAuth2ControllerSupport {
 		try {
 			Integer errorResponse = HttpServletResponse.SC_BAD_REQUEST;
 			String error = OAuthError.CodeResponse.INVALID_REQUEST;
+			String errorDescription = null;
 			String _redirectUri = CommonHelper.trim(request.getParameter(OAuth.OAUTH_REDIRECT_URI));
 			OAuthRequest oauthRequest = reqCase==REQ_CASE_CODE?new OAuthAuthzRequest(request):new OAuthTokenRequest(request);
 			ClientSystem clientSystem = oauth2Service.findClientSystem(oauthRequest.getClientId());
@@ -128,6 +130,7 @@ public abstract class OAuth2ControllerSupport {
 					XxxResult result = reqCase==REQ_CASE_CODE?c.authorize(oauthRequest, _redirectUri, isNotJson, locale, state, clientSystem.getId()):c.grant(oauthRequest, _redirectUri, isNotJson, locale, state, clientSystem.getId());
 					errorResponse = result.getErrorResponse();
 					error = result.getError();
+					errorDescription = result.getErrorDescription();
 					errorStatus = result.getErrorStatus();
 					redirectUri = result.getRedirectUri();
 					builder =  result.getBuilder();
@@ -137,7 +140,7 @@ public abstract class OAuth2ControllerSupport {
 				builder = OAuthASResponse
 						.errorResponse(isNotJson?HttpServletResponse.SC_FOUND:errorResponse)
 						.setError(error)
-						.setErrorDescription(new RequestContext(request).getMessage(ERROR_MSG_KEY_PREFIX+errorStatus));
+						.setErrorDescription(errorDescription==null?new RequestContext(request).getMessage(ERROR_MSG_KEY_PREFIX+errorStatus):errorDescription);
 		} catch(Exception e) {
 			log.error("OAUTH2_ERR_AUTHORIZATION: ", e);
 			builder = OAuthASResponse.errorResponse(HttpServletResponse.SC_BAD_REQUEST);
@@ -182,6 +185,7 @@ public abstract class OAuth2ControllerSupport {
 				OAuthAuthzRequest oauthRequest = (OAuthAuthzRequest)_oauthRequest;
 				Integer errorResponse = HttpServletResponse.SC_BAD_REQUEST;
 				String error = OAuthError.CodeResponse.INVALID_REQUEST;
+				String errorDescription = null;
 				Integer errorStatus = null;
 				String redirectUri = null;
 				XxxResult result = null;
@@ -194,9 +198,12 @@ public abstract class OAuth2ControllerSupport {
 				} else if(scopes==null||scopes.size()==0) {
 					errorStatus = 7;
 				} else {
-					OAuth2Info oauth2Info = getOAuth2Info(clientSystemId, username);
+					OAuth2Info oauth2Info = getOAuth2Info(clientSystemId, username, request);
 					if(oauth2Info.getUserId()==null) {
 						errorStatus = 8;
+					} else if(oauth2Info.getErrorMsg()!=null) {
+						errorStatus = 21;
+						errorDescription = oauth2Info.getErrorMsg();
 					} else {
 						String codeId = CommonHelper.trim(oauth2Info.getId());
 						String authorizationCode = CommonHelper.trim(oauth2Info.getAuthorizationCode());
@@ -231,6 +238,7 @@ public abstract class OAuth2ControllerSupport {
 					result.setErrorResponse(errorResponse);
 					result.setError(error);
 					result.setErrorStatus(errorStatus);
+					result.setErrorDescription(errorDescription);
 				}
 				return result;
 			}
