@@ -6,6 +6,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
+import com.quincy.core.ThreadLocalHolder;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.helper.CommonHelper;
 
@@ -29,6 +30,7 @@ public class GlobalHandlerMethodReturnValueHandler implements HandlerMethodRetur
 	public void handleReturnValue(Object returnValue, MethodParameter returnType, ModelAndViewContainer mavContainer,
 			NativeWebRequest webRequest) throws Exception {
 		Result result = Result.newSuccess();
+		result.setAccsessToken(ThreadLocalHolder.getAccsessToken());
 		returnValue = result.msg(applicationContext.getMessage(Result.I18N_KEY_SUCCESS, null, CommonHelper.getLocale())).data(returnValue).cluster(cluster);
 		origin.handleReturnValue(returnValue, returnType, mavContainer, webRequest);
 	}
