@@ -9,7 +9,6 @@ public class ValidationResult {
 	private Integer errorStatus = null;
 	private Integer errorResponse = null;
 	private String error = null;
-	private String errorDescription = null;
 	private String redirectUri = null;
 	private OAuthResponseBuilder builder = null;
 }

@@ -52,7 +52,6 @@ public class OAuth2Template {
 		try {
 			Integer errorResponse = HttpServletResponse.SC_BAD_REQUEST;
 			String error = OAuthError.CodeResponse.INVALID_REQUEST;
-			String errorDescription = null;
 			String _redirectUri = CommonHelper.trim(request.getParameter(OAuth.OAUTH_REDIRECT_URI));
 			OAuthRequest oauthRequest = reqCase==OAuth2ControllerConstants.REQ_CASE_CODE?new OAuthAuthzRequest(request):new OAuthTokenRequest(request);
 			ClientSystem clientSystem = oauth2Service.findClientSystem(oauthRequest.getClientId());
@@ -67,7 +66,6 @@ public class OAuth2Template {
 					ValidationResult result = reqCase==OAuth2ControllerConstants.REQ_CASE_CODE?templateCustomization.authorize(oauthRequest, _redirectUri, isNotJson, locale, state, clientSystem.getId()):templateCustomization.grant(oauthRequest, _redirectUri, isNotJson, locale, state, clientSystem.getId());
 					errorResponse = result.getErrorResponse();
 					error = result.getError();
-					errorDescription = result.getErrorDescription();
 					errorStatus = result.getErrorStatus();
 					redirectUri = result.getRedirectUri();
 					builder =  result.getBuilder();
@@ -77,7 +75,7 @@ public class OAuth2Template {
 				builder = OAuthASResponse
 						.errorResponse(isNotJson?HttpServletResponse.SC_FOUND:errorResponse)
 						.setError(error)
-						.setErrorDescription(errorDescription==null?new RequestContext(request).getMessage(OAuth2ControllerConstants.ERROR_MSG_KEY_PREFIX+errorStatus):errorDescription);
+						.setErrorDescription(new RequestContext(request).getMessage(OAuth2ControllerConstants.ERROR_MSG_KEY_PREFIX+errorStatus));
 		} catch(Exception e) {
 			log.error("OAUTH2_ERR_AUTHORIZATION: ", e);
 			builder = OAuthASResponse.errorResponse(HttpServletResponse.SC_BAD_REQUEST);
