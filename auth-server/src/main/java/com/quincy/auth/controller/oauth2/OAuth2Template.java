@@ -61,7 +61,7 @@ public class OAuth2Template {
 			} else {
 				String _secret = CommonHelper.trim(oauthRequest.getClientSecret());
 				String secret = CommonHelper.trim(clientSystem.getSecret());
-				if(_secret==null||!templateCustomization.authenticateSecret(_secret, secret, "")) {
+				if(_secret==null||!templateCustomization.authenticateSecretX(_secret, secret, "")) {
 					errorStatus = 4;
 				} else {
 					ValidationResult result = reqCase==OAuth2ControllerConstants.REQ_CASE_CODE?templateCustomization.authorize(oauthRequest, _redirectUri, isNotJson, locale, state, clientSystem.getId()):templateCustomization.grant(oauthRequest, _redirectUri, isNotJson, locale, state, clientSystem.getId());
