@@ -55,7 +55,7 @@ import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.helper.RSASecurityHelper;
 
 @RequestMapping("/oauth2")
-public abstract class OAuth2TokenControllerSupport {
+public abstract class OAuth2ControllerSupport {
 	@Autowired
 	private OAuth2Template oauth2Template;
 	protected abstract OAuth2Info getOAuth2Info(Long clientSystemId, String username, HttpServletRequest request);
@@ -157,37 +157,6 @@ public abstract class OAuth2TokenControllerSupport {
 		}, OAuth2ControllerConstants.REQ_CASE_CODE);
 	}
 
-	@RequestMapping("/error/server")
-	public ModelAndView error(HttpServletRequest request, @RequestParam(required = true, value = "status")int status) {
-		return new ModelAndView("/oauth2_error").addObject("msg", new RequestContext(request).getMessage(OAuth2ControllerConstants.ERROR_MSG_KEY_PREFIX+status));
-	}
-
-	@RequestMapping("/signin/{code_id}")
-	public ModelAndView signin(HttpServletRequest request, 
-			@PathVariable(required = true, value = "code_id")String codeId, 
-			@RequestParam(required = true, value = OAuth.OAUTH_SCOPE)String scopes, 
-			@RequestParam(required = false, value = OAuth.OAUTH_REDIRECT_URI)String redirectUri) {
-		ModelAndView mv = signinView(request, codeId, scopes);
-		if(mv==null)
-			mv = new ModelAndView("/oauth2_login");
-		return mv.addObject("codeId", codeId)
-				.addObject(OAuth.OAUTH_SCOPE, scopes)
-				.addObject(OAuth.OAUTH_REDIRECT_URI, redirectUri);
-	}
-
-	@RequestMapping("/signin")
-	public ModelAndView signin(HttpServletRequest request, 
-			@RequestParam(required = true, value = OAuth.OAUTH_CLIENT_ID)String clientId, 
-			@RequestParam(required = true, value = OAuth.OAUTH_USERNAME)String username, 
-			@RequestParam(required = true, value = OAuth.OAUTH_SCOPE)String scopes, 
-			@RequestParam(required = false, value = OAuth.OAUTH_REDIRECT_URI)String redirectUri) {
-		ModelAndView mv = signinView(request, clientId, username, scopes);
-		if(mv==null)
-			mv = new ModelAndView("/oauth2_login");
-		return mv.addObject(OAuth.OAUTH_SCOPE, scopes)
-				.addObject(OAuth.OAUTH_REDIRECT_URI, redirectUri);
-	}
-
 	protected ResponseEntity<?> buildResponse(HttpServletRequest request, String authorizationCode) throws URISyntaxException, OAuthSystemException {
 		String clientType = CommonHelper.clientType(request);
 //		String clientType = InnerConstants.CLIENT_TYPE_J;
@@ -223,6 +192,37 @@ public abstract class OAuth2TokenControllerSupport {
 			result.setRedirectUri(s.toString());
 		}
 		return result;
+	}
+
+	@RequestMapping("/error/server")
+	public ModelAndView error(HttpServletRequest request, @RequestParam(required = true, value = "status")int status) {
+		return new ModelAndView("/oauth2_error").addObject("msg", new RequestContext(request).getMessage(OAuth2ControllerConstants.ERROR_MSG_KEY_PREFIX+status));
+	}
+
+	@RequestMapping("/signin/{code_id}")
+	public ModelAndView signin(HttpServletRequest request, 
+			@PathVariable(required = true, value = "code_id")String codeId, 
+			@RequestParam(required = true, value = OAuth.OAUTH_SCOPE)String scopes, 
+			@RequestParam(required = false, value = OAuth.OAUTH_REDIRECT_URI)String redirectUri) {
+		ModelAndView mv = signinView(request, codeId, scopes);
+		if(mv==null)
+			mv = new ModelAndView("/oauth2_login");
+		return mv.addObject("codeId", codeId)
+				.addObject(OAuth.OAUTH_SCOPE, scopes)
+				.addObject(OAuth.OAUTH_REDIRECT_URI, redirectUri);
+	}
+
+	@RequestMapping("/signin")
+	public ModelAndView signin(HttpServletRequest request, 
+			@RequestParam(required = true, value = OAuth.OAUTH_CLIENT_ID)String clientId, 
+			@RequestParam(required = true, value = OAuth.OAUTH_USERNAME)String username, 
+			@RequestParam(required = true, value = OAuth.OAUTH_SCOPE)String scopes, 
+			@RequestParam(required = false, value = OAuth.OAUTH_REDIRECT_URI)String redirectUri) {
+		ModelAndView mv = signinView(request, clientId, username, scopes);
+		if(mv==null)
+			mv = new ModelAndView("/oauth2_login");
+		return mv.addObject(OAuth.OAUTH_SCOPE, scopes)
+				.addObject(OAuth.OAUTH_REDIRECT_URI, redirectUri);
 	}
 
 	@Resource(name = "selfPrivateKey")
