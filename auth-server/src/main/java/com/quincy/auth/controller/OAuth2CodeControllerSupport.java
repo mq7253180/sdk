@@ -82,7 +82,6 @@ public abstract class OAuth2CodeControllerSupport {
 				OAuthAuthzRequest oauthRequest = (OAuthAuthzRequest)_oauthRequest;
 				Integer errorResponse = HttpServletResponse.SC_BAD_REQUEST;
 				String error = OAuthError.CodeResponse.INVALID_REQUEST;
-				String errorDescription = null;
 				Integer errorStatus = null;
 				String redirectUri = null;
 				ValidationResult result = null;
@@ -98,9 +97,6 @@ public abstract class OAuth2CodeControllerSupport {
 					OAuth2Info oauth2Info = getOAuth2Info(clientSystemId, username, request);
 					if(oauth2Info.getUserId()==null) {
 						errorStatus = 8;
-					} else if(oauth2Info.getErrorMsg()!=null) {
-						errorStatus = 21;
-						errorDescription = oauth2Info.getErrorMsg();
 					} else {
 						String codeId = CommonHelper.trim(oauth2Info.getId());
 						String authorizationCode = CommonHelper.trim(oauth2Info.getAuthorizationCode());
@@ -135,7 +131,6 @@ public abstract class OAuth2CodeControllerSupport {
 					result.setErrorResponse(errorResponse);
 					result.setError(error);
 					result.setErrorStatus(errorStatus);
-					result.setErrorDescription(errorDescription);
 				}
 				return result;
 			}

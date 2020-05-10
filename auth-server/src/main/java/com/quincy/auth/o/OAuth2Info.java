@@ -12,5 +12,4 @@ public class OAuth2Info {
 	private String authorizationCode;
 	private List<String> scopes;
 	private List<String> accounts;
-	private String errorMsg;
 }
