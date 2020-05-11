@@ -47,7 +47,7 @@ public class TOTPHelper {
      *
      * @param hex: the HEX string
      *
-     * @return: a byte array
+     * @return a byte array
      */
     private static byte[] hexStr2Bytes(String hex){
         // Adding one byte to get the right conversion
@@ -72,7 +72,7 @@ public class TOTPHelper {
      * @param time: a value that reflects a time
      * @param returnDigits: number of digits to return
      *
-     * @return: a numeric String in base 10 that includes
+     * @return a numeric String in base 10 that includes
      *              [@link truncationDigits] digits
      */
     public static String generateTOTP(String key,
@@ -88,7 +88,7 @@ public class TOTPHelper {
      * @param time: a value that reflects a time
      * @param returnDigits: number of digits to return
      *
-     * @return: a numeric String in base 10 that includes
+     * @return a numeric String in base 10 that includes
      *              [@link truncationDigits] digits
      */
     public static String generateTOTP256(String key,
@@ -104,7 +104,7 @@ public class TOTPHelper {
      * @param time: a value that reflects a time
      * @param returnDigits: number of digits to return
      *
-     * @return: a numeric String in base 10 that includes
+     * @return a numeric String in base 10 that includes
      *              [@link truncationDigits] digits
      */
     public static String generateTOTP512(String key,
@@ -121,7 +121,7 @@ public class TOTPHelper {
      * @param returnDigits: number of digits to return
      * @param crypto: the crypto function to use
      *
-     * @return: a numeric String in base 10 that includes
+     * @return a numeric String in base 10 that includes
      *              [@link truncationDigits] digits
      */
     public static String generateTOTP(String key,
