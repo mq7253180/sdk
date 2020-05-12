@@ -8,13 +8,13 @@
 	<parent>
 		<groupId>com.maqiangcgq</groupId>
 		<artifactId>all</artifactId>
-		<version>1.0.8</version>
+		<version>1.0.9</version>
 	</parent>
 	<dependencies>
 		<dependency>
 		    <groupId>com.maqiangcgq</groupId>
 		    <artifactId>quincy-sdk</artifactId>
-		    <version>1.0.8</version>
+		    <version>1.0.9</version>
 		</dependency>
 		<dependency>
 			<!-- SFTP -->
