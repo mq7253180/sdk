@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>quincy-auth-sso</artifactId>
 	<name>Auth-SSO</name>
-	<url>https://github.com/mq7253180/sdk/tree/master/auth</url>
+	<url>https://github.com/mq7253180/sdk/tree/master/auth-sso</url>
 	<parent>
 		<groupId>com.maqiangcgq</groupId>
 		<artifactId>all</artifactId>

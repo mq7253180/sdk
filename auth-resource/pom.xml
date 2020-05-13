@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>quincy-auth-resource</artifactId>
 	<name>Auth-Resource</name>
-	<url>https://github.com/mq7253180/sdk/tree/master/auth</url>
+	<url>https://github.com/mq7253180/sdk/tree/master/auth-resource</url>
 	<parent>
 		<groupId>com.maqiangcgq</groupId>
 		<artifactId>all</artifactId>
