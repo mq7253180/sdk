@@ -13,7 +13,7 @@ public interface TransactionService {
 	public Transaction updateTransaction(Transaction _tx);
 	public TransactionAtomic updateTransactionAtomic(TransactionAtomic _atomic);
 	public void deleteTransaction(Long id);
-	public List<Transaction> findFailedTransactions(String applicationName);
+	public List<Transaction> findFailedTransactions(String applicationName, String frequencyBatch);
 	public int updateTransactionVersion(Long id, Integer version);
 	public List<TransactionAtomic> findTransactionAtomics(Long txId, Integer status) throws ClassNotFoundException, IOException;
 	public List<TransactionArg> findArgs(Long parentId, Integer type);

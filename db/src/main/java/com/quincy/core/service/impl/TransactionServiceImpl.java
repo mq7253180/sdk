@@ -140,8 +140,8 @@ public class TransactionServiceImpl implements TransactionService {
 	}
 
 	@Override
-	public List<Transaction> findFailedTransactions(String applicationName) {
-		return transactionRepository.findByApplicationNameAndStatus(applicationName, DTransactionConstants.TX_STATUS_ED);
+	public List<Transaction> findFailedTransactions(String applicationName, String frequencyBatch) {
+		return frequencyBatch==null?transactionRepository.findByApplicationNameAndStatus(applicationName, DTransactionConstants.TX_STATUS_ED):transactionRepository.findByApplicationNameAndStatusAndFrequencyBatch(applicationName, DTransactionConstants.TX_STATUS_ED, frequencyBatch);
 	}
 
 	@Override

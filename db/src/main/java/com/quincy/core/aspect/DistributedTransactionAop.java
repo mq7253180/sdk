@@ -28,6 +28,7 @@ import com.quincy.core.service.TransactionService;
 import com.quincy.sdk.DTransactionContext;
 import com.quincy.sdk.DTransactionFailure;
 import com.quincy.sdk.annotation.transaction.AtomicOperational;
+import com.quincy.sdk.annotation.transaction.DTransactional;
 import com.quincy.sdk.helper.AopHelper;
 import com.quincy.sdk.helper.CommonHelper;
 
@@ -79,6 +80,11 @@ public class DistributedTransactionAop implements DTransactionContext {
 		MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
 		tx.setMethodName(methodSignature.getName());
 		tx.setParameterTypes(methodSignature.getParameterTypes());
+		Method method = clazz.getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
+		DTransactional annotation = method.getAnnotation(DTransactional.class);
+		String frequencyBatch = CommonHelper.trim(annotation.frequencyBatch());
+		if(frequencyBatch!=null)
+			tx.setFrequencyBatch(frequencyBatch);
 		tx = transactionService.insertTransaction(tx);
 		atomics = tx.getAtomics();
 		if(atomics!=null&&atomics.size()>0) {
@@ -121,7 +127,17 @@ public class DistributedTransactionAop implements DTransactionContext {
 //	@Scheduled(cron = "0 0/1 * * * ?")
 	@Override
 	public void compensate() throws ClassNotFoundException, NoSuchMethodException, SecurityException, IOException {
-		List<Transaction> failedTransactions = transactionService.findFailedTransactions(applicationName);
+		List<Transaction> failedTransactions = transactionService.findFailedTransactions(applicationName, null);
+		this.compensate(failedTransactions);
+	}
+
+	@Override
+	public void compensate(String frequencyBatch) throws ClassNotFoundException, NoSuchMethodException, SecurityException, IOException {
+		List<Transaction> failedTransactions = transactionService.findFailedTransactions(applicationName, frequencyBatch);
+		this.compensate(failedTransactions);
+	}
+
+	private void compensate(List<Transaction> failedTransactions) throws ClassNotFoundException, NoSuchMethodException, SecurityException, IOException {
 		for(Transaction tx:failedTransactions) {
 			Object bean = applicationContext.getBean(tx.getBeanName());
 			if(bean!=null) {

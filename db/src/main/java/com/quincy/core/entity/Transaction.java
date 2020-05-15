@@ -43,6 +43,8 @@ public class Transaction {
 	private Integer status;//0正在执行; 1执行结束
 	@Column(name="version")
 	private Integer version;
+	@Column(name="frequency_batch")
+	private String frequencyBatch;//频率批次名称
 	@Transient
 	private Object[] args;
 	@Transient
