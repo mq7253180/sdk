@@ -8,13 +8,13 @@
 	<parent>
 		<groupId>com.maqiangcgq</groupId>
 		<artifactId>all</artifactId>
-		<version>1.1.1</version>
+		<version>1.1.2</version>
 	</parent>
 	<dependencies>
 		<dependency>
 		    <groupId>com.maqiangcgq</groupId>
 		    <artifactId>quincy-auth-oauth2</artifactId>
-		    <version>1.1.1</version>
+		    <version>1.1.2</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.apache.oltu.oauth2</groupId>
