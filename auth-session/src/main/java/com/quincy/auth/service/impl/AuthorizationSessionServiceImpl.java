@@ -67,4 +67,7 @@ public class AuthorizationSessionServiceImpl extends AuthorizationServiceSupport
 			this.updateSession(user);
 		}
 	}
+
+	@Override
+	public void setExpiry(HttpServletRequest request) throws Exception {}
 }

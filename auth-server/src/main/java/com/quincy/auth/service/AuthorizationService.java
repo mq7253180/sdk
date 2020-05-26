@@ -16,4 +16,5 @@ public interface AuthorizationService {
 	public void logout(HttpServletRequest request, HttpServletResponse response) throws Exception;
 	public void updateSession(User user) throws IOException;
 	public <T extends User> void updateSession(List<T> users) throws IOException;
+	public void setExpiry(HttpServletRequest request) throws Exception;
 }

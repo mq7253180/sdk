@@ -42,7 +42,7 @@ public class AuthorizationCacheServiceImpl extends AuthorizationServiceSupport {
 				byte[] key = (sessionKeyPrefix+token).getBytes();
 				byte[] b = jedis.get(key);
 				if(b!=null&&b.length>0) {
-					jedis.expire(key, getExpireSconds(request));
+					setExpiry(request, jedis, key);
 					return CommonHelper.unSerialize(b);
 				} else 
 					return null;
@@ -71,9 +71,8 @@ public class AuthorizationCacheServiceImpl extends AuthorizationServiceSupport {
 						jedis.del(originalKey);
 				}
 			}
-			int expire = getExpireSconds(request);
 			jedis.set(key, CommonHelper.serialize(session));
-			jedis.expire(key, expire);
+			setExpiry(request, jedis, key);
 			callback.updateLastLogined(jsessionid);
 			return session;
 		} finally {
@@ -82,10 +81,23 @@ public class AuthorizationCacheServiceImpl extends AuthorizationServiceSupport {
 		}
 	}
 
-	private int getExpireSconds(HttpServletRequest request) {
+	private void setExpiry(HttpServletRequest request, Jedis jedis, byte[] key) {
 		Client client = CommonHelper.getClient(request);
 		Integer expireMinutes = Integer.parseInt(properties.getProperty("expire.session."+client.getName()));
-		return expireMinutes*60;
+		int expire = expireMinutes*60;
+		jedis.expire(key, expire);
+	}
+
+	@Override
+	public void setExpiry(HttpServletRequest request) throws Exception {
+		redisProcessor.opt(request, new RedisWebOperation() {
+			@Override
+			public Object run(Jedis jedis, String token) throws Exception {
+				byte[] key = (sessionKeyPrefix+token).getBytes();
+				setExpiry(request, jedis, key);
+				return null;
+			}
+		}, null);
 	}
 
 	@Override

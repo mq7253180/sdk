@@ -18,7 +18,11 @@ public class AuthorizationAnnotationInterceptor extends AuthorizationInterceptor
 			PermissionNeeded permissionNeededAnnotation = method.getMethod().getDeclaredAnnotation(PermissionNeeded.class);
 			boolean permissionNeeded = permissionNeededAnnotation!=null;
 			boolean loginRequired = method.getMethod().getDeclaredAnnotation(LoginRequired.class)!=null;
-			return (!permissionNeeded&&!loginRequired)?true:this.doAuth(request, response, handler, permissionNeeded?permissionNeededAnnotation.value():null);
+			if(!permissionNeeded&&!loginRequired) {
+				this.setExpiry(request);
+				return true;
+			} else
+				return this.doAuth(request, response, handler, permissionNeeded?permissionNeededAnnotation.value():null);
 		} else
 			return true;
 	}

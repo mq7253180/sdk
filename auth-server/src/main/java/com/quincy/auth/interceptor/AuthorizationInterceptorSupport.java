@@ -47,4 +47,8 @@ public abstract class AuthorizationInterceptorSupport extends HandlerInterceptor
 			return true;
 		}
 	}
+
+	protected void setExpiry(HttpServletRequest request) throws Exception {
+		authorizationService.setExpiry(request);
+	}
 }
