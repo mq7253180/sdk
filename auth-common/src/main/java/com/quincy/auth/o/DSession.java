@@ -3,8 +3,6 @@ package com.quincy.auth.o;
 import java.io.Serializable;
 import java.util.List;
 
-import com.quincy.auth.entity.Menu;
-
 import lombok.Data;
 
 @Data

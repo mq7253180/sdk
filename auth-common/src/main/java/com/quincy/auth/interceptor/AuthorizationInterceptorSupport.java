@@ -9,15 +9,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.support.RequestContext;
 
-import com.quincy.auth.AuthConstants;
+import com.quincy.auth.AuthCommonConstants;
 import com.quincy.auth.o.DSession;
-import com.quincy.auth.service.AuthorizationService;
+import com.quincy.auth.service.AuthorizationCommonService;
 import com.quincy.core.InnerConstants;
 import com.quincy.core.InnerHelper;
 
 public abstract class AuthorizationInterceptorSupport extends HandlerInterceptorAdapter {
 	@Autowired
-	private AuthorizationService authorizationService;
+	private AuthorizationCommonService authorizationService;
 
 	protected boolean doAuth(HttpServletRequest request, HttpServletResponse response, Object handler, String permissionNeeded) throws Exception {
 		DSession session = authorizationService.getSession(request);
@@ -35,10 +35,10 @@ public abstract class AuthorizationInterceptorSupport extends HandlerInterceptor
 					}
 				}
 				if(!hasPermission) {
-					String deniedPermissionName = AuthConstants.PERMISSIONS.get(permissionNeeded);
+					String deniedPermissionName = AuthCommonConstants.PERMISSIONS.get(permissionNeeded);
 					if(deniedPermissionName==null)
 						deniedPermissionName = permissionNeeded;
-					request.setAttribute(AuthConstants.ATTR_DENIED_PERMISSION, deniedPermissionName);
+					request.setAttribute(AuthCommonConstants.ATTR_DENIED_PERMISSION, deniedPermissionName);
 					InnerHelper.outputOrForward(request, response, handler, -1, new RequestContext(request).getMessage("status.error.403")+"["+deniedPermissionName+"]", "/auth/deny", InnerHelper.APPEND_BACKTO_FLAG_URI);
 					return false;
 				}

@@ -13,6 +13,8 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.quincy.auth.o.Menu;
+
 import lombok.Data;
 
 @Data
@@ -20,7 +22,7 @@ import lombok.Data;
 @DynamicUpdate
 @EntityListeners({AuditingEntityListener.class})
 @Entity(name = "s_menu")
-public class Menu implements Serializable {
+public class MenuEntity implements Menu, Serializable {
 	private static final long serialVersionUID = 6829594433533198471L;
 	@Id
 	@Column(name="id")
@@ -34,5 +36,5 @@ public class Menu implements Serializable {
 	@Column(name="icon")
 	private String icon;
 	@Transient
-	private List<Menu> children;
+	private List<MenuEntity> children;
 }

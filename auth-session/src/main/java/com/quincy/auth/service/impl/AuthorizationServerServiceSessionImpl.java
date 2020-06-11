@@ -4,30 +4,23 @@ import java.io.IOException;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Service;
 
-import com.quincy.auth.AuthConstants;
+import com.quincy.auth.AuthSessionHolder;
 import com.quincy.auth.o.DSession;
 import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthCallback;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.helper.CommonHelper;
 
-@Service("authorizationSessionServiceImpl")
-public class AuthorizationSessionServiceImpl extends AuthorizationServiceSupport {
-	@Override
-	protected Object getUserObject(HttpServletRequest request) {
-		HttpSession session = request.getSession(false);
-		return session==null?null:session.getAttribute(InnerConstants.ATTR_SESSION);
-	}
-
+@Service
+public class AuthorizationServerServiceSessionImpl extends AuthorizationServerServiceSupport {
 	@Override
 	public DSession setSession(HttpServletRequest request, String originalJsessionid, Long userId, AuthCallback callback) {
 		if(originalJsessionid!=null) {//同一user不同客户端登录互踢
-			HttpSession httpSession = AuthConstants.SESSIONS.get(originalJsessionid);
+			HttpSession httpSession = AuthSessionHolder.SESSIONS.get(originalJsessionid);
 			if(httpSession!=null) {
 				DSession session = (DSession)httpSession.getAttribute(InnerConstants.ATTR_SESSION);
 				if(session.getUser().getId().equals(userId))
@@ -44,18 +37,11 @@ public class AuthorizationSessionServiceImpl extends AuthorizationServiceSupport
 		return session;
 	}
 
-	public void logout(HttpServletRequest request, HttpServletResponse response) {
-		HttpSession session = request.getSession(false);
-		if(session!=null) {
-			session.invalidate();
-		}
-	}
-
 	@Override
 	public void updateSession(User user) {
 		String jsessionid = CommonHelper.trim(user.getJsessionid());
 		if(jsessionid!=null) {
-			HttpSession httpSession = AuthConstants.SESSIONS.get(jsessionid);
+			HttpSession httpSession = AuthSessionHolder.SESSIONS.get(jsessionid);
 			DSession dSession = this.createSession(user);
 			httpSession.setAttribute(InnerConstants.ATTR_SESSION, dSession);
 		}
@@ -67,7 +53,4 @@ public class AuthorizationSessionServiceImpl extends AuthorizationServiceSupport
 			this.updateSession(user);
 		}
 	}
-
-	@Override
-	public void setExpiry(HttpServletRequest request) throws Exception {}
 }

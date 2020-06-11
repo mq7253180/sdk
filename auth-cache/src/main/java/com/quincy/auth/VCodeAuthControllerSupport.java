@@ -38,8 +38,8 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 	@JedisInjector
 	@PostMapping("/signin/pwd")
 	public ModelAndView doLogin(HttpServletRequest request, 
-			@RequestParam(required = false, value = AuthConstants.PARA_NAME_USERNAME)String username, 
-			@RequestParam(required = false, value = AuthConstants.PARA_NAME_PASSWORD)String password, 
+			@RequestParam(required = false, value = AuthServerConstants.PARA_NAME_USERNAME)String username, 
+			@RequestParam(required = false, value = AuthServerConstants.PARA_NAME_PASSWORD)String password, 
 			@RequestParam(required = false, value = "vcode")String vcode, 
 			@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo, 
 			Jedis jedis) throws Exception {
@@ -65,10 +65,10 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 
 	private Result login(HttpServletRequest request, String username, String password, Integer failures, Jedis jedis) throws Exception {
 		Result result = doPwdLogin(request, username, password);
-		if(failures!=null&&result.getStatus()==AuthConstants.LOGIN_STATUS_PWD_INCORRECT) {
+		if(failures!=null&&result.getStatus()==AuthCommonConstants.LOGIN_STATUS_PWD_INCORRECT) {
 			jedis.hincrBy(loginFailuresHolderKey, username, 1);
 			if(failures+1>=failuresThresholdForVCode)
-				result.setStatus(AuthConstants.LOGIN_STATUS_PWD_INCORRECT-1);
+				result.setStatus(AuthCommonConstants.LOGIN_STATUS_PWD_INCORRECT-1);
 		}
 		return result;
 	}
@@ -78,16 +78,16 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 	@VCodeRequired
 	@RequestMapping("/signin/vcode")
 	public ModelAndView doLogin(HttpServletRequest request, 
-			@RequestParam(required = false, value = AuthConstants.PARA_NAME_USERNAME)String username, 
+			@RequestParam(required = false, value = AuthServerConstants.PARA_NAME_USERNAME)String username, 
 			@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
 		Result result = login(request, username, null);
 		return createModelAndView(request, result, redirectTo);
 	}
 
-	@VCodeRequired(clientTokenName = AuthConstants.PARA_NAME_USERNAME)
+	@VCodeRequired(clientTokenName = AuthServerConstants.PARA_NAME_USERNAME)
 	@RequestMapping("/signin/vcode/x")
 	public ModelAndView vcodeLogin(HttpServletRequest request, 
-			@RequestParam(required = false, value = AuthConstants.PARA_NAME_USERNAME)String username, 
+			@RequestParam(required = false, value = AuthServerConstants.PARA_NAME_USERNAME)String username, 
 			@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
 		return this.doLogin(request, username, redirectTo);
 	}
@@ -140,7 +140,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 						.append("&vcode={0}&")
 						.append(InnerConstants.PARAM_REDIRECT_TO)
 						.append("=")
-						.append(URLEncoder.encode(AuthConstants.URI_PWD_SET, "UTF-8"))
+						.append(URLEncoder.encode(AuthServerConstants.URI_PWD_SET, "UTF-8"))
 						.toString();
 				redisProcessor.vcode(request, VCodeCharsFrom.MIXED, 32, "email", email, getPwdSetEmailSubject(), getPwdSetEmailContent(uri));
 			}

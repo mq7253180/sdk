@@ -11,11 +11,12 @@ import org.springframework.web.servlet.support.RequestContext;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.quincy.auth.AuthConstants;
+import com.quincy.auth.AuthCommonConstants;
 import com.quincy.auth.o.DSession;
 import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthCallback;
-import com.quincy.auth.service.AuthorizationService;
+import com.quincy.auth.service.AuthorizationCommonService;
+import com.quincy.auth.service.AuthorizationServerService;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.Client;
 import com.quincy.sdk.Result;
@@ -24,7 +25,9 @@ import com.quincy.sdk.helper.CommonHelper;
 @RequestMapping("/auth")
 public abstract class AuthorizationControllerSupport {
 	@Autowired
-	private AuthorizationService authorizationService;
+	private AuthorizationCommonService authorizationCommonService;
+	@Autowired
+	private AuthorizationServerService authorizationServerService;
 
 	protected abstract User findUser(String username, Client client);
 	protected abstract void updateLastLogin(Long userId, Client client, String jsessionid);
@@ -60,7 +63,7 @@ public abstract class AuthorizationControllerSupport {
 	 */
 	@RequestMapping("/signout")
 	public String logout(HttpServletRequest request, HttpServletResponse response) throws Exception {
-		authorizationService.logout(request, response);
+		authorizationCommonService.logout(request, response);
 		return InnerConstants.VIEW_PATH_RESULT;
 	}
 	/**
@@ -94,11 +97,11 @@ public abstract class AuthorizationControllerSupport {
 			return result;
 		}
 		if(password!=null&&!password.equalsIgnoreCase(user.getPassword())) {
-			result.setStatus(AuthConstants.LOGIN_STATUS_PWD_INCORRECT);
+			result.setStatus(AuthCommonConstants.LOGIN_STATUS_PWD_INCORRECT);
 			result.setMsg(requestContext.getMessage("auth.account.pwd_incorrect"));
 			return result;
 		}
-		DSession session = authorizationService.setSession(request, CommonHelper.trim(user.getJsessionid()), user.getId(), new AuthCallback() {
+		DSession session = authorizationServerService.setSession(request, CommonHelper.trim(user.getJsessionid()), user.getId(), new AuthCallback() {
 			@Override
 			public void updateLastLogined(String jsessionid) {
 				updateLastLogin(user.getId(), client, jsessionid);

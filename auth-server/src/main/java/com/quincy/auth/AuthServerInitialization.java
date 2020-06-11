@@ -12,8 +12,6 @@ import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSessionEvent;
-import javax.servlet.http.HttpSessionListener;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,18 +24,12 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 import com.quincy.auth.controller.RootController;
 import com.quincy.auth.dao.PermissionRepository;
 import com.quincy.auth.entity.Permission;
-import com.quincy.auth.freemarker.ButtonTemplateDirectiveModelBean;
-import com.quincy.auth.freemarker.DivTemplateDirectiveModelBean;
-import com.quincy.auth.freemarker.HyperlinkTemplateDirectiveModelBean;
-import com.quincy.auth.freemarker.InputTemplateDirectiveModelBean;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.helper.RSASecurityHelper;
 
 @Configuration
-public class AuthInitialization {
-	@Autowired
-    private freemarker.template.Configuration configuration;
+public class AuthServerInitialization {
 	@Autowired
     private RequestMappingHandlerMapping requestMappingHandlerMapping;
 	@Autowired
@@ -49,10 +41,6 @@ public class AuthInitialization {
 
 	@PostConstruct
 	public void init() throws NoSuchMethodException, SecurityException {
-		configuration.setSharedVariable("input", new InputTemplateDirectiveModelBean());
-    	configuration.setSharedVariable("a", new HyperlinkTemplateDirectiveModelBean());
-    	configuration.setSharedVariable("button", new ButtonTemplateDirectiveModelBean());
-    	configuration.setSharedVariable("div", new DivTemplateDirectiveModelBean());
 		this.loadPermissions();
 		String _loginRequiredForRoot = CommonHelper.trim(properties.getProperty("auth.loginRequired.root"));
 		boolean loginRequiredForRoot = _loginRequiredForRoot==null?false:Boolean.parseBoolean(_loginRequiredForRoot);
@@ -75,25 +63,10 @@ public class AuthInitialization {
 
 	private void loadPermissions() {
 		List<Permission> permissoins = permissionRepository.findAll();
-		AuthConstants.PERMISSIONS = new HashMap<String, String>(permissoins.size());
+		AuthCommonConstants.PERMISSIONS = new HashMap<String, String>(permissoins.size());
 		for(Permission permission:permissoins) {
-			AuthConstants.PERMISSIONS.put(permission.getName(), permission.getDes());
+			AuthCommonConstants.PERMISSIONS.put(permission.getName(), permission.getDes());
 		}
-	}
-
-	@Bean
-    public HttpSessionListener httpSessionListener() {
-		return new HttpSessionListener() {
-			@Override
-			public void sessionCreated(HttpSessionEvent hse) {
-				AuthConstants.SESSIONS.put(hse.getSession().getId(), hse.getSession());
-			}
-
-			@Override
-			public void sessionDestroyed(HttpSessionEvent hse) {
-				AuthConstants.SESSIONS.remove(hse.getSession().getId());
-			}
-		};
 	}
 
 	@Bean("selfPrivateKey")

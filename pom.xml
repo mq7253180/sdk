@@ -133,6 +133,7 @@
 		<module>zookeeper</module>
 		<module>sftp</module>
 		<module>auth-oauth2</module>
+		<module>auth-common</module>
 		<module>auth-server</module>
 		<module>auth-session</module>
 		<module>auth-cache</module>

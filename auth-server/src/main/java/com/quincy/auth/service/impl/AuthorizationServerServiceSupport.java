@@ -7,27 +7,19 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
-import com.quincy.auth.entity.Menu;
+import com.quincy.auth.entity.MenuEntity;
 import com.quincy.auth.entity.Permission;
 import com.quincy.auth.entity.Role;
 import com.quincy.auth.mapper.AuthMapper;
 import com.quincy.auth.o.DSession;
+import com.quincy.auth.o.Menu;
 import com.quincy.auth.o.User;
-import com.quincy.auth.service.AuthorizationService;
+import com.quincy.auth.service.AuthorizationServerService;
 
-public abstract class AuthorizationServiceSupport implements AuthorizationService {
-	protected abstract Object getUserObject(HttpServletRequest request) throws Exception;
-
-	public DSession getSession(HttpServletRequest request) throws Exception {
-		Object obj = this.getUserObject(request);
-		return obj==null?null:(DSession)obj;
-	}
-
+public abstract class AuthorizationServerServiceSupport implements AuthorizationServerService {
 	@Autowired
 	private AuthMapper authMapper;
 	@Value("${auth.enterprise}")
@@ -66,14 +58,14 @@ public abstract class AuthorizationServiceSupport implements AuthorizationServic
 	}
 
 	private List<Menu> findMenusByUserId(Long userId) {
-		List<Menu> allMenus = authMapper.findMenusByUserId(userId);
-		Map<Long, Menu> duplicateRemovedMenus = new HashMap<Long, Menu>(allMenus.size());
-		for(Menu menu:allMenus)
+		List<MenuEntity> allMenus = authMapper.findMenusByUserId(userId);
+		Map<Long, MenuEntity> duplicateRemovedMenus = new HashMap<Long, MenuEntity>(allMenus.size());
+		for(MenuEntity menu:allMenus)
 			duplicateRemovedMenus.put(menu.getId(), menu);
 		List<Menu> rootMenus = new ArrayList<Menu>(duplicateRemovedMenus.size());
-		Set<Entry<Long, Menu>> entrySet = duplicateRemovedMenus.entrySet();
-		for(Entry<Long, Menu> entry:entrySet) {
-			Menu menu = entry.getValue();
+		Set<Entry<Long, MenuEntity>> entrySet = duplicateRemovedMenus.entrySet();
+		for(Entry<Long, MenuEntity> entry:entrySet) {
+			MenuEntity menu = entry.getValue();
 			if(menu.getPId()==null) {
 				rootMenus.add(menu);
 				this.loadChildrenMenus(menu, entrySet);
@@ -82,17 +74,17 @@ public abstract class AuthorizationServiceSupport implements AuthorizationServic
 		return rootMenus;
 	}
 
-	private void loadChildrenMenus(Menu parent, Set<Entry<Long, Menu>> entrySet) {
-		for(Entry<Long, Menu> entry:entrySet) {
-			Menu menu = entry.getValue();
+	private void loadChildrenMenus(MenuEntity parent, Set<Entry<Long, MenuEntity>> entrySet) {
+		for(Entry<Long, MenuEntity> entry:entrySet) {
+			MenuEntity menu = entry.getValue();
 			if(parent.getId()==menu.getPId()) {
 				if(parent.getChildren()==null)
-					parent.setChildren(new ArrayList<Menu>(10));
+					parent.setChildren(new ArrayList<MenuEntity>(10));
 				parent.getChildren().add(menu);
 			}
 		}
 		if(parent.getChildren()!=null&&parent.getChildren().size()>0) {
-			for(Menu child:parent.getChildren())
+			for(MenuEntity child:parent.getChildren())
 				this.loadChildrenMenus(child, entrySet);
 		}
 	}
