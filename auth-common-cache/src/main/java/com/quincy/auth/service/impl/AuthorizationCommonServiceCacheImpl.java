@@ -10,8 +10,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.quincy.AuthUtils;
 import com.quincy.core.InnerConstants;
-import com.quincy.sdk.Client;
 import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.RedisWebOperation;
 import com.quincy.sdk.helper.CommonHelper;
@@ -35,7 +35,7 @@ public class AuthorizationCommonServiceCacheImpl extends AuthorizationCommonServ
 				byte[] key = (sessionKeyPrefix+token).getBytes();
 				byte[] b = jedis.get(key);
 				if(b!=null&&b.length>0) {
-					setExpiry(request, jedis, key);
+					AuthUtils.setExpiry(request, jedis, key, properties);
 					return CommonHelper.unSerialize(b);
 				} else 
 					return null;
@@ -46,20 +46,13 @@ public class AuthorizationCommonServiceCacheImpl extends AuthorizationCommonServ
 		return retVal;
 	}
 
-	private void setExpiry(HttpServletRequest request, Jedis jedis, byte[] key) {
-		Client client = CommonHelper.getClient(request);
-		Integer expireMinutes = Integer.parseInt(properties.getProperty("expire.session."+client.getName()));
-		int expire = expireMinutes*60;
-		jedis.expire(key, expire);
-	}
-
 	@Override
 	public void setExpiry(HttpServletRequest request) throws Exception {
 		redisProcessor.opt(request, new RedisWebOperation() {
 			@Override
 			public Object run(Jedis jedis, String token) throws Exception {
 				byte[] key = (sessionKeyPrefix+token).getBytes();
-				setExpiry(request, jedis, key);
+				AuthUtils.setExpiry(request, jedis, key, properties);
 				return null;
 			}
 		}, null);

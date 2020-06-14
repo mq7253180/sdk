@@ -10,12 +10,12 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.quincy.AuthUtils;
 import com.quincy.auth.o.DSession;
 import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthCallback;
 import com.quincy.core.InnerConstants;
 import com.quincy.core.redis.JedisSource;
-import com.quincy.sdk.Client;
 import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.helper.CommonHelper;
 
@@ -51,20 +51,13 @@ public class AuthorizationServerServiceCacheImpl extends AuthorizationServerServ
 				}
 			}
 			jedis.set(key, CommonHelper.serialize(session));
-			setExpiry(request, jedis, key);
+			AuthUtils.setExpiry(request, jedis, key, properties);
 			callback.updateLastLogined(jsessionid);
 			return session;
 		} finally {
 			if(jedis!=null)
 				jedis.close();
 		}
-	}
-
-	private void setExpiry(HttpServletRequest request, Jedis jedis, byte[] key) {
-		Client client = CommonHelper.getClient(request);
-		Integer expireMinutes = Integer.parseInt(properties.getProperty("expire.session."+client.getName()));
-		int expire = expireMinutes*60;
-		jedis.expire(key, expire);
 	}
 
 	@Override
