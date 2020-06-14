@@ -2,7 +2,6 @@ package com.quincy.auth.service.impl;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Properties;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -10,11 +9,10 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.quincy.AuthUtils;
+import com.quincy.AuthCommonCacheUtils;
 import com.quincy.auth.o.DSession;
 import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthCallback;
-import com.quincy.core.InnerConstants;
 import com.quincy.core.redis.JedisSource;
 import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.helper.CommonHelper;
@@ -27,10 +25,10 @@ public class AuthorizationServerServiceCacheImpl extends AuthorizationServerServ
 	private JedisSource jedisSource;
 	@Autowired
 	private RedisProcessor redisProcessor;
-	@Resource(name = InnerConstants.BEAN_NAME_PROPERTIES)
-	private Properties properties;
 	@Resource(name = "sessionKeyPrefix")
 	private String sessionKeyPrefix;
+	@Autowired
+	private AuthCommonCacheUtils authCommonCacheUtils;
 
 	private DSession setSession(HttpServletRequest request, String jsessionid, String originalJsessionid, Long userId, AuthCallback callback) throws IOException, ClassNotFoundException {
 		User user = callback.getUser();
@@ -51,7 +49,7 @@ public class AuthorizationServerServiceCacheImpl extends AuthorizationServerServ
 				}
 			}
 			jedis.set(key, CommonHelper.serialize(session));
-			AuthUtils.setExpiry(request, jedis, key, properties);
+			authCommonCacheUtils.setExpiry(request, jedis, key);
 			callback.updateLastLogined(jsessionid);
 			return session;
 		} finally {

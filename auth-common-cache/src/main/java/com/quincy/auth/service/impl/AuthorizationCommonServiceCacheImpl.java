@@ -1,7 +1,6 @@
 package com.quincy.auth.service.impl;
 
 import java.io.IOException;
-import java.util.Properties;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -10,8 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.quincy.AuthUtils;
-import com.quincy.core.InnerConstants;
+import com.quincy.AuthCommonCacheUtils;
 import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.RedisWebOperation;
 import com.quincy.sdk.helper.CommonHelper;
@@ -22,10 +20,10 @@ import redis.clients.jedis.Jedis;
 public class AuthorizationCommonServiceCacheImpl extends AuthorizationCommonServiceSupport {
 	@Autowired
 	private RedisProcessor redisProcessor;
-	@Resource(name = InnerConstants.BEAN_NAME_PROPERTIES)
-	private Properties properties;
 	@Resource(name = "sessionKeyPrefix")
 	private String sessionKeyPrefix;
+	@Autowired
+	private AuthCommonCacheUtils authCommonCacheUtils;
 
 	@Override
 	protected Object getUserObject(HttpServletRequest request) throws Exception {
@@ -35,7 +33,7 @@ public class AuthorizationCommonServiceCacheImpl extends AuthorizationCommonServ
 				byte[] key = (sessionKeyPrefix+token).getBytes();
 				byte[] b = jedis.get(key);
 				if(b!=null&&b.length>0) {
-					AuthUtils.setExpiry(request, jedis, key, properties);
+					authCommonCacheUtils.setExpiry(request, jedis, key);
 					return CommonHelper.unSerialize(b);
 				} else 
 					return null;
@@ -52,7 +50,7 @@ public class AuthorizationCommonServiceCacheImpl extends AuthorizationCommonServ
 			@Override
 			public Object run(Jedis jedis, String token) throws Exception {
 				byte[] key = (sessionKeyPrefix+token).getBytes();
-				AuthUtils.setExpiry(request, jedis, key, properties);
+				authCommonCacheUtils.setExpiry(request, jedis, key);
 				return null;
 			}
 		}, null);
