@@ -136,7 +136,8 @@
 		<module>auth-common</module>
 		<module>auth-server</module>
 		<module>auth-session</module>
-		<module>auth-cache</module>
+		<module>auth-common-cache</module>
+		<module>auth-server-cache</module>
 		<module>auth-resource</module>
 		<module>auth-sso</module>
 	</modules>

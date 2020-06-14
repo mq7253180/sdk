@@ -6,11 +6,11 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class AuthorizationCacheContext {
-	@Value("${spring.application.name}")
-	private String applicationName;
+	@Value("${auth.name}")
+	private String authName;
 
 	@Bean("sessionKeyPrefix")
 	public String sessionKeyPrefix() {
-		return applicationName+".session.";
+		return "session."+authName+".";
 	}
 }

@@ -38,8 +38,8 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 	@JedisInjector
 	@PostMapping("/signin/pwd")
 	public ModelAndView doLogin(HttpServletRequest request, 
-			@RequestParam(required = false, value = AuthServerConstants.PARA_NAME_USERNAME)String username, 
-			@RequestParam(required = false, value = AuthServerConstants.PARA_NAME_PASSWORD)String password, 
+			@RequestParam(required = false, value = AuthCommonConstants.PARA_NAME_USERNAME)String username, 
+			@RequestParam(required = false, value = AuthCommonConstants.PARA_NAME_PASSWORD)String password, 
 			@RequestParam(required = false, value = "vcode")String vcode, 
 			@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo, 
 			Jedis jedis) throws Exception {
@@ -78,16 +78,16 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 	@VCodeRequired
 	@RequestMapping("/signin/vcode")
 	public ModelAndView doLogin(HttpServletRequest request, 
-			@RequestParam(required = false, value = AuthServerConstants.PARA_NAME_USERNAME)String username, 
+			@RequestParam(required = false, value = AuthCommonConstants.PARA_NAME_USERNAME)String username, 
 			@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
 		Result result = login(request, username, null);
 		return createModelAndView(request, result, redirectTo);
 	}
 
-	@VCodeRequired(clientTokenName = AuthServerConstants.PARA_NAME_USERNAME)
+	@VCodeRequired(clientTokenName = AuthCommonConstants.PARA_NAME_USERNAME)
 	@RequestMapping("/signin/vcode/x")
 	public ModelAndView vcodeLogin(HttpServletRequest request, 
-			@RequestParam(required = false, value = AuthServerConstants.PARA_NAME_USERNAME)String username, 
+			@RequestParam(required = false, value = AuthCommonConstants.PARA_NAME_USERNAME)String username, 
 			@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
 		return this.doLogin(request, username, redirectTo);
 	}
