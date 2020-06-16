@@ -17,28 +17,31 @@ public class InnerHelper {
 	public final static int APPEND_BACKTO_FLAG_URI = 1;
 	public final static int APPEND_BACKTO_FLAG_URL = 2;
 
-	public static void outputOrForward(HttpServletRequest request, HttpServletResponse response, Object handler, int status, String msg, String redirectTo, int appendBackToFlag) throws IOException, ServletException {
+	public static void outputOrForward(HttpServletRequest request, HttpServletResponse response, Object handler, int status, String msg, String redirectTo, boolean appendBackTo) throws IOException, ServletException {
 		String clientType = CommonHelper.clientType(request, handler);
 		if(InnerConstants.CLIENT_TYPE_J.equals(clientType)) {
 			String outputContent = "{\"status\":"+status+", \"msg\":\""+msg+"\"}";
 			HttpClientHelper.outputJson(response, outputContent);
 		} else {
 			StringBuilder location = new StringBuilder(280).append(redirectTo);
-			if(appendBackToFlag>APPEND_BACKTO_FLAG_NOT) {
+//			if(appendBackToFlag>APPEND_BACKTO_FLAG_NOT) {
+			if(appendBackTo) {
 				boolean appendRedirectTo = true;
 				String requestURX = null;
 				String queryString = CommonHelper.trim(request.getQueryString());
-				if(appendBackToFlag==APPEND_BACKTO_FLAG_URI) {
+//				if(appendBackToFlag==APPEND_BACKTO_FLAG_URL) {
+				if(redirectTo.startsWith("http")) {
+					requestURX = request.getRequestURL().toString();
+					if(requestURX.endsWith("/"))
+						requestURX = requestURX.substring(0, requestURX.length()-1);
+//				} else if(appendBackToFlag==APPEND_BACKTO_FLAG_URI) {
+				} else {
 					requestURX = request.getRequestURI();
 					if(queryString!=null||requestURX.length()>1) {
 						if(requestURX.endsWith("/")&&requestURX.length()>1)
 							requestURX = requestURX.substring(0, requestURX.length()-1);
 					} else
 						appendRedirectTo = false;
-				} else if(appendBackToFlag==APPEND_BACKTO_FLAG_URL) {
-					requestURX = request.getRequestURL().toString();
-					if(requestURX.endsWith("/"))
-						requestURX = requestURX.substring(0, requestURX.length()-1);
 				}
 				if(appendRedirectTo)
 					location.append(getSeparater(location.toString()))

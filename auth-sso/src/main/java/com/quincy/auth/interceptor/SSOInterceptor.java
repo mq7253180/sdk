@@ -126,7 +126,7 @@ public class SSOInterceptor extends HandlerInterceptorAdapter {
 							if(result.getErrorStatus()==5) {//会话超时、跳登录页
 								this.handleTimeout(request, response, handler);
 							} else if(result.getErrorStatus()==8)//权限不足(基本不会)
-								InnerHelper.outputOrForward(request, response, handler, -1, new RequestContext(request).getMessage("status.error.403")+"["+OAuth2Constants.SCOPE_NAME_USER_INFO+"]", centerUrlPrefix+Oauth2Helper.resourceErrorUri(result.getErrorStatus(), locale), InnerHelper.APPEND_BACKTO_FLAG_URL);
+								InnerHelper.outputOrForward(request, response, handler, -1, new RequestContext(request).getMessage("status.error.403")+"["+OAuth2Constants.SCOPE_NAME_USER_INFO+"]", centerUrlPrefix+Oauth2Helper.resourceErrorUri(result.getErrorStatus(), locale), true);
 							return false;
 						}
 					}
@@ -137,7 +137,7 @@ public class SSOInterceptor extends HandlerInterceptorAdapter {
 	}
 
 	private void handleTimeout(HttpServletRequest request, HttpServletResponse response, Object handler) throws NoSuchMessageException, IOException, ServletException {
-		InnerHelper.outputOrForward(request, response, handler, 0, new RequestContext(request).getMessage("oauth2.error.sso.timeout"), centerUrlPrefix+"/oauth2/signin", InnerHelper.APPEND_BACKTO_FLAG_URL);
+		InnerHelper.outputOrForward(request, response, handler, 0, new RequestContext(request).getMessage("oauth2.error.sso.timeout"), centerUrlPrefix+"/oauth2/signin", true);
 	}
 
 	private class OAuthCodeClientResponse extends OAuthClientResponse {

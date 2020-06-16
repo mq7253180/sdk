@@ -2,6 +2,7 @@ package com.quincy.auth.interceptor;
 
 import java.util.List;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -18,11 +19,15 @@ import com.quincy.core.InnerHelper;
 public abstract class AuthorizationInterceptorSupport extends HandlerInterceptorAdapter {
 	@Autowired
 	private AuthorizationCommonService authorizationService;
+	@Resource(name = "signinUrl")
+	private String signinUrl;
+	@Resource(name = "denyUrl")
+	private String denyUrl;
 
 	protected boolean doAuth(HttpServletRequest request, HttpServletResponse response, Object handler, String permissionNeeded) throws Exception {
 		DSession session = authorizationService.getSession(request);
 		if(session==null) {
-			InnerHelper.outputOrForward(request, response, handler, 0, new RequestContext(request).getMessage("auth.timeout.ajax"), "/auth/signin/broker", InnerHelper.APPEND_BACKTO_FLAG_URI);
+			InnerHelper.outputOrForward(request, response, handler, 0, new RequestContext(request).getMessage("auth.timeout.ajax"), signinUrl, true);
 			return false;
 		} else {
 			if(permissionNeeded!=null) {
@@ -39,7 +44,7 @@ public abstract class AuthorizationInterceptorSupport extends HandlerInterceptor
 					if(deniedPermissionName==null)
 						deniedPermissionName = permissionNeeded;
 					request.setAttribute(AuthCommonConstants.ATTR_DENIED_PERMISSION, deniedPermissionName);
-					InnerHelper.outputOrForward(request, response, handler, -1, new RequestContext(request).getMessage("status.error.403")+"["+deniedPermissionName+"]", "/auth/deny", InnerHelper.APPEND_BACKTO_FLAG_URI);
+					InnerHelper.outputOrForward(request, response, handler, -1, new RequestContext(request).getMessage("status.error.403")+"["+deniedPermissionName+"]", denyUrl, true);
 					return false;
 				}
 			}
