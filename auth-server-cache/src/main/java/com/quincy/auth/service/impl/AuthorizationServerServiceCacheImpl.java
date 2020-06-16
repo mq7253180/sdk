@@ -91,7 +91,7 @@ public class AuthorizationServerServiceCacheImpl extends AuthorizationServerServ
 	}
 
 	@Override
-	public <T extends User> void updateSession(List<T> users) throws IOException {
+	public void updateSession(List<User> users) throws IOException {
 		Jedis jedis = null;
 		try {
 			jedis = jedisSource.get();

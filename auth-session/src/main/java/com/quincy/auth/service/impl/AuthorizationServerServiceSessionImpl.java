@@ -48,7 +48,7 @@ public class AuthorizationServerServiceSessionImpl extends AuthorizationServerSe
 	}
 
 	@Override
-	public <T extends User> void updateSession(List<T> users) throws IOException {
+	public void updateSession(List<User> users) throws IOException {
 		for(User user:users) {
 			this.updateSession(user);
 		}
