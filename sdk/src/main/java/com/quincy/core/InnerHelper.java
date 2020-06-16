@@ -19,6 +19,7 @@ public class InnerHelper {
 
 	public static void outputOrForward(HttpServletRequest request, HttpServletResponse response, Object handler, int status, String msg, String redirectTo, boolean appendBackTo) throws IOException, ServletException {
 		String clientType = CommonHelper.clientType(request, handler);
+		boolean clientSys = redirectTo.startsWith("http");
 		if(InnerConstants.CLIENT_TYPE_J.equals(clientType)) {
 			String outputContent = "{\"status\":"+status+", \"msg\":\""+msg+"\"}";
 			HttpClientHelper.outputJson(response, outputContent);
@@ -30,7 +31,7 @@ public class InnerHelper {
 				String requestURX = null;
 				String queryString = CommonHelper.trim(request.getQueryString());
 //				if(appendBackToFlag==APPEND_BACKTO_FLAG_URL) {
-				if(redirectTo.startsWith("http")) {
+				if(clientSys) {
 					requestURX = request.getRequestURL().toString();
 					if(requestURX.endsWith("/"))
 						requestURX = requestURX.substring(0, requestURX.length()-1);
@@ -49,7 +50,7 @@ public class InnerHelper {
 					.append("=")
 					.append(URLEncoder.encode(requestURX+(queryString==null?"":("?"+queryString)), "UTF-8"));
 			}
-			if(redirectTo.startsWith("http")) {
+			if(clientSys) {
 				response.sendRedirect(location.toString());
 			} else {
 				request.setAttribute("status", status);
