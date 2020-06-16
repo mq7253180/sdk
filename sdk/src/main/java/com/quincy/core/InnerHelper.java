@@ -44,6 +44,12 @@ public class InnerHelper {
 					} else
 						appendRedirectTo = false;
 				}
+				String locale = CommonHelper.trim(request.getParameter(InnerConstants.KEY_LOCALE));
+				if(locale!=null)
+					location.append(getSeparater(location.toString()))
+					.append(InnerConstants.KEY_LOCALE)
+					.append("=")
+					.append(locale);
 				if(appendRedirectTo)
 					location.append(getSeparater(location.toString()))
 					.append(InnerConstants.PARAM_REDIRECT_TO)
