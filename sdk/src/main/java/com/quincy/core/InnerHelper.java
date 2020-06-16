@@ -13,10 +13,6 @@ import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.helper.HttpClientHelper;
 
 public class InnerHelper {
-	public final static int APPEND_BACKTO_FLAG_NOT = 0;
-	public final static int APPEND_BACKTO_FLAG_URI = 1;
-	public final static int APPEND_BACKTO_FLAG_URL = 2;
-
 	public static void outputOrForward(HttpServletRequest request, HttpServletResponse response, Object handler, int status, String msg, String redirectTo, boolean appendBackTo) throws IOException, ServletException {
 		String clientType = CommonHelper.clientType(request, handler);
 		boolean clientSys = redirectTo.startsWith("http");
