@@ -10,7 +10,6 @@ import java.util.Map.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
-import com.quincy.auth.entity.MenuEntity;
 import com.quincy.auth.entity.Permission;
 import com.quincy.auth.entity.Role;
 import com.quincy.auth.mapper.AuthMapper;
@@ -58,14 +57,14 @@ public abstract class AuthorizationServerServiceSupport implements Authorization
 	}
 
 	private List<Menu> findMenusByUserId(Long userId) {
-		List<MenuEntity> allMenus = authMapper.findMenusByUserId(userId);
-		Map<Long, MenuEntity> duplicateRemovedMenus = new HashMap<Long, MenuEntity>(allMenus.size());
-		for(MenuEntity menu:allMenus)
+		List<Menu> allMenus = authMapper.findMenusByUserId(userId);
+		Map<Long, Menu> duplicateRemovedMenus = new HashMap<Long, Menu>(allMenus.size());
+		for(Menu menu:allMenus)
 			duplicateRemovedMenus.put(menu.getId(), menu);
 		List<Menu> rootMenus = new ArrayList<Menu>(duplicateRemovedMenus.size());
-		Set<Entry<Long, MenuEntity>> entrySet = duplicateRemovedMenus.entrySet();
-		for(Entry<Long, MenuEntity> entry:entrySet) {
-			MenuEntity menu = entry.getValue();
+		Set<Entry<Long, Menu>> entrySet = duplicateRemovedMenus.entrySet();
+		for(Entry<Long, Menu> entry:entrySet) {
+			Menu menu = entry.getValue();
 			if(menu.getPId()==null) {
 				rootMenus.add(menu);
 				this.loadChildrenMenus(menu, entrySet);
@@ -74,17 +73,17 @@ public abstract class AuthorizationServerServiceSupport implements Authorization
 		return rootMenus;
 	}
 
-	private void loadChildrenMenus(MenuEntity parent, Set<Entry<Long, MenuEntity>> entrySet) {
-		for(Entry<Long, MenuEntity> entry:entrySet) {
-			MenuEntity menu = entry.getValue();
+	private void loadChildrenMenus(Menu parent, Set<Entry<Long, Menu>> entrySet) {
+		for(Entry<Long, Menu> entry:entrySet) {
+			Menu menu = entry.getValue();
 			if(parent.getId()==menu.getPId()) {
 				if(parent.getChildren()==null)
-					parent.setChildren(new ArrayList<MenuEntity>(10));
+					parent.setChildren(new ArrayList<Menu>(10));
 				parent.getChildren().add(menu);
 			}
 		}
 		if(parent.getChildren()!=null&&parent.getChildren().size()>0) {
-			for(MenuEntity child:parent.getChildren())
+			for(Menu child:parent.getChildren())
 				this.loadChildrenMenus(child, entrySet);
 		}
 	}
