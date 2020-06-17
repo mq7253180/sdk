@@ -40,7 +40,7 @@ public abstract class AuthorizationInterceptorSupport extends HandlerInterceptor
 					}
 				}
 				if(!hasPermission) {
-					String deniedPermissionName = AuthCommonConstants.PERMISSIONS.get(permissionNeeded);
+					String deniedPermissionName = AuthCommonConstants.PERMISSIONS==null?null:AuthCommonConstants.PERMISSIONS.get(permissionNeeded);
 					if(deniedPermissionName==null)
 						deniedPermissionName = permissionNeeded;
 					request.setAttribute(AuthCommonConstants.ATTR_DENIED_PERMISSION, deniedPermissionName);
