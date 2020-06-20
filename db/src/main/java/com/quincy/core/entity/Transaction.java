@@ -45,6 +45,8 @@ public class Transaction {
 	private Integer version;
 	@Column(name="frequency_batch")
 	private String frequencyBatch;//频率批次名称
+	@Column(name="in_order")
+	private Boolean inOrder;//是否有顺序
 	@Transient
 	private Object[] args;
 	@Transient

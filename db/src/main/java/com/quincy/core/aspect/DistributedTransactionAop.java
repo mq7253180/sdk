@@ -85,13 +85,15 @@ public class DistributedTransactionAop implements DTransactionContext {
 		String frequencyBatch = CommonHelper.trim(annotation.frequencyBatch());
 		if(frequencyBatch!=null)
 			tx.setFrequencyBatch(frequencyBatch);
+		tx.setInOrder(annotation.inOrder());
 		tx = transactionService.insertTransaction(tx);
 		atomics = tx.getAtomics();
 		if(atomics!=null&&atomics.size()>0) {
 			for(TransactionAtomic atomic:atomics)
 				atomic.setMethodName(atomic.getConfirmMethodName());
 		}
-		this.invokeAtomics(tx, DTransactionConstants.ATOMIC_STATUS_SUCCESS, cancel);
+		boolean breakOnFailure = cancel?cancel:annotation.inOrder();
+		this.invokeAtomics(tx, DTransactionConstants.ATOMIC_STATUS_SUCCESS, breakOnFailure);
 		return retVal;
 	}
 
@@ -146,7 +148,8 @@ public class DistributedTransactionAop implements DTransactionContext {
 					log.warn("DISTRIBUTED_TRANSACTION_IS_EXECUTING===================={}", tx.getId());
 					List<TransactionAtomic> atomics = transactionService.findTransactionAtomics(tx.getId(), tx.getType());
 					tx.setAtomics(atomics);
-					this.invokeAtomics(tx, tx.getType()==DTransactionConstants.TX_TYPE_CONFIRM?DTransactionConstants.ATOMIC_STATUS_SUCCESS:DTransactionConstants.ATOMIC_STATUS_CANCELED, false);
+					boolean breakOnFailure = tx.getType()==DTransactionConstants.TX_TYPE_CONFIRM&&tx.getInOrder();
+					this.invokeAtomics(tx, tx.getType()==DTransactionConstants.TX_TYPE_CONFIRM?DTransactionConstants.ATOMIC_STATUS_SUCCESS:DTransactionConstants.ATOMIC_STATUS_CANCELED, breakOnFailure);
 				}
 			}
 		}
