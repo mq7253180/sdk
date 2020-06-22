@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Aspect
-@Order(10)
+@Order(11)
 @Component
 public class DurationLogAop {
 	@Pointcut("@annotation(com.quincy.sdk.annotation.DurationLog)")

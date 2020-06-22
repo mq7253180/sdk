@@ -5,11 +5,8 @@ import java.io.Writer;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-
+import com.quincy.auth.AuthHelper;
 import com.quincy.auth.o.DSession;
-import com.quincy.core.InnerConstants;
-import com.quincy.sdk.helper.CommonHelper;
 
 import freemarker.core.Environment;
 import freemarker.template.TemplateDirectiveBody;
@@ -29,8 +26,7 @@ public abstract class AbstractHtmlTemplateDirectiveModel implements TemplateDire
 			output = true;
 		} else {
 			String permissionName = permission.toString();
-			HttpServletRequest request = CommonHelper.getRequest();
-			DSession session = (DSession)request.getAttribute(InnerConstants.ATTR_SESSION);
+			DSession session = AuthHelper.getSession();
 			List<String> permissions = session.getPermissions();
 			for(String p:permissions) {
 				if(p.equalsIgnoreCase(permissionName)) {
