@@ -150,11 +150,11 @@ public class TransactionServiceImpl implements TransactionService {
 	}
 
 	@Override
-	public List<TransactionAtomic> findTransactionAtomics(Long txId, Integer status) throws ClassNotFoundException, IOException {
+	public List<TransactionAtomic> findTransactionAtomics(Transaction tx) throws ClassNotFoundException, IOException {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		List<TransactionAtomic> atomics =  transactionAtomicRepository.findByTxIdAndStatusOrderBySort(txId, status);
+		List<TransactionAtomic> atomics =  (tx.getInOrder()&&tx.getType().intValue()==DTransactionConstants.TX_TYPE_CANCEL)?transactionAtomicRepository.findByTxIdAndStatusOrderBySortDesc(tx.getId(), tx.getType()):transactionAtomicRepository.findByTxIdAndStatusOrderBySort(tx.getId(), tx.getType());
 		if(atomics!=null&&atomics.size()>0) {
 			for(TransactionAtomic atomic:atomics) {
 				List<TransactionArg> _args = transactionArgRepository.findByParentIdAndTypeOrderBySort(atomic.getId(), DTransactionConstants.ARG_TYPE_ATOMIC);

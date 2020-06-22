@@ -146,10 +146,9 @@ public class DistributedTransactionAop implements DTransactionContext {
 				int affected = transactionService.updateTransactionVersion(tx.getId(), tx.getVersion());
 				if(affected>0) {//乐观锁, 集群部署多个结点时, 谁更新版本成功了谁负责执行
 					log.warn("DISTRIBUTED_TRANSACTION_IS_EXECUTING===================={}", tx.getId());
-					List<TransactionAtomic> atomics = transactionService.findTransactionAtomics(tx.getId(), tx.getType());
+					List<TransactionAtomic> atomics = transactionService.findTransactionAtomics(tx);
 					tx.setAtomics(atomics);
-					boolean breakOnFailure = tx.getType()==DTransactionConstants.TX_TYPE_CONFIRM&&tx.getInOrder();
-					this.invokeAtomics(tx, tx.getType()==DTransactionConstants.TX_TYPE_CONFIRM?DTransactionConstants.ATOMIC_STATUS_SUCCESS:DTransactionConstants.ATOMIC_STATUS_CANCELED, breakOnFailure);
+					this.invokeAtomics(tx, tx.getType()==DTransactionConstants.TX_TYPE_CONFIRM?DTransactionConstants.ATOMIC_STATUS_SUCCESS:DTransactionConstants.ATOMIC_STATUS_CANCELED, tx.getInOrder());
 				}
 			}
 		}
