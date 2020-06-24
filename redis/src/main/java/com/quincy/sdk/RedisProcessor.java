@@ -13,4 +13,5 @@ public interface RedisProcessor {
 	public Object opt(HttpServletRequest request, RedisWebOperation operation, String clientTokenName) throws Exception;
 	public void deleteCookie(HttpServletResponse response);
 	public void deleteCookie();
+	public void refreshCookieExpire(HttpServletRequest request);
 }

@@ -25,6 +25,7 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.support.RequestContext;
 
+import com.quincy.core.AuthCacheUtils;
 import com.quincy.core.InnerConstants;
 import com.quincy.core.InnerHelper;
 import com.quincy.sdk.EmailService;
@@ -47,6 +48,8 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 	private Properties properties;
 	@Value("${spring.application.name}")
 	private String applicationName;
+	@Autowired
+	private AuthCacheUtils authCacheUtils;
 	private final static String FLAG_VCODE = "vcode";
 
 	@Override
@@ -181,7 +184,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		if(token==null) {
 			if(autoGenerateIfNull) {
 				token = System.currentTimeMillis()+"-"+UUID.randomUUID().toString().replaceAll("-", "");
-				this.addCookie(CommonHelper.getResponse(), clientTokenName, token, Integer.parseInt(properties.getProperty("expire.cookie"))*60);
+				this.addCookie(CommonHelper.getResponse(), clientTokenName, token, authCacheUtils.getExpire(request)*2);
 			} else
 				throw new RuntimeException("No value of "+clientTokenName+" is presented.");
 		}
@@ -198,6 +201,15 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		String clientTokenName = CommonHelper.trim(properties.getProperty(InnerConstants.CLIENT_TOKEN_PROPERTY_NAME));
 		if(clientTokenName!=null)
 			this.addCookie(response, clientTokenName, "", 0);
+	}
+
+	@Override
+	public void refreshCookieExpire(HttpServletRequest request) {
+		String clientTokenName = CommonHelper.trim(properties.getProperty(InnerConstants.CLIENT_TOKEN_PROPERTY_NAME));
+		if(clientTokenName!=null) {
+			String token = CommonHelper.getValue(request, clientTokenName);
+			this.addCookie(CommonHelper.getResponse(), clientTokenName, token, authCacheUtils.getExpire(request)*2);
+		}
 	}
 
 	private void addCookie(HttpServletResponse response, String key, String value, int expiry) {

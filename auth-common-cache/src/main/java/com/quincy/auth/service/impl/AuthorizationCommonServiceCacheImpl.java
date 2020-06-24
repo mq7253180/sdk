@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.quincy.AuthCommonCacheUtils;
+import com.quincy.core.AuthCacheUtils;
 import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.RedisWebOperation;
 import com.quincy.sdk.helper.CommonHelper;
@@ -23,7 +23,7 @@ public class AuthorizationCommonServiceCacheImpl extends AuthorizationCommonServ
 	@Resource(name = "sessionKeyPrefix")
 	private String sessionKeyPrefix;
 	@Autowired
-	private AuthCommonCacheUtils authCommonCacheUtils;
+	private AuthCacheUtils authCacheUtils;
 
 	@Override
 	protected Object getUserObject(HttpServletRequest request) throws Exception {
@@ -33,7 +33,8 @@ public class AuthorizationCommonServiceCacheImpl extends AuthorizationCommonServ
 				byte[] key = (sessionKeyPrefix+token).getBytes();
 				byte[] b = jedis.get(key);
 				if(b!=null&&b.length>0) {
-					authCommonCacheUtils.setExpiry(request, jedis, key);
+					authCacheUtils.setExpiry(request, jedis, key);
+					redisProcessor.refreshCookieExpire(request);
 					return CommonHelper.unSerialize(b);
 				} else 
 					return null;
@@ -50,7 +51,7 @@ public class AuthorizationCommonServiceCacheImpl extends AuthorizationCommonServ
 			@Override
 			public Object run(Jedis jedis, String token) throws Exception {
 				byte[] key = (sessionKeyPrefix+token).getBytes();
-				authCommonCacheUtils.setExpiry(request, jedis, key);
+				authCacheUtils.setExpiry(request, jedis, key);
 				return null;
 			}
 		}, null);

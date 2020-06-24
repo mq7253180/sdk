@@ -9,10 +9,10 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.quincy.AuthCommonCacheUtils;
 import com.quincy.auth.o.DSession;
 import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthCallback;
+import com.quincy.core.AuthCacheUtils;
 import com.quincy.core.redis.JedisSource;
 import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.helper.CommonHelper;
@@ -28,7 +28,7 @@ public class AuthorizationServerServiceCacheImpl extends AuthorizationServerServ
 	@Resource(name = "sessionKeyPrefix")
 	private String sessionKeyPrefix;
 	@Autowired
-	private AuthCommonCacheUtils authCommonCacheUtils;
+	private AuthCacheUtils authCacheUtils;
 
 	private DSession setSession(HttpServletRequest request, String jsessionid, String originalJsessionid, Long userId, AuthCallback callback) throws IOException, ClassNotFoundException {
 		User user = callback.getUser();
@@ -49,7 +49,7 @@ public class AuthorizationServerServiceCacheImpl extends AuthorizationServerServ
 				}
 			}
 			jedis.set(key, CommonHelper.serialize(session));
-			authCommonCacheUtils.setExpiry(request, jedis, key);
+			authCacheUtils.setExpiry(request, jedis, key);
 			callback.updateLastLogined(jsessionid);
 			return session;
 		} finally {
