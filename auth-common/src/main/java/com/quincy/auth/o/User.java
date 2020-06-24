@@ -9,12 +9,13 @@ import lombok.Data;
 public class User implements Serializable {
 	private static final long serialVersionUID = 3068671906589197352L;
 	private Long id;
-	private Date creationTime;
-	private String username;
 	private String name;
-	private String password;
+	private String nickName;
+	private String username;
 	private String email;
 	private String mobilePhone;
-	private String jsessionid;
+	private String password;
+	private Date creationTime;
 	private Date lastLogined;
+	private String jsessionid;
 }
