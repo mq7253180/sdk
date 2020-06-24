@@ -25,9 +25,9 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.support.RequestContext;
 
-import com.quincy.core.AuthCacheUtils;
 import com.quincy.core.InnerConstants;
 import com.quincy.core.InnerHelper;
+import com.quincy.sdk.Client;
 import com.quincy.sdk.EmailService;
 import com.quincy.sdk.RedisOperation;
 import com.quincy.sdk.RedisProcessor;
@@ -35,6 +35,7 @@ import com.quincy.sdk.RedisWebOperation;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.VCcodeSender;
 import com.quincy.sdk.VCodeCharsFrom;
+import com.quincy.sdk.annotation.JedisInjector;
 import com.quincy.sdk.annotation.VCodeRequired;
 import com.quincy.sdk.helper.CommonHelper;
 
@@ -48,8 +49,6 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 	private Properties properties;
 	@Value("${spring.application.name}")
 	private String applicationName;
-	@Autowired
-	private AuthCacheUtils authCacheUtils;
 	private final static String FLAG_VCODE = "vcode";
 
 	@Override
@@ -184,7 +183,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		if(token==null) {
 			if(autoGenerateIfNull) {
 				token = System.currentTimeMillis()+"-"+UUID.randomUUID().toString().replaceAll("-", "");
-				this.addCookie(CommonHelper.getResponse(), clientTokenName, token, authCacheUtils.getExpire(request)*2);
+				this.addCookie(CommonHelper.getResponse(), clientTokenName, token, this.getExpire(request)*2);
 			} else
 				throw new RuntimeException("No value of "+clientTokenName+" is presented.");
 		}
@@ -203,13 +202,24 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 			this.addCookie(response, clientTokenName, "", 0);
 	}
 
+	@JedisInjector
 	@Override
-	public void refreshCookieExpire(HttpServletRequest request) {
+	public void setExpiry(HttpServletRequest request, byte[] key, Jedis jedis) {
+		int expire = this.getExpire(request);
+		jedis.expire(key, expire);
 		String clientTokenName = CommonHelper.trim(properties.getProperty(InnerConstants.CLIENT_TOKEN_PROPERTY_NAME));
 		if(clientTokenName!=null) {
 			String token = CommonHelper.getValue(request, clientTokenName);
-			this.addCookie(CommonHelper.getResponse(), clientTokenName, token, authCacheUtils.getExpire(request)*2);
+			if(token!=null)
+				this.addCookie(CommonHelper.getResponse(), clientTokenName, token, expire*2);
 		}
+	}
+
+	private int getExpire(HttpServletRequest request) {
+		Client client = CommonHelper.getClient(request);
+		Integer expireMinutes = Integer.parseInt(properties.getProperty("expire.session."+client.getName()));
+		int expire = expireMinutes*60;
+		return expire;
 	}
 
 	private void addCookie(HttpServletResponse response, String key, String value, int expiry) {

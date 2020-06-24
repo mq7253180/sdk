@@ -3,6 +3,8 @@ package com.quincy.sdk;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import redis.clients.jedis.Jedis;
+
 public interface RedisProcessor {
 	public String vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, String clientTokenName, VCcodeSender sender) throws Exception;
 	public String vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, String clientTokenName, HttpServletResponse response, int size, int start, int space, int width, int height) throws Exception;
@@ -13,5 +15,5 @@ public interface RedisProcessor {
 	public Object opt(HttpServletRequest request, RedisWebOperation operation, String clientTokenName) throws Exception;
 	public void deleteCookie(HttpServletResponse response);
 	public void deleteCookie();
-	public void refreshCookieExpire(HttpServletRequest request);
+	public void setExpiry(HttpServletRequest request, byte[] key, Jedis jedis);
 }

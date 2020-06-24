@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import com.quincy.auth.o.DSession;
 import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthCallback;
-import com.quincy.core.AuthCacheUtils;
 import com.quincy.core.redis.JedisSource;
 import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.helper.CommonHelper;
@@ -27,8 +26,6 @@ public class AuthorizationServerServiceCacheImpl extends AuthorizationServerServ
 	private RedisProcessor redisProcessor;
 	@Resource(name = "sessionKeyPrefix")
 	private String sessionKeyPrefix;
-	@Autowired
-	private AuthCacheUtils authCacheUtils;
 
 	private DSession setSession(HttpServletRequest request, String jsessionid, String originalJsessionid, Long userId, AuthCallback callback) throws IOException, ClassNotFoundException {
 		User user = callback.getUser();
@@ -49,7 +46,7 @@ public class AuthorizationServerServiceCacheImpl extends AuthorizationServerServ
 				}
 			}
 			jedis.set(key, CommonHelper.serialize(session));
-			authCacheUtils.setExpiry(request, jedis, key);
+			redisProcessor.setExpiry(request, key, jedis);
 			callback.updateLastLogined(jsessionid);
 			return session;
 		} finally {
