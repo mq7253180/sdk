@@ -199,19 +199,28 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 	public void deleteCookie(HttpServletResponse response) {
 		String clientTokenName = CommonHelper.trim(properties.getProperty(InnerConstants.CLIENT_TOKEN_PROPERTY_NAME));
 		if(clientTokenName!=null)
-			this.addCookie(response, clientTokenName, "", 0);
+			this.deleteCookie(response, clientTokenName);
+	}
+
+	private void deleteCookie(HttpServletResponse response, String clientTokenName) {
+		this.addCookie(response, clientTokenName, "", 0);
 	}
 
 	@JedisInjector
 	@Override
 	public void setExpiry(HttpServletRequest request, byte[] key, Jedis jedis) {
 		int expire = this.getExpire(request);
-		jedis.expire(key, expire);
+		long result = jedis.expire(key, expire);
 		String clientTokenName = CommonHelper.trim(properties.getProperty(InnerConstants.CLIENT_TOKEN_PROPERTY_NAME));
 		if(clientTokenName!=null) {
-			String token = CommonHelper.getValue(request, clientTokenName);
-			if(token!=null)
-				this.addCookie(CommonHelper.getResponse(), clientTokenName, token, expire*2);
+			HttpServletResponse response = CommonHelper.getResponse();
+			if(result<1) {
+				this.deleteCookie(response, clientTokenName);
+			} else {
+				String token = CommonHelper.getValue(request, clientTokenName);
+				if(token!=null)
+					this.addCookie(response, clientTokenName, token, expire*2);
+			}
 		}
 	}
 
