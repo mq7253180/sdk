@@ -40,12 +40,6 @@ public class InnerHelper {
 					} else
 						appendRedirectTo = false;
 				}
-				String locale = CommonHelper.trim(request.getParameter(InnerConstants.KEY_LOCALE));
-				if(locale!=null)
-					location.append(getSeparater(location.toString()))
-					.append(InnerConstants.KEY_LOCALE)
-					.append("=")
-					.append(locale);
 				if(appendRedirectTo)
 					location.append(getSeparater(location.toString()))
 					.append(InnerConstants.PARAM_REDIRECT_TO)
@@ -53,6 +47,12 @@ public class InnerHelper {
 					.append(URLEncoder.encode(requestURX+(queryString==null?"":("?"+queryString)), "UTF-8"));
 			}
 			if(clientSys) {
+				String locale = CommonHelper.trim(request.getParameter(InnerConstants.KEY_LOCALE));
+				if(locale!=null)
+					location.append(getSeparater(location.toString()))
+					.append(InnerConstants.KEY_LOCALE)
+					.append("=")
+					.append(locale);
 				response.sendRedirect(location.toString());
 			} else {
 				request.setAttribute("status", status);
