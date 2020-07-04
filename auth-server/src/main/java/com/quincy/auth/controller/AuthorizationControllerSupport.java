@@ -12,7 +12,7 @@ import org.springframework.web.servlet.support.RequestContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quincy.auth.AuthCommonConstants;
-import com.quincy.auth.o.DSession;
+import com.quincy.auth.o.XSession;
 import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthCallback;
 import com.quincy.auth.service.AuthorizationCommonService;
@@ -101,7 +101,7 @@ public abstract class AuthorizationControllerSupport {
 			result.setMsg(requestContext.getMessage("auth.account.pwd_incorrect"));
 			return result;
 		}
-		DSession session = authorizationServerService.setSession(request, CommonHelper.trim(user.getJsessionid()), user.getId(), new AuthCallback() {
+		XSession session = authorizationServerService.setSession(request, CommonHelper.trim(user.getJsessionid()), user.getId(), new AuthCallback() {
 			@Override
 			public void updateLastLogined(String jsessionid) {
 				updateLastLogin(user.getId(), client, jsessionid);

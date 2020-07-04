@@ -2,17 +2,17 @@ package com.quincy.auth;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.quincy.auth.o.DSession;
+import com.quincy.auth.o.XSession;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.helper.CommonHelper;
 
 public class AuthHelper {
-	public static DSession getSession(HttpServletRequest request) {
-		DSession session = (DSession)request.getAttribute(InnerConstants.ATTR_SESSION);
+	public static XSession getSession(HttpServletRequest request) {
+		XSession session = (XSession)request.getAttribute(InnerConstants.ATTR_SESSION);
 		return session;
 	}
 
-	public static DSession getSession() {
+	public static XSession getSession() {
 		HttpServletRequest request = CommonHelper.getRequest();
 		return getSession(request);
 	}

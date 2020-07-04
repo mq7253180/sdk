@@ -8,7 +8,7 @@ import java.util.Map;
 import lombok.Data;
 
 @Data
-public class DSession implements Serializable {
+public class XSession implements Serializable {
 	private static final long serialVersionUID = 997874172809782407L;
 	private User user;
 	private List<String> roles;

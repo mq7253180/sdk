@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.quincy.auth.o.DSession;
+import com.quincy.auth.o.XSession;
 import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthCallback;
 import com.quincy.core.redis.JedisSource;
@@ -27,11 +27,11 @@ public class AuthorizationServerServiceCacheImpl extends AuthorizationServerServ
 	@Resource(name = "sessionKeyPrefix")
 	private String sessionKeyPrefix;
 
-	private DSession setSession(HttpServletRequest request, String jsessionid, String originalJsessionid, Long userId, AuthCallback callback) throws IOException, ClassNotFoundException {
+	private XSession setSession(HttpServletRequest request, String jsessionid, String originalJsessionid, Long userId, AuthCallback callback) throws IOException, ClassNotFoundException {
 		User user = callback.getUser();
 		user.setJsessionid(jsessionid);
 		user.setPassword(null);
-		DSession session = this.createSession(user);
+		XSession session = this.createSession(user);
 		byte[] key = (sessionKeyPrefix+jsessionid).getBytes();
 		Jedis jedis = null;
 		try {
@@ -40,7 +40,7 @@ public class AuthorizationServerServiceCacheImpl extends AuthorizationServerServ
 				byte[] originalKey = (sessionKeyPrefix+originalJsessionid).getBytes();
 				byte[] b = jedis.get(originalKey);
 				if(b!=null&&b.length>0) {
-					DSession originalSession = (DSession)CommonHelper.unSerialize(b);
+					XSession originalSession = (XSession)CommonHelper.unSerialize(b);
 					if(originalSession.getUser().getId().equals(userId))
 						jedis.del(originalKey);
 				}
@@ -56,9 +56,9 @@ public class AuthorizationServerServiceCacheImpl extends AuthorizationServerServ
 	}
 
 	@Override
-	public DSession setSession(HttpServletRequest request, String originalJsessionid, Long userId, AuthCallback callback) throws IOException, ClassNotFoundException {
+	public XSession setSession(HttpServletRequest request, String originalJsessionid, Long userId, AuthCallback callback) throws IOException, ClassNotFoundException {
 		String jsessionid = redisProcessor.createOrGetToken(request, null);
-		DSession session = this.setSession(request, jsessionid, originalJsessionid, userId, callback);
+		XSession session = this.setSession(request, jsessionid, originalJsessionid, userId, callback);
 		return session;
 	}
 
@@ -68,7 +68,7 @@ public class AuthorizationServerServiceCacheImpl extends AuthorizationServerServ
 			byte[] key = (sessionKeyPrefix+jsessionid).getBytes();
 			byte[] b = jedis.get(key);
 			if(b!=null&&b.length>0) {
-				DSession session = this.createSession(user);
+				XSession session = this.createSession(user);
 				b = CommonHelper.serialize(session);
 				jedis.set(key, b);
 			}

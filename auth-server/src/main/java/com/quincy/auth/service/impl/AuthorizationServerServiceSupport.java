@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import com.quincy.auth.entity.Permission;
 import com.quincy.auth.entity.Role;
 import com.quincy.auth.mapper.AuthMapper;
-import com.quincy.auth.o.DSession;
+import com.quincy.auth.o.XSession;
 import com.quincy.auth.o.Menu;
 import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthorizationServerService;
@@ -24,8 +24,8 @@ public abstract class AuthorizationServerServiceSupport implements Authorization
 	@Value("${auth.enterprise}")
 	private boolean isEnterprise;
 
-	protected DSession createSession(Long userId) {
-		DSession session = new DSession();
+	protected XSession createSession(Long userId) {
+		XSession session = new XSession();
 		if(isEnterprise) {
 			//角色
 			List<Role> roleList = authMapper.findRolesByUserId(userId);
@@ -50,8 +50,8 @@ public abstract class AuthorizationServerServiceSupport implements Authorization
 		return session;
 	}
 
-	protected DSession createSession(User user) {
-		DSession session = this.createSession(user.getId());
+	protected XSession createSession(User user) {
+		XSession session = this.createSession(user.getId());
 		session.setUser(user);
 		return session;
 	}

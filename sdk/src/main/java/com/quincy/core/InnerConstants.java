@@ -13,7 +13,7 @@ public class InnerConstants {
 	public final static String CLIENT_TYPE_J = "j";
 	public final static String CLIENT_APP = "app_client";
 	public final static String CLIENT_TOKEN_PROPERTY_NAME = "clientTokenName";
-	public final static String ATTR_SESSION = "dddsession";//改了会影响页面模板，要同时改
+	public final static String ATTR_SESSION = "xsession";//改了会影响页面模板，要同时改
 	public final static String ATTR_VCODE = "vcode";
 	public final static String BEAN_NAME_PROPERTIES = "quincyPropertiesFactory";
 	public final static String PARAM_REDIRECT_TO = "redirectTo";

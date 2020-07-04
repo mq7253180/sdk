@@ -11,7 +11,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.support.RequestContext;
 
 import com.quincy.auth.AuthCommonConstants;
-import com.quincy.auth.o.DSession;
+import com.quincy.auth.o.XSession;
 import com.quincy.auth.service.AuthorizationCommonService;
 import com.quincy.core.InnerConstants;
 import com.quincy.core.InnerHelper;
@@ -25,7 +25,7 @@ public abstract class AuthorizationInterceptorSupport extends HandlerInterceptor
 	private String denyUrl;
 
 	protected boolean doAuth(HttpServletRequest request, HttpServletResponse response, Object handler, String permissionNeeded) throws Exception {
-		DSession session = authorizationService.getSession(request);
+		XSession session = authorizationService.getSession(request);
 		if(session==null) {
 			InnerHelper.outputOrForward(request, response, handler, 0, new RequestContext(request).getMessage("auth.timeout.ajax"), signinUrl, true);
 			return false;
