@@ -92,9 +92,8 @@ public class AuthorizationServerServiceCacheImpl extends AuthorizationServerServ
 		Jedis jedis = null;
 		try {
 			jedis = jedisSource.get();
-			for(User user:users) {
+			for(User user:users)
 				this.updateSession(user, jedis);
-			}
 		} finally {
 			if(jedis!=null)
 				jedis.close();
