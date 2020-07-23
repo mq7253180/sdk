@@ -16,4 +16,8 @@ public interface RedisProcessor {
 	public void deleteCookie(HttpServletResponse response);
 	public void deleteCookie();
 	public void setExpiry(HttpServletRequest request, byte[] key, Jedis jedis);
+	public String setAndExpire(String key, String val, int expireSeconds, int retries, long retryIntervalMillis, Jedis jedis);
+	public String setAndExpire(byte[] key, byte[] val, int expireSeconds, int retries, long retryIntervalMillis, Jedis jedis);
+	public String setAndExpire(String key, String val, int expireSeconds, int retries, long retryIntervalMillis);
+	public String setAndExpire(byte[] key, byte[] val, int expireSeconds, int retries, long retryIntervalMillis);
 }

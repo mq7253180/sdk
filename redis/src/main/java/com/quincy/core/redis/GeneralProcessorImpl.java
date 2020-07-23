@@ -39,8 +39,10 @@ import com.quincy.sdk.annotation.JedisInjector;
 import com.quincy.sdk.annotation.VCodeRequired;
 import com.quincy.sdk.helper.CommonHelper;
 
+import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.Jedis;
 
+@Slf4j
 @Component
 public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements RedisProcessor {
 	@Autowired
@@ -131,16 +133,11 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 	private String cacheStr(HttpServletRequest request, String flag, String content, String clientTokenName) {
 		String token = this.createOrGetToken(request, clientTokenName);
 		String key = combineAsKey(flag, token);
-		Jedis jedis = null;
-		try {
-			jedis = jedisSource.get();
-			jedis.set(key, content);
-			jedis.expire(key, Integer.parseInt(properties.getProperty("vcode.expire"))*60);
+		String status = this.setAndExpire(key, content, Integer.parseInt(properties.getProperty("vcode.expire"))*60, 5, 100);
+		if("OK".equalsIgnoreCase(status)) {
 			return token;
-		} finally {
-			if(jedis!=null)
-				jedis.close();
-		}
+		} else
+			throw new RuntimeException("Redis set and expire failed.");
 	}
 
 	private String getCachedStr(HttpServletRequest request, String flag, String clientTokenName) throws Exception {
@@ -325,5 +322,67 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 				emailService.send(emailTo, subject, content, "", null, null, null, null);
 			}
 		});
+	}
+
+	private final static String TYPE_FLAG_STRING = "S";
+	private final static String TYPE_FLAG_BYTES = "B";
+
+	private String setAndExpire(String typeFlag, String keyInString, String valInString, byte[] keyInBytes, byte[] valInBytes, int expireSeconds, int retries, long retryIntervalMillis, Jedis jedis) {
+		/*
+		 * NX -- Only set the key if it does not already exist. XX -- Only set the key if it already exist.
+		 * EX = seconds; PX = milliseconds
+		 */
+		String status = null;
+		do {
+			if(TYPE_FLAG_STRING.equalsIgnoreCase(typeFlag)) {
+				status = jedis.set(keyInString, keyInString, jedis.exists(keyInString)?"XX":"NX", "EX", expireSeconds);
+			} else if(TYPE_FLAG_STRING.equalsIgnoreCase(typeFlag)) {
+				status = jedis.set(keyInBytes, valInBytes, (jedis.exists(keyInBytes)?"XX":"NX").getBytes(), "EX".getBytes(), expireSeconds);
+			} else
+				throw new RuntimeException("Enum value for type flag is illegal. S or B are acceptable.");
+			if("OK".equalsIgnoreCase(status)) {
+				break;
+			} else
+				try {
+					Thread.sleep(retryIntervalMillis);
+				} catch (InterruptedException e) {
+					log.error("REDIS_SET_AND_EXPIRE_ERR===================", e);
+				}
+		} while(retries-->0);
+		return status;
+	}
+
+	@Override
+	public String setAndExpire(String key, String val, int expireSeconds, int retries, long retryIntervalMillis, Jedis jedis) {
+		return this.setAndExpire(TYPE_FLAG_STRING, key, val, null, null, expireSeconds, retries, retryIntervalMillis, jedis);
+	}
+
+	@Override
+	public String setAndExpire(byte[] key, byte[] val, int expireSeconds, int retries, long retryIntervalMillis, Jedis jedis) {
+		return this.setAndExpire(TYPE_FLAG_BYTES, null, null, key, val, expireSeconds, retries, retryIntervalMillis, jedis);
+	}
+
+	@Override
+	public String setAndExpire(String key, String val, int expireSeconds, int retries, long retryIntervalMillis) {
+		Jedis jedis = null;
+		try {
+			jedis = jedisSource.get();
+			return this.setAndExpire(key, val, expireSeconds, retries, retryIntervalMillis, jedis);
+		} finally {
+			if(jedis!=null)
+				jedis.close();
+		}
+	}
+
+	@Override
+	public String setAndExpire(byte[] key, byte[] val, int expireSeconds, int retries, long retryIntervalMillis) {
+		Jedis jedis = null;
+		try {
+			jedis = jedisSource.get();
+			return this.setAndExpire(key, val, expireSeconds, retries, retryIntervalMillis, jedis);
+		} finally {
+			if(jedis!=null)
+				jedis.close();
+		}
 	}
 }

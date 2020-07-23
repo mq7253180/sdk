@@ -18,6 +18,26 @@ public class QuincyJedis extends Jedis {
 	}
 
 	@Override
+	public Boolean exists(final String key) {
+		return jedisCluster.exists(key);
+	}
+
+	@Override
+	public Boolean exists(final byte[] key) {
+		return jedisCluster.exists(key);
+	}
+
+	@Override
+	public Long exists(final String... keys) {
+		return jedisCluster.exists(keys);
+	}
+
+	@Override
+	public Long exists(final byte[]... keys) {
+		return jedisCluster.exists(keys);
+	}
+
+	@Override
 	public String set(final String key, final String value) {
 		return jedisCluster.set(key, value);
 	}
@@ -25,6 +45,30 @@ public class QuincyJedis extends Jedis {
 	@Override
 	public String set(final byte[] key, final byte[] value) {
 		return jedisCluster.set(key, value);
+	}
+
+	@Override
+	public String set(final String key, final String value, final String nxxx, final String expx,
+		      final long time) {
+		return jedisCluster.set(key, value, nxxx, expx, time);
+	}
+
+	@Override
+	public String set(final byte[] key, final byte[] value, final byte[] nxxx, final byte[] expx,
+		      final long time) {
+		return jedisCluster.set(key, value, nxxx, expx, time);
+	}
+
+	@Override
+	public String set(final String key, final String value, final String nxxx, final String expx,
+		      final int time) {
+		return jedisCluster.set(key, value, nxxx, expx, time);
+	}
+
+	@Override
+	public String set(final byte[] key, final byte[] value, final byte[] nxxx, final byte[] expx,
+		      final int time) {
+		return jedisCluster.set(key, value, nxxx, expx, time);
 	}
 
 	@Override
