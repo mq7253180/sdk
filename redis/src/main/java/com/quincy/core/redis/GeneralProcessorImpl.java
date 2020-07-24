@@ -133,7 +133,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 	private String cacheStr(HttpServletRequest request, String flag, String content, String clientTokenName) {
 		String token = this.createOrGetToken(request, clientTokenName);
 		String key = combineAsKey(flag, token);
-		String status = this.setAndExpire(key, content, Integer.parseInt(properties.getProperty("vcode.expire"))*60, 5, 100);
+		String status = this.setAndExpire(key, content, Integer.parseInt(properties.getProperty("vcode.expire"))*60);
 		if("OK".equalsIgnoreCase(status)) {
 			return token;
 		} else
@@ -339,7 +339,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 			} else if(TYPE_FLAG_STRING.equalsIgnoreCase(typeFlag)) {
 				status = jedis.set(keyInBytes, valInBytes, (jedis.exists(keyInBytes)?"XX":"NX").getBytes(), "EX".getBytes(), expireSeconds);
 			} else
-				throw new RuntimeException("Enum value for type flag is illegal. S or B are acceptable.");
+				throw new RuntimeException("Enum value for type flag is illegal. Only 'S' or 'B' are acceptable.");
 			if("OK".equalsIgnoreCase(status)) {
 				break;
 			} else
@@ -384,5 +384,18 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 			if(jedis!=null)
 				jedis.close();
 		}
+	}
+
+	private final static int DEFAULT_RETRIES = 5;
+	private final static long DEFAULT_RETRIE_INTERVAL_MILLIS = 100;
+
+	@Override
+	public String setAndExpire(String key, String val, int expireSeconds, Jedis jedis) {
+		return this.setAndExpire(key, val, Integer.parseInt(properties.getProperty("vcode.expire"))*60, DEFAULT_RETRIES, DEFAULT_RETRIE_INTERVAL_MILLIS, jedis);
+	}
+
+	@Override
+	public String setAndExpire(String key, String val, int expireSeconds) {
+		return this.setAndExpire(key, val, Integer.parseInt(properties.getProperty("vcode.expire"))*60, DEFAULT_RETRIES, DEFAULT_RETRIE_INTERVAL_MILLIS);
 	}
 }
