@@ -40,7 +40,7 @@ public class JedisInjectorAop {
     	List<Integer> index = new ArrayList<Integer>(classes.length);
     	for(int i=0;i<classes.length;i++) {
     		String className = classes[i].getName();
-    		if((Jedis.class.getName().equals(className)||JedisCluster.class.getName().equals(className))&&(args[i]==null||AopHelper.isControllerMethod(joinPoint)))
+    		if((Jedis.class.getName().equals(className)||JedisCluster.class.getName().equals(className)||Transaction.class.getName().equals(className))&&(args[i]==null||AopHelper.isControllerMethod(joinPoint)))
     			index.add(i);
     	}
     	if(index.size()>0) {
@@ -53,15 +53,17 @@ public class JedisInjectorAop {
         	try {
         		jedis = jedisSource.get();
         		jedisCluster = (jedis instanceof QuincyJedis)?((QuincyJedis)jedis).getJedisCluster():null;
+        		if(jedisCluster==null&&annotation.transactional())
+        			tx = jedis.multi();
         		for(Integer i:index) {
         			String className = classes[i].getName();
         			if(Jedis.class.getName().equals(className)) {
         				args[i] = jedis;
-        			} else if(JedisCluster.class.getName().equals(className))
+        			} else if(JedisCluster.class.getName().equals(className)) {
         				args[i] = jedisCluster;
+        			} else if(Transaction.class.getName().equals(className))
+        				args[i] = tx;
         		}
-        		if(jedisCluster==null&&annotation.transactional())
-        			tx = jedis.multi();
         		Object toReturn = joinPoint.proceed(args);
         		if(tx!=null)
         			tx.exec();
@@ -84,8 +86,12 @@ public class JedisInjectorAop {
         		}
         		throw e;
         	} finally {
-        		if(jedisCluster==null&&jedis!=null)
+        		if(jedisCluster==null&&jedis!=null) {
+        			if(tx!=null)
+        				tx.close();
+        			jedis.unwatch();
         			jedis.close();
+        		}
         	}
     	} else
     		return joinPoint.proceed(args);
