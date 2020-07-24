@@ -130,10 +130,10 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		return null;
 	}
 
-	private String cacheStr(HttpServletRequest request, String flag, String content, String clientTokenName) {
+	private String cacheStr(HttpServletRequest request, String flag, String content, String clientTokenName, int expireSeconds) {
 		String token = this.createOrGetToken(request, clientTokenName);
 		String key = combineAsKey(flag, token);
-		String status = this.setAndExpire(key, content, Integer.parseInt(properties.getProperty("vcode.expire"))*60);
+		String status = this.setAndExpire(key, content, expireSeconds);
 		if("OK".equalsIgnoreCase(status)) {
 			return token;
 		} else
@@ -236,10 +236,6 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		response.addCookie(cookie);
 	}
 
-	private String cacheVCode(HttpServletRequest request, String vcode, String clientTokenName) {
-		return this.cacheStr(request, FLAG_VCODE, vcode, clientTokenName);
-	}
-
 	private String getCachedVCode(HttpServletRequest request, String clientTokenName) throws Exception {
 		return this.getCachedStr(request, FLAG_VCODE, clientTokenName);
 	}
@@ -260,7 +256,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 			_vcode[i] = c;
 		}
 		String vcode = sb.toString();
-		String token = this.cacheVCode(request, vcode, clientTokenName);
+		String token = this.cacheStr(request, FLAG_VCODE, vcode, clientTokenName, Integer.parseInt(properties.getProperty("vcode.expire"))*60);
 		sender.send(_vcode, token);
 		return token;
 	}
@@ -335,7 +331,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		String status = null;
 		do {
 			if(TYPE_FLAG_STRING.equalsIgnoreCase(typeFlag)) {
-				status = jedis.set(keyInString, keyInString, jedis.exists(keyInString)?"XX":"NX", "EX", expireSeconds);
+				status = jedis.set(keyInString, valInString, jedis.exists(keyInString)?"XX":"NX", "EX", expireSeconds);
 			} else if(TYPE_FLAG_STRING.equalsIgnoreCase(typeFlag)) {
 				status = jedis.set(keyInBytes, valInBytes, (jedis.exists(keyInBytes)?"XX":"NX").getBytes(), "EX".getBytes(), expireSeconds);
 			} else
