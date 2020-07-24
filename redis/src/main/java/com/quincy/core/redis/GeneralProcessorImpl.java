@@ -391,11 +391,11 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 
 	@Override
 	public String setAndExpire(String key, String val, int expireSeconds, Jedis jedis) {
-		return this.setAndExpire(key, val, Integer.parseInt(properties.getProperty("vcode.expire"))*60, DEFAULT_RETRIES, DEFAULT_RETRIE_INTERVAL_MILLIS, jedis);
+		return this.setAndExpire(key, val, expireSeconds, DEFAULT_RETRIES, DEFAULT_RETRIE_INTERVAL_MILLIS, jedis);
 	}
 
 	@Override
 	public String setAndExpire(String key, String val, int expireSeconds) {
-		return this.setAndExpire(key, val, Integer.parseInt(properties.getProperty("vcode.expire"))*60, DEFAULT_RETRIES, DEFAULT_RETRIE_INTERVAL_MILLIS);
+		return this.setAndExpire(key, val, expireSeconds, DEFAULT_RETRIES, DEFAULT_RETRIE_INTERVAL_MILLIS);
 	}
 }
