@@ -10,5 +10,6 @@ import java.lang.annotation.Target;
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(value = {ElementType.ANNOTATION_TYPE, ElementType.METHOD})
 public @interface JedisInjector {
-	
+	public boolean transactional() default false;
+	public Class<? extends Throwable>[] rollbackFor() default {};
 }
