@@ -14,6 +14,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import com.quincy.core.redis.JedisSource;
+import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.annotation.Cache;
 import com.quincy.sdk.helper.CommonHelper;
 
@@ -29,6 +30,8 @@ public class CacheAop {
 	private String cacheKeyPrefix;
 	@Autowired
 	private JedisSource jedisSource;
+	@Autowired
+	private RedisProcessor redisProcessor;
 
 	@Pointcut("@annotation(com.quincy.sdk.annotation.Cache)")
     public void pointCut() {}
@@ -76,13 +79,15 @@ public class CacheAop {
     }
 
     private Object invokeAndCache(Jedis jedis, ProceedingJoinPoint joinPoint, Cache annotation, byte[] key) throws Throwable {
-    	Object retVal = joinPoint.proceed();
-    	if(retVal!=null) {
-    		jedis.set(key, CommonHelper.serialize(retVal));
+    	Object toReturn = joinPoint.proceed();
+    	if(toReturn!=null) {
+    		byte[] valToCache = CommonHelper.serialize(toReturn);
     		int expire = annotation.expire();
-    		if(expire>0)
-    			jedis.expire(key, expire);
+    		if(expire>0) {
+    			redisProcessor.setAndExpire(key, valToCache, expire, jedis);
+    		} else
+    			jedis.set(key, valToCache);
     	}
-    	return retVal;
+    	return toReturn;
     }
 }

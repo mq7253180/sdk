@@ -21,5 +21,7 @@ public interface RedisProcessor {
 	public String setAndExpire(String key, String val, int expireSeconds, int retries, long retryIntervalMillis);
 	public String setAndExpire(byte[] key, byte[] val, int expireSeconds, int retries, long retryIntervalMillis);
 	public String setAndExpire(String key, String val, int expireSeconds, Jedis jedis);
+	public String setAndExpire(byte[] key, byte[] val, int expireSeconds, Jedis jedis);
 	public String setAndExpire(String key, String val, int expireSeconds);
+	public String setAndExpire(byte[] key, byte[] val, int expireSeconds);
 }

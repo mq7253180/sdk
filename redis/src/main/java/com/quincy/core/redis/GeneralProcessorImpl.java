@@ -332,7 +332,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		do {
 			if(TYPE_FLAG_STRING.equalsIgnoreCase(typeFlag)) {
 				status = jedis.set(keyInString, valInString, jedis.exists(keyInString)?"XX":"NX", "EX", expireSeconds);
-			} else if(TYPE_FLAG_STRING.equalsIgnoreCase(typeFlag)) {
+			} else if(TYPE_FLAG_BYTES.equalsIgnoreCase(typeFlag)) {
 				status = jedis.set(keyInBytes, valInBytes, (jedis.exists(keyInBytes)?"XX":"NX").getBytes(), "EX".getBytes(), expireSeconds);
 			} else
 				throw new RuntimeException("Enum value for type flag is illegal. Only 'S' or 'B' are acceptable.");
@@ -392,6 +392,16 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 
 	@Override
 	public String setAndExpire(String key, String val, int expireSeconds) {
+		return this.setAndExpire(key, val, expireSeconds, DEFAULT_RETRIES, DEFAULT_RETRIE_INTERVAL_MILLIS);
+	}
+
+	@Override
+	public String setAndExpire(byte[] key, byte[] val, int expireSeconds, Jedis jedis) {
+		return this.setAndExpire(key, val, expireSeconds, DEFAULT_RETRIES, DEFAULT_RETRIE_INTERVAL_MILLIS, jedis);
+	}
+
+	@Override
+	public String setAndExpire(byte[] key, byte[] val, int expireSeconds) {
 		return this.setAndExpire(key, val, expireSeconds, DEFAULT_RETRIES, DEFAULT_RETRIE_INTERVAL_MILLIS);
 	}
 }
