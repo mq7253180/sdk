@@ -98,6 +98,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 
 	private final static String PWDSET_CLIENT_TOKEN_NAME = "email";
 
+	@KeepCookieIfExpired
 	@VCodeRequired(clientTokenName = PWDSET_CLIENT_TOKEN_NAME, timeoutForwardTo = "/auth"+RedisInnerConstants.URI_VCODE_PWDSET_TIMEOUT)
 	@RequestMapping(RedisInnerConstants.URI_VCODE_PWDSET_SIGNIN)
 	public ModelAndView doLoginAsPwdReset(HttpServletRequest request, 
@@ -119,6 +120,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 	protected abstract String getPwdSetEmailSubject();
 	protected abstract String getPwdSetEmailContent(String uri);
 
+	@KeepCookieIfExpired
 	@RequestMapping("/vcode/pwdset")
 	public ModelAndView vcode(HttpServletRequest request, @RequestParam(required = true, name = "email")String _email) throws Exception {
 		Integer status = null;
