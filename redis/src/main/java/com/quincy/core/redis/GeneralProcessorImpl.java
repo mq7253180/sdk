@@ -119,15 +119,12 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		if(clientTokenName==null)
 			clientTokenName = CommonHelper.trim(properties.getProperty(InnerConstants.CLIENT_TOKEN_PROPERTY_NAME));
 		String token = CommonHelper.getValue(request, clientTokenName);
-		if(token!=null) {
-			return this.opt(new RedisOperation() {
-				@Override
-				public Object run(Jedis jedis) throws Exception {
-					return operation.run(jedis, token);
-				}
-			});
-		}
-		return null;
+		return token==null?null:this.opt(new RedisOperation() {
+			@Override
+			public Object run(Jedis jedis) throws Exception {
+				return operation.run(jedis, token);
+			}
+		});
 	}
 
 	private String cacheStr(HttpServletRequest request, String flag, String content, String clientTokenName, int expireSeconds) {
