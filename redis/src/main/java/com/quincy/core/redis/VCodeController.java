@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.VCodeCharsFrom;
-import com.quincy.sdk.annotation.DoNotDeleteCookieIfExpired;
+import com.quincy.sdk.annotation.KeepCookieIfExpired;
 
 @Controller
 @RequestMapping("")
@@ -27,7 +27,7 @@ public class VCodeController {
 	/**
 	 * Example: 25/10/25/110/35
 	 */
-	@DoNotDeleteCookieIfExpired
+	@KeepCookieIfExpired
 	@RequestMapping("/auth/vcode/{size}/{start}/{space}/{width}/{height}")
 	public void genVCode(HttpServletRequest request, HttpServletResponse response, 
 			@PathVariable(required = true, name = "size")int size,

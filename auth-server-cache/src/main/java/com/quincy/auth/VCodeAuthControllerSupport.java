@@ -19,8 +19,8 @@ import com.quincy.core.RedisInnerConstants;
 import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.VCodeCharsFrom;
-import com.quincy.sdk.annotation.DoNotDeleteCookieIfExpired;
 import com.quincy.sdk.annotation.JedisInjector;
+import com.quincy.sdk.annotation.KeepCookieIfExpired;
 import com.quincy.sdk.annotation.VCodeRequired;
 import com.quincy.sdk.helper.CommonHelper;
 
@@ -36,7 +36,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 	/**
 	 * 密码登录
 	 */
-	@DoNotDeleteCookieIfExpired
+	@KeepCookieIfExpired
 	@JedisInjector
 	@PostMapping("/signin/pwd")
 	public ModelAndView doLogin(HttpServletRequest request, 
@@ -77,7 +77,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 	/**
 	 * 验证码登录
 	 */
-	@DoNotDeleteCookieIfExpired
+	@KeepCookieIfExpired
 	@VCodeRequired
 	@RequestMapping("/signin/vcode")
 	public ModelAndView doLogin(HttpServletRequest request, 
@@ -87,7 +87,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 		return createModelAndView(request, result, redirectTo);
 	}
 
-	@DoNotDeleteCookieIfExpired
+	@KeepCookieIfExpired
 	@VCodeRequired(clientTokenName = AuthCommonConstants.PARA_NAME_USERNAME)
 	@RequestMapping("/signin/vcode/x")
 	public ModelAndView vcodeLogin(HttpServletRequest request, 
