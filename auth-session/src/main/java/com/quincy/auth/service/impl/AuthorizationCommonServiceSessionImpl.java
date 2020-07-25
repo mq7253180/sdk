@@ -25,5 +25,5 @@ public class AuthorizationCommonServiceSessionImpl extends AuthorizationCommonSe
 	}
 
 	@Override
-	public void setExpiry(HttpServletRequest request) throws Exception {}
+	public void setExpiry(HttpServletRequest request, boolean deleteCookieIfExpired) throws Exception {}
 }

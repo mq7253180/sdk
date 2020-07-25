@@ -30,7 +30,7 @@ public class AuthorizationCommonServiceCacheImpl extends AuthorizationCommonServ
 				byte[] key = (sessionKeyPrefix+token).getBytes();
 				byte[] b = jedis.get(key);
 				if(b!=null&&b.length>0) {
-					redisProcessor.setExpiry(request, key, jedis);
+					redisProcessor.setExpiry(request, key, true, jedis);
 					return CommonHelper.unSerialize(b);
 				} else 
 					return null;
@@ -42,12 +42,12 @@ public class AuthorizationCommonServiceCacheImpl extends AuthorizationCommonServ
 	}
 
 	@Override
-	public void setExpiry(HttpServletRequest request) throws Exception {
+	public void setExpiry(HttpServletRequest request, boolean deleteCookieIfExpired) throws Exception {
 		redisProcessor.opt(request, new RedisWebOperation() {
 			@Override
 			public Object run(Jedis jedis, String token) throws Exception {
 				byte[] key = (sessionKeyPrefix+token).getBytes();
-				redisProcessor.setExpiry(request, key, jedis);
+				redisProcessor.setExpiry(request, key,deleteCookieIfExpired, jedis);
 				return null;
 			}
 		}, null);

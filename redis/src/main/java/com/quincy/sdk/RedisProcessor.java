@@ -13,9 +13,10 @@ public interface RedisProcessor {
 	public String createOrGetToken(HttpServletRequest request, String clientTokenName);
 	public Object opt(RedisOperation operation) throws Exception;
 	public Object opt(HttpServletRequest request, RedisWebOperation operation, String clientTokenName) throws Exception;
+	public int getExpire(HttpServletRequest request);
 	public void deleteCookie(HttpServletResponse response);
 	public void deleteCookie();
-	public void setExpiry(HttpServletRequest request, byte[] key, Jedis jedis);
+	public void setExpiry(HttpServletRequest request, byte[] key, boolean deleteCookieIfExpired, Jedis jedis);
 	public String setAndExpire(String key, String val, int expireSeconds, int retries, long retryIntervalMillis, Jedis jedis);
 	public String setAndExpire(byte[] key, byte[] val, int expireSeconds, int retries, long retryIntervalMillis, Jedis jedis);
 	public String setAndExpire(String key, String val, int expireSeconds, int retries, long retryIntervalMillis);

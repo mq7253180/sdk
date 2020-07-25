@@ -53,7 +53,7 @@ public abstract class AuthorizationInterceptorSupport extends HandlerInterceptor
 		}
 	}
 
-	protected void setExpiry(HttpServletRequest request) throws Exception {
-		authorizationService.setExpiry(request);
+	protected void setExpiry(HttpServletRequest request, boolean deleteCookieIfExpired) throws Exception {
+		authorizationService.setExpiry(request, deleteCookieIfExpired);
 	}
 }

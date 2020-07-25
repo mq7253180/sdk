@@ -202,13 +202,13 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 
 	@JedisInjector
 	@Override
-	public void setExpiry(HttpServletRequest request, byte[] key, Jedis jedis) {
+	public void setExpiry(HttpServletRequest request, byte[] key, boolean deleteCookieIfExpired, Jedis jedis) {
 		int expire = this.getExpire(request);
 		long result = jedis.expire(key, expire);
 		String clientTokenName = CommonHelper.trim(properties.getProperty(InnerConstants.CLIENT_TOKEN_PROPERTY_NAME));
 		if(clientTokenName!=null) {
 			HttpServletResponse response = CommonHelper.getResponse();
-			if(result<1) {
+			if(deleteCookieIfExpired&&result<1) {
 				this.deleteCookie(response, clientTokenName);
 			} else {
 				String token = CommonHelper.getValue(request, clientTokenName);
@@ -218,7 +218,8 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		}
 	}
 
-	private int getExpire(HttpServletRequest request) {
+	@Override
+	public int getExpire(HttpServletRequest request) {
 		Client client = CommonHelper.getClient(request);
 		Integer expireMinutes = Integer.parseInt(properties.getProperty("expire.session."+client.getName()));
 		int expire = expireMinutes*60;

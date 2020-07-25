@@ -45,8 +45,7 @@ public class AuthorizationServerServiceCacheImpl extends AuthorizationServerServ
 						jedis.del(originalKey);
 				}
 			}
-			jedis.set(key, CommonHelper.serialize(session));
-			redisProcessor.setExpiry(request, key, jedis);
+			redisProcessor.setAndExpire(key, CommonHelper.serialize(session), redisProcessor.getExpire(request), jedis);
 			callback.updateLastLogined(jsessionid);
 			return session;
 		} finally {

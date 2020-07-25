@@ -1,5 +1,7 @@
 package com.quincy.auth.interceptor;
 
+import java.lang.reflect.Method;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -8,18 +10,21 @@ import org.springframework.web.method.HandlerMethod;
 
 import com.quincy.auth.annotation.LoginRequired;
 import com.quincy.auth.annotation.PermissionNeeded;
+import com.quincy.sdk.annotation.DoNotDeleteCookieIfExpired;
 
 @Component("authorizationAnnotationInterceptor")
 public class AuthorizationAnnotationInterceptor extends AuthorizationInterceptorSupport {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 		if(handler instanceof HandlerMethod) {
-			HandlerMethod method = (HandlerMethod)handler;
-			PermissionNeeded permissionNeededAnnotation = method.getMethod().getDeclaredAnnotation(PermissionNeeded.class);
+			HandlerMethod handlerMethod = (HandlerMethod)handler;
+			Method method = handlerMethod.getMethod();
+			PermissionNeeded permissionNeededAnnotation = method.getDeclaredAnnotation(PermissionNeeded.class);
 			boolean permissionNeeded = permissionNeededAnnotation!=null;
-			boolean loginRequired = method.getMethod().getDeclaredAnnotation(LoginRequired.class)!=null;
+			boolean loginRequired = method.getDeclaredAnnotation(LoginRequired.class)!=null;
 			if(!permissionNeeded&&!loginRequired) {
-				this.setExpiry(request);
+				boolean deleteCookieIfExpired = method.getDeclaredAnnotation(DoNotDeleteCookieIfExpired.class)==null;
+				this.setExpiry(request, deleteCookieIfExpired);
 				return true;
 			} else
 				return this.doAuth(request, response, handler, permissionNeeded?permissionNeededAnnotation.value():null);
