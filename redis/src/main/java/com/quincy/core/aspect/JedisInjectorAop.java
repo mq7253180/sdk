@@ -40,7 +40,7 @@ public class JedisInjectorAop {
     	List<Integer> index = new ArrayList<Integer>(classes.length);
     	for(int i=0;i<classes.length;i++) {
     		String className = classes[i].getName();
-    		if((Jedis.class.getName().equals(className)||JedisCluster.class.getName().equals(className)||Transaction.class.getName().equals(className))&&(args[i]==null||AopHelper.isControllerMethod(joinPoint)))
+    		if((Jedis.class.getName().equals(className)||Transaction.class.getName().equals(className)||JedisCluster.class.getName().equals(className))&&(args[i]==null||AopHelper.isControllerMethod(joinPoint)))
     			index.add(i);
     	}
     	if(index.size()>0) {
@@ -53,16 +53,27 @@ public class JedisInjectorAop {
         	try {
         		jedis = jedisSource.get();
         		jedisCluster = (jedis instanceof QuincyJedis)?((QuincyJedis)jedis).getJedisCluster():null;
-        		if(jedisCluster==null&&annotation.transactional())
-        			tx = jedis.multi();
+        		if(annotation.transactional()) {
+        			if(jedisCluster==null) {
+            			tx = jedis.multi();
+        			} else
+        				throw new RuntimeException("Redis transaction can not be supported in cluster mode.");
+        		}
         		for(Integer i:index) {
         			String className = classes[i].getName();
         			if(Jedis.class.getName().equals(className)) {
         				args[i] = jedis;
+        			} else if(Transaction.class.getName().equals(className)) {
+        				if(tx==null) {
+        					throw new RuntimeException("Redis transation is currently not enabled. Please set 'transactional' to true if you are using redis in transaction.");
+        				} else
+        					args[i] = tx;
         			} else if(JedisCluster.class.getName().equals(className)) {
-        				args[i] = jedisCluster;
-        			} else if(Transaction.class.getName().equals(className))
-        				args[i] = tx;
+        				if(jedisCluster==null) {
+        					throw new RuntimeException("Redis is currently not in cluster mode.");
+        				} else
+        					args[i] = jedisCluster;
+        			} 
         		}
         		Object toReturn = joinPoint.proceed(args);
         		if(tx!=null)
@@ -81,8 +92,10 @@ public class JedisInjectorAop {
             			}
         			} else
         				rollback = true;
-        			if(rollback)
+        			if(rollback) {
         				tx.discard();
+        			} else
+        				tx.exec();
         		}
         		throw e;
         	} finally {
