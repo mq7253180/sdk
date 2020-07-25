@@ -18,14 +18,17 @@ import com.quincy.core.redis.QuincyJedis;
 import com.quincy.sdk.annotation.JedisInjector;
 import com.quincy.sdk.helper.AopHelper;
 
+import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.Transaction;
 
+@Slf4j
 @Aspect
 @Order(3)
 @Component
 public class JedisInjectorAop {
+	private final static String MSG_TX_NOT_SUPPORTED = "Redis transaction can not be supported in cluster mode.";
 	@Autowired
 	private JedisSource jedisSource;
 
@@ -50,6 +53,7 @@ public class JedisInjectorAop {
     		Jedis jedis = null;
         	JedisCluster jedisCluster = null;
         	Transaction tx = null;
+        	boolean commit = true;
         	try {
         		jedis = jedisSource.get();
         		jedisCluster = (jedis instanceof QuincyJedis)?((QuincyJedis)jedis).getJedisCluster():null;
@@ -57,7 +61,7 @@ public class JedisInjectorAop {
         			if(jedisCluster==null) {
             			tx = jedis.multi();
         			} else
-        				throw new RuntimeException("Redis transaction can not be supported in cluster mode.");
+        				throw new RuntimeException(MSG_TX_NOT_SUPPORTED);
         		}
         		for(Integer i:index) {
         			String className = classes[i].getName();
@@ -65,7 +69,7 @@ public class JedisInjectorAop {
         				args[i] = jedis;
         			} else if(Transaction.class.getName().equals(className)) {
         				if(tx==null) {
-        					throw new RuntimeException("Redis transation is currently not enabled. Please set 'transactional' to true if you are using redis in transaction.");
+        					throw new RuntimeException(jedisCluster==null?"Redis transation is currently not enabled. Please set 'transactional' to true if you are using redis in transaction.":MSG_TX_NOT_SUPPORTED+" Please remove the argument(s) of Transaction.");
         				} else
         					args[i] = tx;
         			} else if(JedisCluster.class.getName().equals(className)) {
@@ -75,33 +79,30 @@ public class JedisInjectorAop {
         					args[i] = jedisCluster;
         			} 
         		}
-        		Object toReturn = joinPoint.proceed(args);
-        		if(tx!=null)
-        			tx.exec();
-        		return toReturn;
+        		return joinPoint.proceed(args);
         	} catch(Throwable e) {
         		if(tx!=null) {
         			Class<? extends Throwable>[] rollbackForClasses = annotation.rollbackFor();
-        			boolean rollback = false;
         			if(rollbackForClasses!=null&&rollbackForClasses.length>0) {
         				for(Class<? extends Throwable> rollbackForClazz:rollbackForClasses) {
             				if(rollbackForClazz.getName().equals(e.getClass().getName())) {
-            					rollback = true;
+            					commit = false;
             					break;
             				}
             			}
         			} else
-        				rollback = true;
-        			if(rollback) {
-        				tx.discard();
-        			} else
-        				tx.exec();
+        				commit = false;
         		}
         		throw e;
         	} finally {
         		if(jedisCluster==null&&jedis!=null) {
-        			if(tx!=null)
+        			if(tx!=null) {
+        				if(commit) {
+        					tx.exec();
+        				} else
+        					log.info("REDIS_TX_DISCARD============{}", tx.discard());
         				tx.close();
+        			}
         			jedis.unwatch();
         			jedis.close();
         		}
