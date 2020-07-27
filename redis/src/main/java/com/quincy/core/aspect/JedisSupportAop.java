@@ -19,6 +19,7 @@ import com.quincy.core.redis.JedisSource;
 import com.quincy.core.redis.QuincyJedis;
 import com.quincy.sdk.annotation.JedisSupport;
 import com.quincy.sdk.helper.AopHelper;
+import com.quincy.sdk.helper.CommonHelper;
 
 import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.Jedis;
@@ -87,10 +88,10 @@ public class JedisSupportAop {
         			Class<? extends Throwable>[] rollbackForClasses = annotation.rollbackFor();
         			if(rollbackForClasses!=null&&rollbackForClasses.length>0) {
         				for(Class<? extends Throwable> rollbackForClazz:rollbackForClasses) {
-            				if(rollbackForClazz.getName().equals(e.getClass().getName())) {
-            					commit = false;
+        					if(CommonHelper.instanceofX(e, rollbackForClazz)) {
+        						commit = false;
             					break;
-            				}
+        					}
             			}
         			} else
         				commit = false;

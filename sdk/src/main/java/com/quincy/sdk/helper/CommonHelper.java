@@ -536,6 +536,38 @@ public class CommonHelper {
 				.append(val);
 	}
 
+	public static boolean instanceofX(Object o, Class<?> clazz) {
+    	return instanceofX(o.getClass(), clazz);
+    }
+
+    public static boolean instanceofX(Class<?> src, Class<?> dst) {
+    	if(src==null||dst==null) {
+    		return false;
+    	} else {
+    		String srcClassName = src.getName();
+    		if(srcClassName.equals(dst.getName())) {
+    			return true;
+    		} else {
+    			Class<?> superclass = src.getSuperclass();
+    			boolean instanceofX = superclass==null?false:instanceofX(src.getSuperclass(), dst);
+    			if(instanceofX) {
+    				return true;
+    			} else {
+    				Class<?>[] interfaces = src.getInterfaces();
+    				if(interfaces==null||interfaces.length==0) {
+    					return false;
+    				} else {
+    					for(Class<?> i:interfaces) {
+    						if(instanceofX(i, dst))
+    							return true;
+    					}
+    					return false;
+    				}
+    			}
+    		}
+    	}
+    }
+
 	public static void main(String[] args) throws IOException {
 //		zip(new String[] {"D:/fxcupload/quincy"}, "D:/fxcupload/quincy.zip");
 //		CommonHelper.unzip("D:/fxcupload/quincy.zip", "D:/fxcupload/xxx", 2*1024*1024);
