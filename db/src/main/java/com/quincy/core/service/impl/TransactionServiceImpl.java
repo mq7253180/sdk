@@ -9,6 +9,8 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.quincy.core.dao.TransactionAtomicRepository;
@@ -51,7 +53,7 @@ public class TransactionServiceImpl implements TransactionService {
 	@Autowired
 	private CoreMapper coreMapper;
 
-	@Transactional
+	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
 	@Override
 	public Transaction insertTransaction(Transaction _tx) throws JsonProcessingException {
 		ObjectMapper mapper = new ObjectMapper();
@@ -130,7 +132,7 @@ public class TransactionServiceImpl implements TransactionService {
 		return tx;
 	}
 
-	@Transactional
+	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
 	@Override
 	public void deleteTransaction(Long id) {
 		coreMapper.deleteTransactionAtomicArgs(id);

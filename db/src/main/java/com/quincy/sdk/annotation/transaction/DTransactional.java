@@ -12,4 +12,5 @@ import java.lang.annotation.Target;
 public @interface DTransactional {
 	public String frequencyBatch() default "";
 	public boolean inOrder() default false;
+	public boolean async() default false;
 }

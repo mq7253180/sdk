@@ -9,6 +9,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import javax.annotation.Resource;
+
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -86,14 +88,22 @@ public class DistributedTransactionAop implements DTransactionContext {
 		if(frequencyBatch!=null)
 			tx.setFrequencyBatch(frequencyBatch);
 		tx.setInOrder(annotation.inOrder());
-		tx = transactionService.insertTransaction(tx);
-		atomics = tx.getAtomics();
+		final Transaction permanentTx = transactionService.insertTransaction(tx);
+		atomics = permanentTx.getAtomics();
 		if(atomics!=null&&atomics.size()>0) {
 			for(TransactionAtomic atomic:atomics)
 				atomic.setMethodName(atomic.getConfirmMethodName());
 		}
 		boolean breakOnFailure = cancel?cancel:annotation.inOrder();
-		this.invokeAtomics(tx, DTransactionConstants.ATOMIC_STATUS_SUCCESS, breakOnFailure);
+		if(annotation.async()) {
+			threadPoolExecutor.execute(new Runnable() {
+				@Override
+				public void run() {
+					invokeAtomicsAsExCaught(permanentTx, DTransactionConstants.ATOMIC_STATUS_SUCCESS, breakOnFailure);
+				}
+			});
+		} else
+			this.invokeAtomicsAsExCaught(permanentTx, DTransactionConstants.ATOMIC_STATUS_SUCCESS, breakOnFailure);
 		return retVal;
 	}
 
@@ -154,7 +164,7 @@ public class DistributedTransactionAop implements DTransactionContext {
 		}
 	}
 
-	@Autowired
+	@Resource(name = "sysThreadPoolExecutor")
 	private ThreadPoolExecutor threadPoolExecutor;
 	private DTransactionFailure transactionFailure;
 
@@ -239,6 +249,14 @@ public class DistributedTransactionAop implements DTransactionContext {
 					});
 				}
 			}
+		}
+	}
+
+	private void invokeAtomicsAsExCaught(Transaction tx, Integer statusTo, boolean breakOnFailure) {
+		try {
+			invokeAtomics(tx, DTransactionConstants.ATOMIC_STATUS_SUCCESS, breakOnFailure);
+		} catch (Exception e) {
+			log.error("\r\nDISTRIBUTED_TRANSACTION_ERR====================", e);
 		}
 	}
 

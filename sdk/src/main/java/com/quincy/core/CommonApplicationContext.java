@@ -102,7 +102,7 @@ public class CommonApplicationContext {//implements TransactionManagementConfigu
 	@Value("${threadPool.blockingQueueCapacity}")
 	private int blockingQueueCapacity;
 
-	@Bean
+	@Bean("sysThreadPoolExecutor")
 	public ThreadPoolExecutor threadPoolExecutor() {
 		BlockingQueue<Runnable> blockingQueue = new LinkedBlockingQueue<Runnable>(blockingQueueCapacity);
 		ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTimeSeconds, TimeUnit.SECONDS, blockingQueue);
