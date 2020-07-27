@@ -20,4 +20,6 @@ public class InnerConstants {
 	public final static String VIEW_PATH_RESULT = "/result";
 //	public final static KeyFingerPrintCalculator KEY_FINGER_PRINT_CALCULATOR = new JcaKeyFingerprintCalculator();
 	public final static KeyFingerPrintCalculator KEY_FINGER_PRINT_CALCULATOR = new BcKeyFingerprintCalculator();
+	public final static String BEAN_NAME_SYS_THREAD_POOL = "sysThreadPoolExecutor";
+	public final static String BEAN_NAME_SYS_JEDIS_SOURCE = "sysJedisSource";
 }

@@ -46,7 +46,7 @@ public class RedisApplicationContext {
 	private static Pool<Jedis> pool;
 	private static QuincyJedis quincyJedis;
 
-	@Bean
+	@Bean(InnerConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
     public JedisSource jedisPool() {
 		if(_clusterNodes.length>1) {
 			Set<String> clusterNodes = new HashSet<String>(Arrays.asList(_clusterNodes));

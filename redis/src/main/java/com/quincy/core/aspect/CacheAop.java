@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import com.quincy.core.InnerConstants;
 import com.quincy.core.redis.JedisSource;
 import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.annotation.Cache;
@@ -28,7 +29,7 @@ import redis.clients.jedis.Jedis;
 public class CacheAop {
 	@Resource(name = "cacheKeyPrefix")
 	private String cacheKeyPrefix;
-	@Autowired
+	@Resource(name = InnerConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
 	private JedisSource jedisSource;
 	@Autowired
 	private RedisProcessor redisProcessor;

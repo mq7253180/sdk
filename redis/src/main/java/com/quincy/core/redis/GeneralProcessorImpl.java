@@ -45,7 +45,7 @@ import redis.clients.jedis.Jedis;
 @Slf4j
 @Component
 public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements RedisProcessor {
-	@Autowired
+	@Resource(name = InnerConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
 	private JedisSource jedisSource;
 	@Resource(name = InnerConstants.BEAN_NAME_PROPERTIES)
 	private Properties properties;

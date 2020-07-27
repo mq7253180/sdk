@@ -23,6 +23,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import com.quincy.core.DTransactionConstants;
+import com.quincy.core.InnerConstants;
 import com.quincy.core.entity.Transaction;
 import com.quincy.core.entity.TransactionArg;
 import com.quincy.core.entity.TransactionAtomic;
@@ -164,7 +165,7 @@ public class DistributedTransactionAop implements DTransactionContext {
 		}
 	}
 
-	@Resource(name = "sysThreadPoolExecutor")
+	@Resource(name = InnerConstants.BEAN_NAME_SYS_THREAD_POOL)
 	private ThreadPoolExecutor threadPoolExecutor;
 	private DTransactionFailure transactionFailure;
 

@@ -19,7 +19,6 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.quincy.core.InnerConstants;
@@ -33,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 public class EmailServiceImpl implements EmailService {
 	@Resource(name = InnerConstants.BEAN_NAME_PROPERTIES)
     private Properties properties;
-	@Autowired
+	@Resource(name = InnerConstants.BEAN_NAME_SYS_THREAD_POOL)
 	private ThreadPoolExecutor threadPoolExecutor;
 
 	public void send(String to, String subject, String content, String attachment, String fileName, String charset, String ccTo, String bccTo) {

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import com.quincy.auth.o.XSession;
 import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthCallback;
+import com.quincy.core.InnerConstants;
 import com.quincy.core.redis.JedisSource;
 import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.helper.CommonHelper;
@@ -20,7 +21,7 @@ import redis.clients.jedis.Jedis;
 
 @Service
 public class AuthorizationServerServiceCacheImpl extends AuthorizationServerServiceSupport {
-	@Autowired
+	@Resource(name = InnerConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
 	private JedisSource jedisSource;
 	@Autowired
 	private RedisProcessor redisProcessor;
