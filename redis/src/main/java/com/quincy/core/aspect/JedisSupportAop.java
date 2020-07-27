@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 import com.quincy.core.InnerConstants;
 import com.quincy.core.redis.JedisSource;
 import com.quincy.core.redis.QuincyJedis;
-import com.quincy.sdk.annotation.JedisInjector;
+import com.quincy.sdk.annotation.JedisSupport;
 import com.quincy.sdk.helper.AopHelper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -29,12 +29,12 @@ import redis.clients.jedis.Transaction;
 @Aspect
 @Order(3)
 @Component
-public class JedisInjectorAop {
+public class JedisSupportAop {
 	private final static String MSG_TX_NOT_SUPPORTED = "Redis transaction can not be supported in cluster mode.";
 	@Resource(name = InnerConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
 	private JedisSource jedisSource;
 
-	@Pointcut("@annotation(com.quincy.sdk.annotation.JedisInjector)")
+	@Pointcut("@annotation(com.quincy.sdk.annotation.JedisSupport)")
     public void pointCut() {}
 
     @Around("pointCut()")
@@ -51,7 +51,7 @@ public class JedisInjectorAop {
     	if(index.size()>0) {
     		Class<?> clazz = joinPoint.getTarget().getClass();
     		Method method = clazz.getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
-    		JedisInjector annotation = method.getAnnotation(JedisInjector.class);
+    		JedisSupport annotation = method.getAnnotation(JedisSupport.class);
     		Jedis jedis = null;
         	JedisCluster jedisCluster = null;
         	Transaction tx = null;

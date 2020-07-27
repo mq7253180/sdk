@@ -19,7 +19,7 @@ import com.quincy.core.RedisInnerConstants;
 import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.VCodeCharsFrom;
-import com.quincy.sdk.annotation.JedisInjector;
+import com.quincy.sdk.annotation.JedisSupport;
 import com.quincy.sdk.annotation.KeepCookieIfExpired;
 import com.quincy.sdk.annotation.VCodeRequired;
 import com.quincy.sdk.helper.CommonHelper;
@@ -37,7 +37,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 	 * 密码登录
 	 */
 	@KeepCookieIfExpired
-	@JedisInjector
+	@JedisSupport
 	@PostMapping("/signin/pwd")
 	public ModelAndView doLogin(HttpServletRequest request, 
 			@RequestParam(required = false, value = AuthCommonConstants.PARA_NAME_USERNAME)String username, 

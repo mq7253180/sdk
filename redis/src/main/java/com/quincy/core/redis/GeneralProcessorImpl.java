@@ -35,7 +35,7 @@ import com.quincy.sdk.RedisWebOperation;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.VCcodeSender;
 import com.quincy.sdk.VCodeCharsFrom;
-import com.quincy.sdk.annotation.JedisInjector;
+import com.quincy.sdk.annotation.JedisSupport;
 import com.quincy.sdk.annotation.VCodeRequired;
 import com.quincy.sdk.helper.CommonHelper;
 
@@ -200,7 +200,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		this.addCookie(response, clientTokenName, "", 0);
 	}
 
-	@JedisInjector
+	@JedisSupport
 	@Override
 	public void setExpiry(HttpServletRequest request, byte[] key, boolean deleteCookieIfExpired, Jedis jedis) {
 		int expire = this.getExpire(request);
