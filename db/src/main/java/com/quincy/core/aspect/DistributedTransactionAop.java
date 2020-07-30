@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.annotation.Resource;
@@ -50,6 +51,8 @@ public class DistributedTransactionAop implements DTransactionContext {
 	private ApplicationContext applicationContext;
 	@Autowired
 	private TransactionService transactionService;
+	@Resource(name = InnerConstants.BEAN_NAME_SYS_THREAD_POOL)
+	private ThreadPoolExecutor threadPoolExecutor;
 	@Value("${spring.application.name}")
 	private String applicationName;
 
@@ -97,7 +100,9 @@ public class DistributedTransactionAop implements DTransactionContext {
 		}
 		boolean breakOnFailure = cancel?cancel:annotation.inOrder();
 		if(annotation.async()) {
-			threadPoolExecutor.execute(new Runnable() {
+			String executorBeanName = CommonHelper.trim(annotation.executor());
+			Executor executor = executorBeanName==null?threadPoolExecutor:(Executor)applicationContext.getBean(executorBeanName);
+			executor.execute(new Runnable() {
 				@Override
 				public void run() {
 					invokeAtomicsAsExCaught(permanentTx, DTransactionConstants.ATOMIC_STATUS_SUCCESS, breakOnFailure);
@@ -165,8 +170,6 @@ public class DistributedTransactionAop implements DTransactionContext {
 		}
 	}
 
-	@Resource(name = InnerConstants.BEAN_NAME_SYS_THREAD_POOL)
-	private ThreadPoolExecutor threadPoolExecutor;
 	private DTransactionFailure transactionFailure;
 
 	/**
