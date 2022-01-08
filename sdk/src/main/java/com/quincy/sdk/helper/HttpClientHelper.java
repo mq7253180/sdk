@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,7 +25,10 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.springframework.http.MediaType;
@@ -141,6 +145,23 @@ public class HttpClientHelper {
 				in.close();
 			}
 			throw new HttpResponseException(statusCode, "\r\nRUL: "+httpUriRequest.getURI()+"\r\nMSG: "+msg);
+		}
+	}
+
+	public static String uploadFromDownload(String downloadUrl, Header[] headers, String uploadUrl, String paramName, String filename) throws IOException {
+		HttpGet httpGet = null;
+		InputStream in = null;
+		try {
+			httpGet = new HttpGet(downloadUrl);
+			in = send(httpGet, null);
+			MultipartEntityBuilder builder = MultipartEntityBuilder.create().setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+			builder.setCharset(Charset.forName("UTF-8")).addBinaryBody(paramName, in, ContentType.MULTIPART_FORM_DATA, filename);
+			return HttpClientHelper.post(uploadUrl, headers, builder.build());
+		} finally {
+			if(in!=null)
+				in.close();
+			if(httpGet!=null)
+				httpGet.abort();
 		}
 	}
 
