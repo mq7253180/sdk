@@ -148,7 +148,7 @@ public class HttpClientHelper {
 		}
 	}
 
-	public static String uploadFromDownload(String downloadUrl, Header[] headers, String uploadUrl, String paramName, String filename) throws IOException {
+	public static String uploadFromDownload(String downloadUrl, String uploadUrl, Header[] headers, String paramName, String filename) throws IOException {
 		HttpGet httpGet = null;
 		InputStream in = null;
 		try {
