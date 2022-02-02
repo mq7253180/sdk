@@ -38,4 +38,14 @@
 			AND status=1
 		</where>
 	</update>
+	<update id="updateTransactionAtomicArgs">
+		UPDATE s_transaction_arg arg 
+		INNER JOIN s_transaction_atomic atomic ON arg.parent_id=atomic.id 
+		<set>
+			arg.class=#{classTo, jdbcType=VARCHAR}, arg._value=#{_value, jdbcType=VARCHAR} 
+		</set>
+		<where>
+			atomic.tx_id=#{txId, jdbcType=INTEGER} AND arg.class=#{classFrom, jdbcType=VARCHAR}
+		</where>
+	</update>
 </mapper>

@@ -17,4 +17,5 @@ public interface TransactionService {
 	public int updateTransactionVersion(Long id, Integer version);
 	public List<TransactionAtomic> findTransactionAtomics(Transaction tx) throws ClassNotFoundException, IOException;
 	public List<TransactionArg> findArgs(Long parentId, Integer type);
+	public int updateTransactionAtomicArgs(Long txId, String classFrom, String classTo, String value);
 }

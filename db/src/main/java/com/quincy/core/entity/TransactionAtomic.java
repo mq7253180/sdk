@@ -36,6 +36,10 @@ public class TransactionAtomic {
 	private Integer status;//1执行成功; 0还未执行或执行失败
 	@Column(name="sort")
 	private Integer sort;
+	@Column(name="ret_class")
+	private String retClass;
+	@Column(name="ret_value")
+	private String retValue;
 	@Column(name="msg")
 	private String msg;
 	@Transient
@@ -45,5 +49,9 @@ public class TransactionAtomic {
 	@Transient
 	private Class<?>[] parameterTypes;
 	@Transient
+	private String[] parameterTypeNames;
+	@Transient
 	private List<TransactionArg> argList;
+	@Transient
+	private Class<?> returnType;
 }

@@ -1,13 +1,13 @@
 package com.quincy.core.aspect;
 
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.annotation.Resource;
@@ -23,6 +23,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.quincy.core.DTransactionConstants;
 import com.quincy.core.InnerConstants;
 import com.quincy.core.entity.Transaction;
@@ -33,6 +36,7 @@ import com.quincy.sdk.DTransactionContext;
 import com.quincy.sdk.DTransactionFailure;
 import com.quincy.sdk.annotation.transaction.AtomicOperational;
 import com.quincy.sdk.annotation.transaction.DTransactional;
+import com.quincy.sdk.annotation.transaction.ReferenceTo;
 import com.quincy.sdk.helper.AopHelper;
 import com.quincy.sdk.helper.CommonHelper;
 
@@ -45,6 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DistributedTransactionAop implements DTransactionContext {
 	private final static ThreadLocal<List<TransactionAtomic>> atomicsHolder = new ThreadLocal<List<TransactionAtomic>>();
 	private final static ThreadLocal<Boolean> inTransactionHolder = new ThreadLocal<Boolean>();
+	private final static ThreadLocal<Boolean> inOrderHolder = new ThreadLocal<Boolean>();
 	private final static int MSG_MAX_LENGTH = 200;
 
 	@Autowired
@@ -63,6 +68,11 @@ public class DistributedTransactionAop implements DTransactionContext {
     public Object transactionAround(ProceedingJoinPoint joinPoint) throws Throwable {
 		inTransactionHolder.set(true);
 		atomicsHolder.set(new ArrayList<TransactionAtomic>());
+		Class<?> clazz = joinPoint.getTarget().getClass();
+		MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
+		Method method = clazz.getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
+		DTransactional annotation = method.getAnnotation(DTransactional.class);
+		inOrderHolder.set(annotation.inOrder());
 		Object retVal = joinPoint.proceed();
 		List<TransactionAtomic> atomics = atomicsHolder.get();
 		boolean cancel = false;
@@ -81,25 +91,19 @@ public class DistributedTransactionAop implements DTransactionContext {
 		tx.setAtomics(atomics);
 		tx.setType(cancel?DTransactionConstants.TX_TYPE_CANCEL:DTransactionConstants.TX_TYPE_CONFIRM);
 		tx.setArgs(joinPoint.getArgs());
-		Class<?> clazz = joinPoint.getTarget().getClass();
 		tx.setBeanName(AopHelper.extractBeanName(clazz));
-		MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
 		tx.setMethodName(methodSignature.getName());
 		tx.setParameterTypes(methodSignature.getParameterTypes());
-		Method method = clazz.getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
-		DTransactional annotation = method.getAnnotation(DTransactional.class);
 		String frequencyBatch = CommonHelper.trim(annotation.frequencyBatch());
 		if(frequencyBatch!=null)
 			tx.setFrequencyBatch(frequencyBatch);
 		tx.setInOrder(annotation.inOrder());
 		final Transaction permanentTx = transactionService.insertTransaction(tx);
 		atomics = permanentTx.getAtomics();
-		if(atomics!=null&&atomics.size()>0) {
-			for(TransactionAtomic atomic:atomics)
-				atomic.setMethodName(atomic.getConfirmMethodName());
-		}
+		if(atomics!=null&&atomics.size()>0)
+			atomics.forEach(atomic->atomic.setMethodName(atomic.getConfirmMethodName()));
 		boolean breakOnFailure = cancel?cancel:annotation.inOrder();
-		if(annotation.async()) {
+		/*if(annotation.async()) {
 			String executorBeanName = CommonHelper.trim(annotation.executor());
 			Executor executor = executorBeanName==null?threadPoolExecutor:(Executor)applicationContext.getBean(executorBeanName);
 			executor.execute(new Runnable() {
@@ -108,18 +112,27 @@ public class DistributedTransactionAop implements DTransactionContext {
 					invokeAtomicsAsExCaught(permanentTx, DTransactionConstants.ATOMIC_STATUS_SUCCESS, breakOnFailure);
 				}
 			});
-		} else
-			this.invokeAtomicsAsExCaught(permanentTx, DTransactionConstants.ATOMIC_STATUS_SUCCESS, breakOnFailure);
+		} else*/
+		this.invokeAtomicsAsExCaught(permanentTx, DTransactionConstants.ATOMIC_STATUS_SUCCESS, breakOnFailure);
 		return retVal;
 	}
 
-	@Pointcut("@annotation(com.quincy.sdk.annotation.transaction.AtomicOperational)")
+	private void invokeAtomicsAsExCaught(Transaction tx, Integer statusTo, boolean breakOnFailure) {
+		try {
+			invokeAtomics(tx, DTransactionConstants.ATOMIC_STATUS_SUCCESS, breakOnFailure);
+		} catch (Exception e) {
+			log.error("\r\nDISTRIBUTED_TRANSACTION_ERR====================", e);
+		}
+	}
+
+	@Pointcut("@annotation(com.wcjd.sdk.annotation.AtomicOperational)")
     public void atomicOperationPointCut() {}
 
 	@Around("atomicOperationPointCut()")
     public Object atomicOperationAround(ProceedingJoinPoint joinPoint) throws Throwable {
 		Boolean inTransaction = inTransactionHolder.get();
 		if(inTransaction!=null&&inTransaction) {
+			List<TransactionAtomic> atomics = atomicsHolder.get();
 			Class<?> clazz = joinPoint.getTarget().getClass();
 			MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
 			Method method = clazz.getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
@@ -127,22 +140,50 @@ public class DistributedTransactionAop implements DTransactionContext {
 			String confirmationMethodName = CommonHelper.trim(annotation.confirm());
 			if(confirmationMethodName==null)
 				throw new RuntimeException("Attribute 'confirm' must be specified a value.");
+			Annotation[][] annotationss = method.getParameterAnnotations();
+			Class<?>[] parameterTypes = methodSignature.getParameterTypes(); 
+			String[] parameterTypeNames = new String[parameterTypes.length];
+			for(int i=0;i<parameterTypes.length;i++) {
+				boolean referency = false;
+				int referenceTo = -1;
+				Annotation[] annotations = annotationss[i];
+				for(int j=0;j<annotations.length;j++) {
+					Annotation a = annotations[j];
+					if(ReferenceTo.class.getName().equals(a.annotationType().getName())) {
+						if(inOrderHolder.get()==null||!inOrderHolder.get())
+							throw new RuntimeException("The transaction must be in order if there is(are) parameter(s) reference to other method's return.");
+						if(atomics.size()==0)
+							throw new RuntimeException("The parameters of the first atomic operation cannot reference to others' return.");
+						ReferenceTo r = (ReferenceTo)a;
+						referenceTo = r.value();
+						int previousAtomicIndex = atomics.size()-1;
+						if(referenceTo<0||referenceTo>previousAtomicIndex) {
+							throw new RuntimeException("The annotation ReferenceTo must be specified a value between 0 and "+previousAtomicIndex);
+						} else {
+							referency = true;
+							break;
+						}
+					}
+				}
+				parameterTypeNames[i] = referency?DTransactionConstants.REFERENCE_TO+referenceTo:parameterTypes[i].getName();
+			}
 			String cancellationMethodName = CommonHelper.trim(annotation.cancel());
 			String methodName = cancellationMethodName==null?confirmationMethodName:cancellationMethodName;
 			TransactionAtomic atomic = new TransactionAtomic();
 			atomic.setBeanName(AopHelper.extractBeanName(clazz));
 			atomic.setMethodName(methodName);
 			atomic.setConfirmMethodName(confirmationMethodName);
-			atomic.setParameterTypes(methodSignature.getParameterTypes());
+			atomic.setParameterTypes(parameterTypes);
+			atomic.setParameterTypeNames(parameterTypeNames);
 			atomic.setArgs(joinPoint.getArgs());
-			List<TransactionAtomic> atomics = atomicsHolder.get();
 			atomic.setSort(atomics.size());
+			atomic.setReturnType(method.getReturnType());
+			atomic.setRetClass(method.getReturnType().getName());
 			atomics.add(atomic);
 		}
-		return null;
+		return joinPoint.proceed();
 	}
 
-//	@Scheduled(cron = "0 0/1 * * * ?")
 	@Override
 	public void compensate() throws ClassNotFoundException, NoSuchMethodException, SecurityException, IOException {
 		List<Transaction> failedTransactions = transactionService.findFailedTransactions(applicationName, null);
@@ -157,15 +198,16 @@ public class DistributedTransactionAop implements DTransactionContext {
 
 	private void compensate(List<Transaction> failedTransactions) throws ClassNotFoundException, NoSuchMethodException, SecurityException, IOException {
 		for(Transaction tx:failedTransactions) {
-			Object bean = applicationContext.getBean(tx.getBeanName());
+			/*Object bean = applicationContext.getBean(tx.getBeanName());
 			if(bean!=null) {
-				int affected = transactionService.updateTransactionVersion(tx.getId(), tx.getVersion());
-				if(affected>0) {//乐观锁, 集群部署多个结点时, 谁更新版本成功了谁负责执行
-					log.warn("DISTRIBUTED_TRANSACTION_IS_EXECUTING===================={}", tx.getId());
-					List<TransactionAtomic> atomics = transactionService.findTransactionAtomics(tx);
-					tx.setAtomics(atomics);
-					this.invokeAtomics(tx, tx.getType()==DTransactionConstants.TX_TYPE_CONFIRM?DTransactionConstants.ATOMIC_STATUS_SUCCESS:DTransactionConstants.ATOMIC_STATUS_CANCELED, tx.getInOrder());
-				}
+				
+			}*/
+			int affected = transactionService.updateTransactionVersion(tx.getId(), tx.getVersion());
+			if(affected>0) {//乐观锁, 集群部署多个结点时, 谁更新版本成功了谁负责执行
+				log.warn("DISTRIBUTED_TRANSACTION_IS_EXECUTING===================={}", tx.getId());
+				List<TransactionAtomic> atomics = transactionService.findTransactionAtomics(tx);
+				tx.setAtomics(atomics);
+				this.invokeAtomics(tx, tx.getType()==DTransactionConstants.TX_TYPE_CONFIRM?DTransactionConstants.ATOMIC_STATUS_SUCCESS:DTransactionConstants.ATOMIC_STATUS_CANCELED, tx.getInOrder());
 			}
 		}
 	}
@@ -183,42 +225,28 @@ public class DistributedTransactionAop implements DTransactionContext {
 		List<TransactionAtomic> failureAtomics = new ArrayList<>(atomics.size());
 		boolean success = true;
 		if(atomics!=null&&atomics.size()>0) {
-			for(TransactionAtomic atomic:atomics) {//逐个执行事务方法
-				Object bean = applicationContext.getBean(atomic.getBeanName());
-				TransactionAtomic toUpdate = new TransactionAtomic();
-				toUpdate.setId(atomic.getId());
-				Method method = null;
-				try {
-					method = bean.getClass().getMethod(atomic.getMethodName(), atomic.getParameterTypes());
-				} catch(NoSuchMethodException e) {
-					toUpdate.setMsg(CommonHelper.trim(e.toString()));
-					transactionService.updateTransactionAtomic(toUpdate);
-					this.updateTransactionToComleted(tx.getId());
-					throw e;
-				}
-				boolean update = true;
-				try {
-					method.invoke(bean, atomic.getArgs());
-					toUpdate.setStatus(statusTo);
-					toUpdate.setMsg("");
-				} catch(Exception e) {
-					success = false;
-					failureAtomics.add(atomic);
-					Throwable cause = e.getCause();
-					String msg = CommonHelper.trim(cause.toString());
-					if(msg!=null) {
-						if(msg.length()>MSG_MAX_LENGTH)
-							msg = msg.substring(0, MSG_MAX_LENGTH);
-						toUpdate.setMsg(msg);
-						atomic.setMsg(msg);
-					} else
-						update = false;
-					log.error("\r\nDISTRIBUTED_TRANSACTION_ERR====================", cause);
-					if(breakOnFailure)
+			if(tx.getInOrder()||breakOnFailure) {
+				ObjectMapper mapper = new ObjectMapper();
+				mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+				mapper.setSerializationInclusion(Include.NON_NULL);
+				for(int i=0;i<atomics.size();i++) {//逐个执行事务方法
+					success = this.invokeAtomic(atomics, i, tx.getId(), statusTo, failureAtomics, mapper);
+					if(!success&&breakOnFailure)
 						break;
-				} finally {
-					if(update)
-						transactionService.updateTransactionAtomic(toUpdate);
+				}
+			} else {
+				for(int i=0;i<atomics.size();i++) {//逐个执行事务方法
+					threadPoolExecutor.execute(()->{
+						ObjectMapper mapper = new ObjectMapper();
+						mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+						mapper.setSerializationInclusion(Include.NON_NULL);
+						try {
+//							int index = i;
+							boolean atomicSuccess = this.invokeAtomic(atomics, -1, tx.getId(), statusTo, failureAtomics, mapper);
+						} catch (NoSuchMethodException e) {
+							log.error("IMPOSSIBLE_EXCEPTION: ", e);
+						}
+					});
 				}
 			}
 		}
@@ -227,11 +255,12 @@ public class DistributedTransactionAop implements DTransactionContext {
 		} else {
 			Transaction txPo = this.updateTransactionToComleted(tx.getId());
 			if(transactionFailure!=null) {
-				if(tx.getVersion()==null)
-					tx.setVersion(-1);
+				Integer version = tx.getVersion();
+				if(version==null)
+					version = -1;
 				DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 				int retriesBeforeInform = transactionFailure.retriesBeforeInform();
-				int retries = tx.getVersion()+1;
+				int retries = version+1;
 				if(retries>=retriesBeforeInform) {
 					List<TransactionArg> args = transactionService.findArgs(tx.getId(), DTransactionConstants.ARG_TYPE_TX);
 					StringBuilder message = new StringBuilder(350).append(tx.getApplicationName()).append(".");
@@ -256,12 +285,67 @@ public class DistributedTransactionAop implements DTransactionContext {
 		}
 	}
 
-	private void invokeAtomicsAsExCaught(Transaction tx, Integer statusTo, boolean breakOnFailure) {
+	private boolean invokeAtomic(List<TransactionAtomic> atomics, int i, Long txId, Integer statusTo, List<TransactionAtomic> failureAtomics, ObjectMapper mapper) throws NoSuchMethodException {
+		TransactionAtomic atomic = atomics.get(i);
+		Object bean = applicationContext.getBean(atomic.getBeanName());
+		TransactionAtomic toUpdate = new TransactionAtomic();
+		toUpdate.setId(atomic.getId());
+		Method method = null;
 		try {
-			invokeAtomics(tx, DTransactionConstants.ATOMIC_STATUS_SUCCESS, breakOnFailure);
-		} catch (Exception e) {
-			log.error("\r\nDISTRIBUTED_TRANSACTION_ERR====================", e);
+			method = bean.getClass().getMethod(atomic.getMethodName(), atomic.getParameterTypes());
+		} catch(NoSuchMethodException e) {
+			toUpdate.setMsg(CommonHelper.trim(e.toString()));
+			transactionService.updateTransactionAtomic(toUpdate);
+			this.updateTransactionToComleted(txId);
+			throw e;
 		}
+		boolean update = true;
+		boolean success = true;
+		try {
+			Object retVal = method.invoke(bean, atomic.getArgs());
+			toUpdate.setStatus(statusTo);
+			toUpdate.setMsg("");
+			toUpdate.setRetValue(mapper.writeValueAsString(retVal==null?"null":retVal));
+			atomic.setRetValue(toUpdate.getRetValue());
+			boolean referenced = false;
+			for(int j=i+1;j<atomics.size();j++) {//在内存中更新后续输入参数依赖此操作输出的操作的输入参数
+				TransactionAtomic atomicJ = atomics.get(j);
+				for(int k = 0;k<atomicJ.getParameterTypeNames().length;k++) {
+					String parameterTypeName = atomicJ.getParameterTypeNames()[k];
+					if(parameterTypeName.startsWith(DTransactionConstants.REFERENCE_TO)) {
+						int referenceTo = Integer.valueOf(parameterTypeName.substring(DTransactionConstants.REFERENCE_TO.length()));
+						if(referenceTo==atomic.getSort()) {//此参数依赖当前方法的输出
+							atomicJ.getParameterTypes()[k] = atomic.getReturnType();
+							atomicJ.getParameterTypeNames()[k] = atomic.getRetClass();
+							atomicJ.getArgs()[k] = retVal;
+							referenced = true;
+						}
+					}
+				}
+			}
+			if(referenced) {
+				int result = transactionService.updateTransactionAtomicArgs(atomic.getTxId(), DTransactionConstants.REFERENCE_TO+atomic.getSort(), atomic.getRetClass(), atomic.getRetValue());
+				if(result==0)
+					throw new RuntimeException("SDK bug occurred!----------"+atomic.getId()+"----------"+DTransactionConstants.REFERENCE_TO+atomic.getSort());
+			}
+		} catch(Exception e) {
+			success = false;
+			failureAtomics.add(atomic);
+			Throwable cause = e.getCause()==null?e:e.getCause();
+			String msg = CommonHelper.trim(cause.toString());
+			if(msg!=null) {
+				if(msg.length()>MSG_MAX_LENGTH)
+					msg = msg.substring(0, MSG_MAX_LENGTH);
+				toUpdate.setMsg(msg);
+				atomic.setMsg(msg);
+			} else
+				update = false;
+			log.error("\r\nDISTRIBUTED_TRANSACTION_ERR====================", cause);
+		} finally {
+			if(update)
+				transactionService.updateTransactionAtomic(toUpdate);
+		}
+		return success;
 	}
 
 	private Transaction updateTransactionToComleted(Long id) {

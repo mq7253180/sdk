@@ -10,4 +10,5 @@ public class DTransactionConstants {
 	public final static int TX_STATUS_ED = 1;
 	public final static int TX_TYPE_CONFIRM = ATOMIC_STATUS_INIT_FAILURE;
 	public final static int TX_TYPE_CANCEL = ATOMIC_STATUS_SUCCESS;
+	public final static String REFERENCE_TO = "REFERENCE_TO: ";
 }
