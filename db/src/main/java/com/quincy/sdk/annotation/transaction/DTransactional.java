@@ -11,5 +11,5 @@ import java.lang.annotation.Target;
 @Target(value = {ElementType.ANNOTATION_TYPE, ElementType.METHOD})
 public @interface DTransactional {
 	public String frequencyBatch() default "";
-	public boolean inOrder() default false;
+	public boolean inOrder() default true;
 }
