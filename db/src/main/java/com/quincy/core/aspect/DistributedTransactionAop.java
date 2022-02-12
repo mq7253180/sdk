@@ -238,9 +238,10 @@ public class DistributedTransactionAop implements DTransactionContext {
 				while(holder.getSuccess()+holder.getFailure()<atomics.size()) {
 					sleepTimes++;
 					synchronized(holder) {//判断是否执行结束
-						if(holder.getSuccess()+holder.getFailure()<atomics.size()) {
+						int total = holder.getSuccess()+holder.getFailure();
+						if(total<atomics.size()) {
 							holder.wait(ASYNC_WAIT_TIME_MILLIS);
-							log.info("ASYNC_INVOCATION_SLEEPED-------------------{}", sleepTimes);
+							log.info("ASYNC_INVOCATION_SLEEPED-------------------{}--------{}", sleepTimes, total);
 						} else
 							break;
 					}
