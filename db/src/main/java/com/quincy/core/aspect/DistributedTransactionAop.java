@@ -40,6 +40,7 @@ import com.quincy.sdk.annotation.transaction.ReferenceTo;
 import com.quincy.sdk.helper.AopHelper;
 import com.quincy.sdk.helper.CommonHelper;
 
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -103,16 +104,6 @@ public class DistributedTransactionAop implements DTransactionContext {
 		if(atomics!=null&&atomics.size()>0)
 			atomics.forEach(atomic->atomic.setMethodName(atomic.getConfirmMethodName()));
 		boolean breakOnFailure = cancel?cancel:annotation.inOrder();
-		/*if(annotation.async()) {
-			String executorBeanName = CommonHelper.trim(annotation.executor());
-			Executor executor = executorBeanName==null?threadPoolExecutor:(Executor)applicationContext.getBean(executorBeanName);
-			executor.execute(new Runnable() {
-				@Override
-				public void run() {
-					invokeAtomicsAsExCaught(permanentTx, DTransactionConstants.ATOMIC_STATUS_SUCCESS, breakOnFailure);
-				}
-			});
-		} else*/
 		this.invokeAtomicsAsExCaught(permanentTx, DTransactionConstants.ATOMIC_STATUS_SUCCESS, breakOnFailure);
 		return retVal;
 	}
@@ -185,23 +176,19 @@ public class DistributedTransactionAop implements DTransactionContext {
 	}
 
 	@Override
-	public void compensate() throws ClassNotFoundException, NoSuchMethodException, SecurityException, IOException {
+	public void compensate() throws ClassNotFoundException, NoSuchMethodException, SecurityException, IOException, InterruptedException {
 		List<Transaction> failedTransactions = transactionService.findFailedTransactions(applicationName, null);
 		this.compensate(failedTransactions);
 	}
 
 	@Override
-	public void compensate(String frequencyBatch) throws ClassNotFoundException, NoSuchMethodException, SecurityException, IOException {
+	public void compensate(String frequencyBatch) throws ClassNotFoundException, NoSuchMethodException, IOException, InterruptedException {
 		List<Transaction> failedTransactions = transactionService.findFailedTransactions(applicationName, CommonHelper.trim(frequencyBatch));
 		this.compensate(failedTransactions);
 	}
 
-	private void compensate(List<Transaction> failedTransactions) throws ClassNotFoundException, NoSuchMethodException, SecurityException, IOException {
+	private void compensate(List<Transaction> failedTransactions) throws ClassNotFoundException, NoSuchMethodException, IOException, InterruptedException {
 		for(Transaction tx:failedTransactions) {
-			/*Object bean = applicationContext.getBean(tx.getBeanName());
-			if(bean!=null) {
-				
-			}*/
 			int affected = transactionService.updateTransactionVersion(tx.getId(), tx.getVersion());
 			if(affected>0) {//乐观锁, 集群部署多个结点时, 谁更新版本成功了谁负责执行
 				log.warn("DISTRIBUTED_TRANSACTION_IS_EXECUTING===================={}", tx.getId());
@@ -213,41 +200,57 @@ public class DistributedTransactionAop implements DTransactionContext {
 	}
 
 	private DTransactionFailure transactionFailure;
+	private final static long ASYNC_WAIT_TIME_MILLIS = 50;
+//	private final static int MAX_ASYNC_WAIT_TIMES = 200;
 
+	@Data
+	private class CountHolder {
+		private int success;
+		private int failure;
+	}
 	/**
 	 * 调重试或撤消方法
 	 * @param tx: 事务信息
 	 * @param statusTo: 执行成功后要置的状态
 	 * @param breakOnFailure: 其中一个失败后是否继续执行其他
 	 */
-	private void invokeAtomics(Transaction tx, Integer statusTo, boolean breakOnFailure) throws NoSuchMethodException, SecurityException {
+	private void invokeAtomics(Transaction tx, Integer statusTo, boolean breakOnFailure) throws NoSuchMethodException, SecurityException, InterruptedException {
 		List<TransactionAtomic> atomics = tx.getAtomics();
 		List<TransactionAtomic> failureAtomics = new ArrayList<>(atomics.size());
-		boolean success = true;
+		boolean success = false;
 		if(atomics!=null&&atomics.size()>0) {
+			ObjectMapper mapper = new ObjectMapper();
+			mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+			mapper.setSerializationInclusion(Include.NON_NULL);
 			if(tx.getInOrder()||breakOnFailure) {
-				ObjectMapper mapper = new ObjectMapper();
-				mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-				mapper.setSerializationInclusion(Include.NON_NULL);
 				for(int i=0;i<atomics.size();i++) {//逐个执行事务方法
-					success = this.invokeAtomic(atomics, i, tx.getId(), statusTo, failureAtomics, mapper);
+					success = this.invokeAtomic(atomics, i, tx.getId(), statusTo, failureAtomics, mapper, true);
 					if(!success&&breakOnFailure)
 						break;
 				}
 			} else {
-				for(int i=0;i<atomics.size();i++) {//逐个执行事务方法
-					threadPoolExecutor.execute(()->{
-						ObjectMapper mapper = new ObjectMapper();
-						mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-						mapper.setSerializationInclusion(Include.NON_NULL);
-						try {
-//							int index = i;
-							boolean atomicSuccess = this.invokeAtomic(atomics, -1, tx.getId(), statusTo, failureAtomics, mapper);
-						} catch (NoSuchMethodException e) {
-							log.error("IMPOSSIBLE_EXCEPTION: ", e);
-						}
-					});
+				CountHolder holder = new CountHolder();
+				long start = System.currentTimeMillis();
+				for(int i=0;i<atomics.size();i++)//多线程异步逐个执行事务方法
+					this.asyncInvokeAtomic(atomics, i, tx.getId(), statusTo, failureAtomics, mapper, holder);
+				int sleepTimes = 0;
+				//sleepTimes<MAX_ASYNC_WAIT_TIMES&&
+				while(holder.getSuccess()+holder.getFailure()<atomics.size()) {
+					sleepTimes++;
+					synchronized(holder) {//判断是否执行结束
+						if(holder.getSuccess()+holder.getFailure()<atomics.size()) {
+							holder.wait(ASYNC_WAIT_TIME_MILLIS);
+							log.info("ASYNC_INVOCATION_SLEEPED-------------------{}", sleepTimes);
+						} else
+							break;
+					}
 				}
+				log.info("ASYNC_DURATION=========================={}", (System.currentTimeMillis()-start));
+				if(holder.getSuccess()==atomics.size()) {//全部成功
+					success = true;
+				}/* else if(atomicInvocationSuccess.get()+atomicInvocationFailure.get()<atomics.size()) {//还有线程没执行完
+					
+				}*/
 			}
 		}
 		if(success) {
@@ -285,7 +288,24 @@ public class DistributedTransactionAop implements DTransactionContext {
 		}
 	}
 
-	private boolean invokeAtomic(List<TransactionAtomic> atomics, int i, Long txId, Integer statusTo, List<TransactionAtomic> failureAtomics, ObjectMapper mapper) throws NoSuchMethodException {
+	private void asyncInvokeAtomic(List<TransactionAtomic> atomics, int i, Long txId, Integer statusTo, List<TransactionAtomic> failureAtomics, ObjectMapper mapper, CountHolder holder) throws NoSuchMethodException {
+		threadPoolExecutor.execute(()->{
+			try {
+				boolean atomicSuccess = this.invokeAtomic(atomics, i, txId, statusTo, failureAtomics, mapper, false);
+				synchronized(holder) {
+					if(atomicSuccess) {
+						holder.setSuccess(holder.getSuccess()+1);
+					} else
+						holder.setFailure(holder.getFailure()+1);
+					holder.notifyAll();
+				}
+			} catch (NoSuchMethodException e) {
+				log.error("IMPOSSIBLE_EXCEPTION: ", e);
+			}
+		});
+	}
+
+	private boolean invokeAtomic(List<TransactionAtomic> atomics, int i, Long txId, Integer statusTo, List<TransactionAtomic> failureAtomics, ObjectMapper mapper, boolean sync) throws NoSuchMethodException {
 		TransactionAtomic atomic = atomics.get(i);
 		Object bean = applicationContext.getBean(atomic.getBeanName());
 		TransactionAtomic toUpdate = new TransactionAtomic();
