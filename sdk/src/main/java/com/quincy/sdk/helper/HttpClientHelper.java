@@ -38,6 +38,26 @@ import org.springframework.http.MediaType;
 public class HttpClientHelper {
 //	private final static String ERR_MSG = "Abnormal HTTP Status Code: %s, URI: %s";
 
+	public static String get(String url, Header[] headers) throws IOException {
+		SimplifiedHttpResponse response = HttpClientHelper.get(url, headers, null);
+		return response.getContent();
+	}
+
+	public static String post(String url, Header[] headers, List<NameValuePair> nameValuePairList) throws IOException {
+		SimplifiedHttpResponse response = HttpClientHelper.post(url, headers, nameValuePairList, null);
+		return response.getContent();
+	}
+
+	public static String post(String url, Header[] headers, String body) throws IOException {
+		SimplifiedHttpResponse response = HttpClientHelper.post(url, headers, body, null);
+		return response.getContent();
+	}
+
+	public static String post(String url, Header[] headers, HttpEntity entity) throws IOException {
+		SimplifiedHttpResponse response = HttpClientHelper.post(url, headers, entity, null);
+		return response.getContent();
+	}
+
 	public static SimplifiedHttpResponse get(String url, Header[] headers, String sessionKey) throws IOException {
 		HttpGet httpGet = null;
 		try {
