@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.http.Header;
+import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -31,36 +32,37 @@ import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicHeader;
 import org.springframework.http.MediaType;
 
 public class HttpClientHelper {
 //	private final static String ERR_MSG = "Abnormal HTTP Status Code: %s, URI: %s";
 
-	public static String get(String url, Header[] headers) throws IOException {
+	public static SimplifiedHttpResponse get(String url, Header[] headers, String sessionKey) throws IOException {
 		HttpGet httpGet = null;
 		try {
 			httpGet = new HttpGet(url);
-			return getString(httpGet, headers);
+			return getString(httpGet, headers, sessionKey);
 		} finally {
 			if(httpGet!=null)
 				httpGet.abort();
 		}
 	}
 
-	public static String post(String url, Header[] headers, List<NameValuePair> nameValuePairList) throws IOException {
-		return post(url, headers, new UrlEncodedFormEntity(nameValuePairList, "UTF-8"));
+	public static SimplifiedHttpResponse post(String url, Header[] headers, List<NameValuePair> nameValuePairList, String sessionKey) throws IOException {
+		return post(url, headers, new UrlEncodedFormEntity(nameValuePairList, "UTF-8"), sessionKey);
 	}
 
-	public static String post(String url, Header[] headers, String body) throws IOException {
-		return post(url, headers, new StringEntity(body));
+	public static SimplifiedHttpResponse post(String url, Header[] headers, String body, String sessionKey) throws IOException {
+		return post(url, headers, new StringEntity(body), sessionKey);
 	}
 
-	public static String post(String url, Header[] headers, HttpEntity entity) throws IOException {
+	public static SimplifiedHttpResponse post(String url, Header[] headers, HttpEntity entity, String sessionKey) throws IOException {
 		HttpPost httpPost = null;
 		try {
 			httpPost = new HttpPost(url);
 			httpPost.setEntity(entity);
-			return getString(httpPost, headers);
+			return getString(httpPost, headers, sessionKey);
 		} finally {
 			if(httpPost!=null)
 				httpPost.abort();
@@ -88,7 +90,8 @@ public class HttpClientHelper {
 		InputStream in = null;
 		try {
 			httpGet = new HttpGet(url);
-			in = send(httpGet, headers);
+			HttpResponse response = send(httpGet, headers);
+			in = response.getEntity().getContent();
 			byte[] b = CommonHelper.input2bytes(in);
 			return b;
 		} finally {
@@ -112,27 +115,45 @@ public class HttpClientHelper {
 		}
 	}
 
-	private static String getString(HttpUriRequest httpUriRequest, Header[] headers) throws IOException {
+	private static SimplifiedHttpResponse getString(HttpUriRequest httpUriRequest, Header[] headers, String _sessionKey) throws IOException {
 		InputStream in = null;
 		try {
-			in = send(httpUriRequest, headers);
-			String s = CommonHelper.input2String(in);
-			return s;
+			HttpResponse response = send(httpUriRequest, headers);
+			in = response.getEntity().getContent();
+			String content = CommonHelper.input2String(in);
+			String sessionId = null;
+			if(_sessionKey!=null) {
+				String sessionKey = _sessionKey.trim();
+				if(sessionKey.length()>0) {
+					Header[] cookieHeaders = response.getHeaders("Set-Cookie");
+					if(cookieHeaders!=null&&cookieHeaders.length>0) {
+						HeaderElement[] headerElements = cookieHeaders[0].getElements();
+						if(headerElements!=null&&headerElements.length>0) {
+							for(HeaderElement headerElement:headerElements) {
+								if(headerElement.getName().equals(sessionKey)) {
+									sessionId = headerElement.getValue();
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+			return new SimplifiedHttpResponse(content, sessionId);
 		} finally {
 			if(in!=null)
 				in.close();
 		}
 	}
 
-	private static InputStream send(HttpUriRequest httpUriRequest, Header[] headers) throws ClientProtocolException, IOException {
+	private static HttpResponse send(HttpUriRequest httpUriRequest, Header[] headers) throws ClientProtocolException, IOException {
 		if(headers!=null&&headers.length>0)
 			httpUriRequest.setHeaders(headers);
 		CloseableHttpClient httpClient = HttpClientBuilder.create().build();
 		HttpResponse response = httpClient.execute(httpUriRequest);
 		int statusCode = response.getStatusLine().getStatusCode();
 		if(statusCode==200) {
-			HttpEntity entity = response.getEntity();
-			return entity.getContent();
+			return response;
 		} else {
 			InputStream in = null;
 			String msg = null;
@@ -148,15 +169,16 @@ public class HttpClientHelper {
 		}
 	}
 
-	public static String uploadFromDownload(String downloadUrl, String uploadUrl, Header[] headers, String paramName, String filename) throws IOException {
+	public static SimplifiedHttpResponse uploadFromDownload(String downloadUrl, String uploadUrl, Header[] headers, String paramName, String filename, String sessionKey) throws IOException {
 		HttpGet httpGet = null;
 		InputStream in = null;
 		try {
 			httpGet = new HttpGet(downloadUrl);
-			in = send(httpGet, null);
+			HttpResponse response = send(httpGet, headers);
+			in = response.getEntity().getContent();
 			MultipartEntityBuilder builder = MultipartEntityBuilder.create().setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
 			builder.setCharset(Charset.forName("UTF-8")).addBinaryBody(paramName, in, ContentType.MULTIPART_FORM_DATA, filename);
-			return HttpClientHelper.post(uploadUrl, headers, builder.build());
+			return HttpClientHelper.post(uploadUrl, headers, builder.build(), sessionKey);
 		} finally {
 			if(in!=null)
 				in.close();
@@ -208,11 +230,20 @@ public class HttpClientHelper {
 //		nameValuePairList.add(new BasicNameValuePair("timestamp", "1409659589"));
 //		nameValuePairList.add(new BasicNameValuePair("nonce", "263014780"));
 //		nameValuePairList.add(new BasicNameValuePair("echostr", "P9nAzCzyDtyTWESHep1vC5X9xho/qYX3Zpb4yKa9SKld1DsH3Iyt3tP3zNdtp+4RPcs8TgAE7OaBO+FZXvnaqQ=="));
-//		System.out.println(HttpClientHelper.post("http://localhost:8080/wechat/opencallbackmode", nameValuePairList));
-//		System.out.println(HttpClientHelper.post("http://www.maqiangcgq.com/wechat/opencallbackmode", nameValuePairList));
-//		System.out.println(HttpClientHelper.post("http://www.maqiangcgq.com/wechat/assistant", nameValuePairList));
+//		System.out.println(HttpClientHelper.post("http://localhost:8080/wechat/opencallbackmode", null, nameValuePairList));
+//		System.out.println(HttpClientHelper.post("http://www.maqiangcgq.com/wechat/opencallbackmode", null, nameValuePairList));
+//		System.out.println(HttpClientHelper.post("http://www.maqiangcgq.com/wechat/assistant", null, nameValuePairList));
 //		Header[] headers = new Header[]{new BasicHeader("x-requested-with", "XMLHttpRequest")};
-//		System.out.println(HttpClientHelper.post("http://localhost:8080/test", null, headers));
-		HttpClientHelper.saveAsFile("http://resource.jlcedu.maqiangcgq.com/upload/exam/exam-s-zhaorq-mock2-en_us.jpg", null, "D:/tmp/exam-s-zhaorq-mock2-en_us.jpg");
+//		System.out.println(HttpClientHelper.post("http://localhost:8080/test", headers, nameValuePairList));
+//		HttpClientHelper.saveAsFile("http://resource.jlcedu.maqiangcgq.com/upload/exam/exam-s-zhaorq-mock2-en_us.jpg", null, "D:/tmp/exam-s-zhaorq-mock2-en_us.jpg");
+		Header[] headers = null;
+		SimplifiedHttpResponse response = null;
+
+		response = HttpClientHelper.get("http://maqiang777.com/xxx/set?flag=xaseeere", headers, "SESSION");
+		System.out.println(response.getContent()+"---"+response.getSessionId());
+
+		headers = new Header[]{new BasicHeader("Cookie", "SESSION="+response.getSessionId())};
+		response = HttpClientHelper.get("http://maqiang777.com/xxx/get", headers, null);
+		System.out.println(response.getContent());
 	}
 }

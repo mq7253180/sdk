@@ -59,7 +59,8 @@ public class AliyunDNTXTUpdate {
 		String url = HTTP_PREFIX+params.toString();
 		System.out.println(url);
 //		System.out.println(URLDecoder.decode("%2A", CHARSET_UTF8)+"---"+URLEncoder.encode("*", CHARSET_UTF8));
-		String result = HttpClientHelper.get(url, null);
+		SimplifiedHttpResponse response = HttpClientHelper.get(url, null, null);
+		String result = response.getContent();
 		System.out.println(result);
 	}
 }
