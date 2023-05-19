@@ -2,10 +2,8 @@ package com.quincy.auth;
 
 import java.net.URLEncoder;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,12 +22,14 @@ import com.quincy.sdk.annotation.KeepCookieIfExpired;
 import com.quincy.sdk.annotation.VCodeRequired;
 import com.quincy.sdk.helper.CommonHelper;
 
+import jakarta.servlet.http.HttpServletRequest;
 import redis.clients.jedis.Jedis;
 
 public abstract class VCodeAuthControllerSupport extends AuthorizationControllerSupport {
 	@Autowired
 	private RedisProcessor redisProcessor;
-	@Resource(name = "loginFailuresHolderKey")
+	@Autowired
+	@Qualifier("loginFailuresHolderKey")
 	private String loginFailuresHolderKey;
 	@Value("${vcode.loginFailures}")
 	private int failuresThresholdForVCode;

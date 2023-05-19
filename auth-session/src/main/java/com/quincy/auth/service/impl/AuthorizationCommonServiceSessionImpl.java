@@ -1,13 +1,13 @@
 package com.quincy.auth.service.impl;
 
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import org.springframework.stereotype.Service;
 
 import com.quincy.core.InnerConstants;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 @Service
 public class AuthorizationCommonServiceSessionImpl extends AuthorizationCommonServiceSupport {

@@ -1,9 +1,9 @@
 package com.quincy.auth.service.impl;
 
-import javax.servlet.http.HttpServletRequest;
-
 import com.quincy.auth.o.XSession;
 import com.quincy.auth.service.AuthorizationCommonService;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 public abstract class AuthorizationCommonServiceSupport implements AuthorizationCommonService {
 	protected abstract Object getUserObject(HttpServletRequest request) throws Exception;

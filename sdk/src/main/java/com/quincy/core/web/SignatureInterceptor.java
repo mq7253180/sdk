@@ -9,9 +9,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.support.RequestContext;
@@ -20,6 +17,9 @@ import com.quincy.sdk.annotation.SignatureRequired;
 import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.helper.HttpClientHelper;
 import com.quincy.sdk.helper.RSASecurityHelper;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class SignatureInterceptor extends HandlerInterceptorAdapter {
 	private SignaturePubKeyExchanger exchanger;

@@ -18,6 +18,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.Order;
@@ -57,7 +58,8 @@ public class DistributedTransactionAop implements DTransactionContext {
 	private ApplicationContext applicationContext;
 	@Autowired
 	private TransactionService transactionService;
-	@Resource(name = InnerConstants.BEAN_NAME_SYS_THREAD_POOL)
+	@Autowired
+	@Qualifier(InnerConstants.BEAN_NAME_SYS_THREAD_POOL)
 	private ThreadPoolExecutor threadPoolExecutor;
 	@Value("${spring.application.name}")
 	private String applicationName;
@@ -116,7 +118,7 @@ public class DistributedTransactionAop implements DTransactionContext {
 		}
 	}
 
-	@Pointcut("@annotation(com.wcjd.sdk.annotation.AtomicOperational)")
+	@Pointcut("@annotation(com.quincy.sdk.annotation.transaction.AtomicOperational)")
     public void atomicOperationPointCut() {}
 
 	@Around("atomicOperationPointCut()")

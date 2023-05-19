@@ -2,13 +2,13 @@ package com.quincy.core;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -18,9 +18,11 @@ import com.quincy.core.zookeeper.ZooKeeperSource;
 public class ZooKeeperDeamon {
 	@Autowired
 	private ZooKeeperSource zooKeeperSource;
-	@Resource(name = "zookeeperRootNode")
+	@Autowired
+	@Qualifier("zookeeperRootNode")
 	private String zookeeperRootNode;
-	@Resource(name = "zookeeperSynchronizationNode")
+	@Autowired
+	@Qualifier("zookeeperSynchronizationNode")
 	private String zookeeperSynchronizationNode;
 	@Value("#{'${zk.distributedLock.keys}'.split(',')}")
 	private String[] distributedLockKeys;

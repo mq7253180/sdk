@@ -1,10 +1,10 @@
 package com.quincy.auth;
 
-import javax.servlet.http.HttpServletRequest;
-
 import com.quincy.auth.o.XSession;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.helper.CommonHelper;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 public class AuthHelper {
 	public static XSession getSession(HttpServletRequest request) {

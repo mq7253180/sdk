@@ -5,9 +5,6 @@ import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.oltu.oauth2.common.OAuth;
 import org.apache.oltu.oauth2.common.error.OAuthError;
 import org.apache.oltu.oauth2.common.exception.OAuthProblemException;
@@ -35,6 +32,8 @@ import com.quincy.auth.annotation.OAuth2Resource;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.helper.CommonHelper;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -62,7 +61,7 @@ public class OAuth2ResourceInterceptor extends HandlerInterceptorAdapter {
 				String errorUri = null;
 				OAuthResponseBuilder builder = null;
 				try {
-					OAuthAccessResourceRequest accessResourceRequest = new OAuthAccessResourceRequest(request);
+					OAuthAccessResourceRequest accessResourceRequest = null;//new OAuthAccessResourceRequest(request);
 					String accessToken = accessResourceRequest.getAccessToken();
 					OAuth2Result result = oauth2TokenValidation.validateToken(accessToken, scope, state, locale, request);
 					errorStatus = result.getErrorStatus();

@@ -7,13 +7,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.annotation.Resource;
 import javax.sql.DataSource;
 
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.commons.pool2.impl.AbandonedConfig;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -46,7 +46,8 @@ public class CoreApplicationContext {//implements TransactionManagementConfigure
 	private String slavePassword;
 	@Value("${spring.datasource.pool.masterRatio}")
 	private int masterRatio;
-	@Resource(name = InnerConstants.BEAN_NAME_PROPERTIES)
+	@Autowired
+	@Qualifier(InnerConstants.BEAN_NAME_PROPERTIES)
 	private Properties properties;
 
 	@Bean(name = "dataSource")
@@ -243,9 +244,11 @@ public class CoreApplicationContext {//implements TransactionManagementConfigure
 		return db;
 	}
 
-	@Resource(name = "dataSourceMaster")
+	@Autowired
+	@Qualifier("dataSourceMaster")
 	private DataSource masterDB;
-	@Resource(name = "dataSourceSlave")
+	@Autowired
+	@Qualifier("dataSourceSlave")
 	private DataSource slaveDB;
 
 	@Bean(name = "routingDataSource")

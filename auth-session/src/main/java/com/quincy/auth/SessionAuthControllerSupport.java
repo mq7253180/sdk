@@ -1,7 +1,5 @@
 package com.quincy.auth;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
@@ -9,6 +7,8 @@ import org.springframework.web.servlet.ModelAndView;
 import com.quincy.auth.controller.AuthorizationControllerSupport;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.Result;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 public abstract class SessionAuthControllerSupport extends AuthorizationControllerSupport {
 	/**

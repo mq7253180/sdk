@@ -1,9 +1,9 @@
 package com.quincy.auth.interceptor;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.stereotype.Component;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Component("authorizationInterceptor")
 public class AuthorizationInterceptor extends AuthorizationInterceptorSupport {

@@ -9,11 +9,9 @@ import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,13 +26,17 @@ import com.quincy.core.InnerConstants;
 import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.helper.RSASecurityHelper;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 @Configuration
 public class AuthServerInitialization {
 	@Autowired
     private RequestMappingHandlerMapping requestMappingHandlerMapping;
 	@Autowired
 	private RootController rootController;
-	@Resource(name = InnerConstants.BEAN_NAME_PROPERTIES)
+	@Autowired
+	@Qualifier(InnerConstants.BEAN_NAME_PROPERTIES)
 	private Properties properties;
 	@Value("${secret.rsa.privateKey}")
 	private String privateKeyStr;

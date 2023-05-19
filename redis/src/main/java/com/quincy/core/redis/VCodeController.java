@@ -2,11 +2,8 @@ package com.quincy.core.redis;
 
 import java.util.Properties;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,12 +13,16 @@ import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.VCodeCharsFrom;
 import com.quincy.sdk.annotation.KeepCookieIfExpired;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 @Controller
 @RequestMapping("")
 public class VCodeController {
 	@Autowired
 	private RedisProcessor redisProcessor;
-	@Resource(name = InnerConstants.BEAN_NAME_PROPERTIES)
+	@Autowired
+	@Qualifier(InnerConstants.BEAN_NAME_PROPERTIES)
 	private Properties properties;
 
 	/**

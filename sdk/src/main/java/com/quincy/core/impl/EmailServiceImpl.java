@@ -7,7 +7,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
-import javax.annotation.Resource;
 import javax.mail.Authenticator;
 import javax.mail.Message.RecipientType;
 import javax.mail.PasswordAuthentication;
@@ -19,6 +18,8 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.quincy.core.InnerConstants;
@@ -30,9 +31,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class EmailServiceImpl implements EmailService {
-	@Resource(name = InnerConstants.BEAN_NAME_PROPERTIES)
+	@Autowired
+	@Qualifier(InnerConstants.BEAN_NAME_PROPERTIES)
     private Properties properties;
-	@Resource(name = InnerConstants.BEAN_NAME_SYS_THREAD_POOL)
+	@Autowired
+	@Qualifier(InnerConstants.BEAN_NAME_SYS_THREAD_POOL)
 	private ThreadPoolExecutor threadPoolExecutor;
 
 	public void send(String to, String subject, String content, String attachment, String fileName, String charset, String ccTo, String bccTo) {

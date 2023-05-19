@@ -4,13 +4,13 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Resource;
-
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -32,7 +32,8 @@ import redis.clients.jedis.Transaction;
 @Component
 public class JedisSupportAop {
 	private final static String MSG_TX_NOT_SUPPORTED = "Redis transaction can not be supported in cluster mode.";
-	@Resource(name = InnerConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
+	@Autowired
+	@Qualifier(InnerConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
 	private JedisSource jedisSource;
 
 	@Pointcut("@annotation(com.quincy.sdk.annotation.JedisSupport)")

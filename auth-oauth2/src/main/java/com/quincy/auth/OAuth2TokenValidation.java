@@ -9,10 +9,8 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.List;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -24,11 +22,16 @@ import com.quincy.core.InnerConstants;
 import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.helper.RSASecurityHelper;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 @Component
 public class OAuth2TokenValidation {
-	@Resource(name = "primarySelfPublicKey")
+	@Autowired
+	@Qualifier("primarySelfPublicKey")
 	private PublicKey primarySelfPublicKey;
-	@Resource(name = "secondarySelfPublicKey")
+	@Autowired
+	@Qualifier("secondarySelfPublicKey")
 	private PublicKey secondarySelfPublicKey;
 	@Value("${url.prefix.oauth2}")
 	private String centerUrlPrefix;

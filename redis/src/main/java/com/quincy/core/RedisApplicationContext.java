@@ -7,10 +7,10 @@ import java.util.Properties;
 import java.util.Set;
 
 import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,7 +25,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisSentinelPool;
-import redis.clients.util.Pool;
+import redis.clients.jedis.util.Pool;
 
 @Slf4j
 @Configuration
@@ -38,7 +38,8 @@ public class RedisApplicationContext {
 	private String redisPwd;
 	@Value("${spring.redis.timeout}")
 	private int connectionTimeout;
-	@Resource(name = InnerConstants.BEAN_NAME_PROPERTIES)
+	@Autowired
+	@Qualifier(InnerConstants.BEAN_NAME_PROPERTIES)
 	private Properties properties;
 	@Autowired
 	private GenericObjectPoolConfig poolCfg;

@@ -1,10 +1,10 @@
 package com.quincy.core.aspect;
 
-import javax.annotation.Resource;
-
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.quincy.core.InnerConstants;
 import com.quincy.core.redis.JedisSource;
@@ -16,7 +16,8 @@ public abstract class JedisNeededBaseAop {
 	protected abstract Object before(JoinPoint joinPoint, Jedis jedis) throws Throwable;
 	protected abstract void after(JoinPoint joinPoint, Jedis jedis, Object obj);
 
-	@Resource(name = InnerConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
+	@Autowired
+	@Qualifier(InnerConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
 	private JedisSource jedisSource;
 
     @Around("pointCut()")

@@ -5,10 +5,10 @@ import java.util.List;
 import java.util.Properties;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -40,7 +40,8 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport implements I
     private RequestMappingHandlerAdapter adapter;
 	@Autowired
 	private ApplicationContext applicationContext;
-	@Resource(name = InnerConstants.BEAN_NAME_PROPERTIES)
+	@Autowired
+	@Qualifier(InnerConstants.BEAN_NAME_PROPERTIES)
     private Properties properties;
 	@Value("${env}")
 	private String env;

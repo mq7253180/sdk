@@ -2,24 +2,24 @@ package com.quincy.auth.service.impl;
 
 import java.io.IOException;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.RedisWebOperation;
 import com.quincy.sdk.helper.CommonHelper;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import redis.clients.jedis.Jedis;
 
 @Service
 public class AuthorizationCommonServiceCacheImpl extends AuthorizationCommonServiceSupport {
 	@Autowired
 	private RedisProcessor redisProcessor;
-	@Resource(name = "sessionKeyPrefix")
+	@Autowired
+	@Qualifier("sessionKeyPrefix")
 	private String sessionKeyPrefix;
 
 	@Override

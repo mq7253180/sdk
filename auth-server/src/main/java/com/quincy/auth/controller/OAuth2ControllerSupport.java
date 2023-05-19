@@ -11,10 +11,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.Base64.Encoder;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.oltu.oauth2.as.request.OAuthRequest;
 import org.apache.oltu.oauth2.as.request.OAuthTokenRequest;
 import org.apache.oltu.oauth2.as.response.OAuthASResponse;
@@ -22,6 +18,7 @@ import org.apache.oltu.oauth2.common.OAuth;
 import org.apache.oltu.oauth2.common.error.OAuthError;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
@@ -38,6 +35,9 @@ import com.quincy.auth.o.OAuth2Info;
 import com.quincy.auth.o.OAuth2TokenJWTPayload;
 import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.helper.RSASecurityHelper;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @RequestMapping("/oauth2")
 public abstract class OAuth2ControllerSupport {
@@ -64,7 +64,8 @@ public abstract class OAuth2ControllerSupport {
 		return new ModelAndView("/oauth2_error").addObject("msg", new RequestContext(request).getMessage(OAuth2ControllerConstants.ERROR_MSG_KEY_PREFIX+status));
 	}
 
-	@Resource(name = "selfPrivateKey")
+	@Autowired
+	@Qualifier("selfPrivateKey")
 	private PrivateKey privateKey;
 
 	@RequestMapping("/token")

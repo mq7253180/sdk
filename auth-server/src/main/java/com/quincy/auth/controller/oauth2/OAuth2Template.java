@@ -3,9 +3,6 @@ package com.quincy.auth.controller.oauth2;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.oltu.oauth2.as.request.OAuthAuthzRequest;
 import org.apache.oltu.oauth2.as.request.OAuthRequest;
 import org.apache.oltu.oauth2.as.request.OAuthTokenRequest;
@@ -31,6 +28,8 @@ import com.quincy.auth.service.OAuth2Service;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.helper.CommonHelper;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -53,7 +52,7 @@ public class OAuth2Template {
 			Integer errorResponse = HttpServletResponse.SC_BAD_REQUEST;
 			String error = OAuthError.CodeResponse.INVALID_REQUEST;
 			String _redirectUri = CommonHelper.trim(request.getParameter(OAuth.OAUTH_REDIRECT_URI));
-			OAuthRequest oauthRequest = reqCase==OAuth2ControllerConstants.REQ_CASE_CODE?new OAuthAuthzRequest(request):new OAuthTokenRequest(request);
+			OAuthRequest oauthRequest = null;//reqCase==OAuth2ControllerConstants.REQ_CASE_CODE?new OAuthAuthzRequest(request):new OAuthTokenRequest(request);
 			ClientSystem clientSystem = oauth2Service.findClientSystem(oauthRequest.getClientId());
 			if(clientSystem==null) {
 				errorStatus = 3;

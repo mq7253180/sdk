@@ -1,9 +1,9 @@
 package com.quincy.auth;
 
-import javax.servlet.http.HttpSessionEvent;
-import javax.servlet.http.HttpSessionListener;
-
 import org.springframework.context.annotation.Bean;
+
+import jakarta.servlet.http.HttpSessionEvent;
+import jakarta.servlet.http.HttpSessionListener;
 
 public class AuthSessionInitialization {
 	@Bean

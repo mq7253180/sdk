@@ -6,9 +6,6 @@ import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.oltu.oauth2.as.issuer.MD5Generator;
 import org.apache.oltu.oauth2.as.issuer.OAuthIssuer;
 import org.apache.oltu.oauth2.as.issuer.OAuthIssuerImpl;
@@ -37,6 +34,9 @@ import com.quincy.auth.controller.oauth2.ValidationResult;
 import com.quincy.auth.o.OAuth2Info;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.helper.CommonHelper;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public abstract class OAuth2CodeControllerSupport {
 	@Autowired
@@ -169,9 +169,9 @@ public abstract class OAuth2CodeControllerSupport {
 
 	private static ValidationResult buildResponse(HttpServletRequest request, boolean isNotJson, String redirectUri, String authorizationCode) throws OAuthSystemException {
 		ValidationResult result = new ValidationResult();
-		result.setBuilder(OAuthASResponse
-				.authorizationResponse(request, isNotJson?HttpServletResponse.SC_FOUND:HttpServletResponse.SC_OK)
-				.setCode(authorizationCode));
+//		result.setBuilder(OAuthASResponse
+//				.authorizationResponse(request, isNotJson?HttpServletResponse.SC_FOUND:HttpServletResponse.SC_OK)
+//				.setCode(authorizationCode));
 		if(redirectUri!=null) {
 			StringBuilder s = CommonHelper.appendUriParam(new StringBuilder(100)//一般长度46
 					.append(redirectUri)

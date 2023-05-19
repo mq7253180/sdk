@@ -12,13 +12,10 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.UUID;
 
-import javax.annotation.Resource;
 import javax.imageio.ImageIO;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
@@ -39,15 +36,21 @@ import com.quincy.sdk.annotation.JedisSupport;
 import com.quincy.sdk.annotation.VCodeRequired;
 import com.quincy.sdk.helper.CommonHelper;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.params.SetParams;
 
 @Slf4j
 @Component
 public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements RedisProcessor {
-	@Resource(name = InnerConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
+	@Autowired
+	@Qualifier(InnerConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
 	private JedisSource jedisSource;
-	@Resource(name = InnerConstants.BEAN_NAME_PROPERTIES)
+	@Autowired
+	@Qualifier(InnerConstants.BEAN_NAME_PROPERTIES)
 	private Properties properties;
 	@Value("${spring.application.name}")
 	private String applicationName;
@@ -328,10 +331,18 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		 */
 		String status = null;
 		do {
+			SetParams params = new SetParams();
+			params.ex(expireSeconds);
+			if(jedis.exists(keyInString)) {
+				params.xx();
+			} else 
+				params.nx();
 			if(TYPE_FLAG_STRING.equalsIgnoreCase(typeFlag)) {
-				status = jedis.set(keyInString, valInString, jedis.exists(keyInString)?"XX":"NX", "EX", expireSeconds);
+//				status = jedis.set(keyInString, valInString, jedis.exists(keyInString)?"XX":"NX", "EX", expireSeconds);
+				status = jedis.set(keyInString, valInString, params);
 			} else if(TYPE_FLAG_BYTES.equalsIgnoreCase(typeFlag)) {
-				status = jedis.set(keyInBytes, valInBytes, (jedis.exists(keyInBytes)?"XX":"NX").getBytes(), "EX".getBytes(), expireSeconds);
+//				status = jedis.set(keyInBytes, valInBytes, (jedis.exists(keyInBytes)?"XX":"NX").getBytes(), "EX".getBytes(), expireSeconds);
+				status = jedis.set(keyInBytes, valInBytes, params);
 			} else
 				throw new RuntimeException("Enum value for type flag is illegal. Only 'S' or 'B' are acceptable.");
 			if("OK".equalsIgnoreCase(status)) {

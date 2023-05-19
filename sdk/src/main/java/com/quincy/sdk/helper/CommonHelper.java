@@ -22,10 +22,6 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.zip.ZipInputStream;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.tools.zip.ZipEntry;
 import org.apache.tools.zip.ZipFile;
 import org.apache.tools.zip.ZipOutputStream;
@@ -39,6 +35,10 @@ import org.springframework.web.method.HandlerMethod;
 
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.Client;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class CommonHelper {
 	private static ParamSupport paramSupportHead;

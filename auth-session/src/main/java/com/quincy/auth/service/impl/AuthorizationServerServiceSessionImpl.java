@@ -3,9 +3,6 @@ package com.quincy.auth.service.impl;
 import java.io.IOException;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-
 import org.springframework.stereotype.Service;
 
 import com.quincy.auth.AuthSessionHolder;
@@ -14,6 +11,9 @@ import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthCallback;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.helper.CommonHelper;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 @Service
 public class AuthorizationServerServiceSessionImpl extends AuthorizationServerServiceSupport {

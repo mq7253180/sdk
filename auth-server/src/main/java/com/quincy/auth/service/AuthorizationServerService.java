@@ -3,9 +3,10 @@ package com.quincy.auth.service;
 import java.io.IOException;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-
 import com.quincy.auth.o.XSession;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 import com.quincy.auth.o.User;
 
 public interface AuthorizationServerService {

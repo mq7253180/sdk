@@ -1,9 +1,9 @@
 package com.quincy.auth.service;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import com.quincy.auth.o.XSession;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public interface AuthorizationCommonService {
 	public XSession getSession(HttpServletRequest request) throws Exception;

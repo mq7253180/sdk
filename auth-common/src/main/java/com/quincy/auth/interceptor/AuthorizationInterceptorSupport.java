@@ -2,11 +2,8 @@ package com.quincy.auth.interceptor;
 
 import java.util.List;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.support.RequestContext;
 
@@ -16,12 +13,17 @@ import com.quincy.auth.service.AuthorizationCommonService;
 import com.quincy.core.InnerConstants;
 import com.quincy.core.InnerHelper;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 public abstract class AuthorizationInterceptorSupport extends HandlerInterceptorAdapter {
 	@Autowired
 	private AuthorizationCommonService authorizationService;
-	@Resource(name = "signinUrl")
+	@Autowired
+	@Qualifier("signinUrl")
 	private String signinUrl;
-	@Resource(name = "denyUrl")
+	@Autowired
+	@Qualifier("denyUrl")
 	private String denyUrl;
 
 	protected boolean doAuth(HttpServletRequest request, HttpServletResponse response, Object handler, String permissionNeeded) throws Exception {

@@ -3,10 +3,8 @@ package com.quincy.auth.service.impl;
 import java.io.IOException;
 import java.util.List;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.quincy.auth.o.XSession;
@@ -17,15 +15,18 @@ import com.quincy.core.redis.JedisSource;
 import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.helper.CommonHelper;
 
+import jakarta.servlet.http.HttpServletRequest;
 import redis.clients.jedis.Jedis;
 
 @Service
 public class AuthorizationServerServiceCacheImpl extends AuthorizationServerServiceSupport {
-	@Resource(name = InnerConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
+	@Autowired
+	@Qualifier(InnerConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
 	private JedisSource jedisSource;
 	@Autowired
 	private RedisProcessor redisProcessor;
-	@Resource(name = "sessionKeyPrefix")
+	@Autowired
+	@Qualifier("sessionKeyPrefix")
 	private String sessionKeyPrefix;
 
 	private XSession setSession(HttpServletRequest request, String jsessionid, String originalJsessionid, Long userId, AuthCallback callback) throws IOException, ClassNotFoundException {

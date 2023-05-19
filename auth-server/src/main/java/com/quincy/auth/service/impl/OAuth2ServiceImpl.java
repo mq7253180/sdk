@@ -2,8 +2,6 @@ package com.quincy.auth.service.impl;
 
 import java.util.Optional;
 
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.oltu.oauth2.common.OAuth;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,6 +10,8 @@ import com.quincy.auth.dao.ClientSystemRepository;
 import com.quincy.auth.entity.ClientSystem;
 import com.quincy.auth.service.OAuth2Service;
 import com.quincy.sdk.annotation.ReadOnly;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 @Service
 public class OAuth2ServiceImpl implements OAuth2Service {

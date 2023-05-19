@@ -6,6 +6,7 @@ import org.apache.commons.pool2.impl.AbandonedConfig;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.apache.zookeeper.Watcher;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -46,7 +47,8 @@ public class ZooKeeperConfiguration implements ZKContext {
 		return "/"+applicationName;
 	}
 
-	@Resource(name = "zookeeperRootNode")
+	@Autowired
+	@Qualifier("zookeeperRootNode")
 	private String zookeeperRootNode;
 
 	@Bean("zookeeperSynchronizationNode")
@@ -54,7 +56,8 @@ public class ZooKeeperConfiguration implements ZKContext {
 		return zookeeperRootNode+"/"+ContextConstants.SYN_NODE;
 	}
 
-	@Resource(name = "zookeeperSynchronizationNode")
+	@Autowired
+	@Qualifier("zookeeperSynchronizationNode")
 	private String zookeeperSynchronizationNode;
 
 	@Override

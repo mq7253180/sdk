@@ -2,14 +2,13 @@ package com.quincy.core.aspect;
 
 import java.lang.reflect.Method;
 
-import javax.annotation.Resource;
-
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -27,9 +26,11 @@ import redis.clients.jedis.Jedis;
 @Order(1)
 @Component
 public class CacheAop {
-	@Resource(name = "cacheKeyPrefix")
+	@Autowired
+	@Qualifier("cacheKeyPrefix")
 	private String cacheKeyPrefix;
-	@Resource(name = InnerConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
+	@Autowired
+	@Qualifier(InnerConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
 	private JedisSource jedisSource;
 	@Autowired
 	private RedisProcessor redisProcessor;
