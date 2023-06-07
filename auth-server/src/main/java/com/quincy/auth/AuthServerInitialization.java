@@ -47,9 +47,12 @@ public class AuthServerInitialization {
 		String _loginRequiredForRoot = CommonHelper.trim(properties.getProperty("auth.loginRequired.root"));
 		boolean loginRequiredForRoot = _loginRequiredForRoot==null?false:Boolean.parseBoolean(_loginRequiredForRoot);
 		if(loginRequiredForRoot) {
+			RequestMappingInfo.BuilderConfiguration config = new RequestMappingInfo.BuilderConfiguration();
+	        config.setPatternParser(requestMappingHandlerMapping.getPatternParser());
 			RequestMappingInfo requestMappingInfo = RequestMappingInfo
-					.paths("")
+					.paths("/")
 	                .methods(RequestMethod.GET)
+	                .options(config)
 	                .build();
 			requestMappingHandlerMapping.registerMapping(requestMappingInfo, rootController, rootController.getClass().getMethod("root", HttpServletRequest.class, HttpServletResponse.class));
 		}
