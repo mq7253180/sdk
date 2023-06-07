@@ -20,12 +20,7 @@ public class RootController implements AuthContext {
 
 	@LoginRequired
 	public ModelAndView root(HttpServletRequest request, HttpServletResponse response) throws Exception {
-		ModelAndView mv = null;
-		if(authHandler!=null) {
-			mv = authHandler.rootView(request, response);
-			if(mv==null)
-				mv = new ModelAndView("/index");
-		}
+		ModelAndView mv = authHandler!=null?authHandler.rootView(request, response):new ModelAndView("/index");
 		return mv;
 	}
 
