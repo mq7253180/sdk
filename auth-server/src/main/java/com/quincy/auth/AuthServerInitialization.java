@@ -54,7 +54,7 @@ public class AuthServerInitialization {
 	                .methods(RequestMethod.GET)
 	                .options(config)
 	                .build();
-			requestMappingHandlerMapping.registerMapping(requestMappingInfo, rootController, rootController.getClass().getMethod("root", HttpServletRequest.class, HttpServletResponse.class));
+			requestMappingHandlerMapping.registerMapping(requestMappingInfo, rootController, RootController.class.getMethod("root", HttpServletRequest.class, HttpServletResponse.class));
 		}
 	}
 
