@@ -30,7 +30,7 @@ import com.quincy.sdk.RedisOperation;
 import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.RedisWebOperation;
 import com.quincy.sdk.Result;
-import com.quincy.sdk.VCcodeSender;
+import com.quincy.sdk.VCodeSender;
 import com.quincy.sdk.VCodeCharsFrom;
 import com.quincy.sdk.annotation.JedisSupport;
 import com.quincy.sdk.annotation.VCodeRequired;
@@ -246,7 +246,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 	}
 
 	@Override
-	public String vcode(HttpServletRequest request, VCodeCharsFrom _charsFrom, int length, String clientTokenName, VCcodeSender sender) throws Exception {
+	public String vcode(HttpServletRequest request, VCodeCharsFrom _charsFrom, int length, String clientTokenName, VCodeSender sender) throws Exception {
 		String charsFrom = (_charsFrom==null?VCodeCharsFrom.MIXED:_charsFrom).getValue();
 		Random random = new Random();
 		StringBuilder sb = new StringBuilder(length);
@@ -266,7 +266,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 
 	@Override
 	public String vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, String clientTokenName, HttpServletResponse response, int size, int start, int space, int width, int height) throws Exception {
-		return this.vcode(request, charsFrom, length, clientTokenName, new VCcodeSender() {
+		return this.vcode(request, charsFrom, length, clientTokenName, new VCodeSender() {
 			@Override
 			public void send(char[] vcode, String token) throws IOException {
 				BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
@@ -310,7 +310,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 
 	@Override
 	public String vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, String clientTokenName, String emailTo, String subject, String _content) throws Exception {
-		return this.vcode(request, charsFrom, length, clientTokenName, new VCcodeSender() {
+		return this.vcode(request, charsFrom, length, clientTokenName, new VCodeSender() {
 			@Override
 			public void send(char[] _vcode, String token) {
 				String vcode = new String(_vcode);

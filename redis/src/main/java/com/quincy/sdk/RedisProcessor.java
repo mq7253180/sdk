@@ -5,7 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import redis.clients.jedis.Jedis;
 
 public interface RedisProcessor {
-	public String vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, String clientTokenName, VCcodeSender sender) throws Exception;
+	public String vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, String clientTokenName, VCodeSender sender) throws Exception;
 	public String vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, String clientTokenName, HttpServletResponse response, int size, int start, int space, int width, int height) throws Exception;
 	public String vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, String clientTokenName, String emailTo, String subject, String content) throws Exception;
 	public Result validateVCode(HttpServletRequest request, String clientTokenName, boolean ignoreCase) throws Exception;
