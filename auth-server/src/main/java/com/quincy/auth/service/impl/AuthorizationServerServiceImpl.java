@@ -1,5 +1,6 @@
 package com.quincy.auth.service.impl;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,16 +10,25 @@ import java.util.Map.Entry;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
+import com.quincy.auth.AuthSessionHolder;
 import com.quincy.auth.entity.Permission;
 import com.quincy.auth.entity.Role;
 import com.quincy.auth.mapper.AuthMapper;
 import com.quincy.auth.o.XSession;
 import com.quincy.auth.o.Menu;
 import com.quincy.auth.o.User;
+import com.quincy.auth.service.AuthCallback;
 import com.quincy.auth.service.AuthorizationServerService;
+import com.quincy.core.InnerConstants;
+import com.quincy.sdk.helper.CommonHelper;
 
-public abstract class AuthorizationServerServiceSupport implements AuthorizationServerService {
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+
+@Service
+public class AuthorizationServerServiceImpl implements AuthorizationServerService {
 	@Autowired
 	private AuthMapper authMapper;
 	@Value("${auth.enterprise}")
@@ -86,5 +96,43 @@ public abstract class AuthorizationServerServiceSupport implements Authorization
 			for(Menu child:parent.getChildren())
 				this.loadChildrenMenus(child, entrySet);
 		}
+	}
+
+	private void excludeSession(String originalJsessionid) {
+		HttpSession httpSession = AuthSessionHolder.SESSIONS.remove(originalJsessionid);
+		if(httpSession!=null)
+			httpSession.invalidate();
+	}
+
+	@Override
+	public XSession setSession(HttpServletRequest request, AuthCallback callback) {
+		User user = callback.getUser();
+		String originalJsessionid = CommonHelper.trim(user.getJsessionid());
+		if(originalJsessionid!=null) {//同一user不同客户端登录互踢
+			this.excludeSession(originalJsessionid);
+		}
+		HttpSession session = request.getSession();
+		String jsessionid = session.getId();
+		user.setJsessionid(jsessionid);
+		XSession xsession = this.createSession(user);
+		session.setAttribute(InnerConstants.ATTR_SESSION, xsession);
+		callback.updateLastLogined(jsessionid);
+		return xsession;
+	}
+
+	@Override
+	public void updateSession(User user) {
+		String jsessionid = CommonHelper.trim(user.getJsessionid());
+		if(jsessionid!=null) {
+			HttpSession session = AuthSessionHolder.SESSIONS.get(jsessionid);
+			XSession xsession = this.createSession(user);
+			session.setAttribute(InnerConstants.ATTR_SESSION, xsession);
+		}
+	}
+
+	@Override
+	public void updateSession(List<User> users) throws IOException {
+		for(User user:users)
+			this.updateSession(user);
 	}
 }

@@ -18,7 +18,6 @@ import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.VCodeCharsFrom;
 import com.quincy.sdk.annotation.JedisSupport;
-import com.quincy.sdk.annotation.KeepCookieIfExpired;
 import com.quincy.sdk.annotation.VCodeRequired;
 import com.quincy.sdk.helper.CommonHelper;
 
@@ -36,7 +35,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 	/**
 	 * 密码登录
 	 */
-	@KeepCookieIfExpired
+//	@KeepCookieIfExpired
 	@JedisSupport
 	@PostMapping("/signin/pwd")
 	public ModelAndView doLogin(HttpServletRequest request, 
@@ -76,8 +75,9 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 	}
 	/**
 	 * 验证码登录
+	 * 需要改，生成和验证时key需要和防暴破解有区别，否则调生成验证码接口看图获取验证码之后再调这个接口，可以直接登录
 	 */
-	@KeepCookieIfExpired
+//	@KeepCookieIfExpired
 	@VCodeRequired
 	@RequestMapping("/signin/vcode")
 	public ModelAndView doLogin(HttpServletRequest request, 
@@ -87,7 +87,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 		return createModelAndView(request, result, redirectTo);
 	}
 
-	@KeepCookieIfExpired
+//	@KeepCookieIfExpired
 	@VCodeRequired(clientTokenName = AuthCommonConstants.PARA_NAME_USERNAME)
 	@RequestMapping("/signin/vcode/x")
 	public ModelAndView vcodeLogin(HttpServletRequest request, 
@@ -98,7 +98,15 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 
 	private final static String PWDSET_CLIENT_TOKEN_NAME = "email";
 
-	@KeepCookieIfExpired
+	/**
+	 * 也需要改
+	 * @param request
+	 * @param email
+	 * @param redirectTo
+	 * @return
+	 * @throws Exception
+	 */
+//	@KeepCookieIfExpired
 	@VCodeRequired(clientTokenName = PWDSET_CLIENT_TOKEN_NAME, timeoutForwardTo = "/auth"+RedisInnerConstants.URI_VCODE_PWDSET_TIMEOUT)
 	@RequestMapping(RedisInnerConstants.URI_VCODE_PWDSET_SIGNIN)
 	public ModelAndView doLoginAsPwdReset(HttpServletRequest request, 
@@ -120,7 +128,7 @@ public abstract class VCodeAuthControllerSupport extends AuthorizationController
 	protected abstract String getPwdSetEmailSubject();
 	protected abstract String getPwdSetEmailContent(String uri);
 
-	@KeepCookieIfExpired
+//	@KeepCookieIfExpired
 	@RequestMapping("/vcode/pwdset")
 	public ModelAndView vcode(HttpServletRequest request, @RequestParam(required = true, name = "email")String _email) throws Exception {
 		Integer status = null;

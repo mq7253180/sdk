@@ -17,8 +17,11 @@ import com.quincy.auth.freemarker.InputTemplateDirectiveModelBean;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.helper.CommonHelper;
 
+import jakarta.servlet.http.HttpSessionEvent;
+import jakarta.servlet.http.HttpSessionListener;
+
 @Configuration
-public class AuthCommonInitialization {
+public class AuthCommonConfiguration {
 	@Autowired
     private freemarker.template.Configuration configuration;
 	@Autowired
@@ -51,5 +54,20 @@ public class AuthCommonInitialization {
 	@PreDestroy
 	private void destroy() {
 		
+	}
+
+	@Bean
+    public HttpSessionListener httpSessionListener() {
+		return new HttpSessionListener() {
+			@Override
+			public void sessionCreated(HttpSessionEvent hse) {
+				AuthSessionHolder.SESSIONS.put(hse.getSession().getId(), hse.getSession());
+			}
+
+			@Override
+			public void sessionDestroyed(HttpSessionEvent hse) {
+				AuthSessionHolder.SESSIONS.remove(hse.getSession().getId());
+			}
+		};
 	}
 }

@@ -12,7 +12,6 @@ import com.quincy.auth.AuthCommonConstants;
 import com.quincy.auth.o.XSession;
 import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthCallback;
-import com.quincy.auth.service.AuthorizationCommonService;
 import com.quincy.auth.service.AuthorizationServerService;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.Client;
@@ -20,12 +19,9 @@ import com.quincy.sdk.Result;
 import com.quincy.sdk.helper.CommonHelper;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 @RequestMapping("/auth")
 public abstract class AuthorizationControllerSupport {
-	@Autowired
-	private AuthorizationCommonService authorizationCommonService;
 	@Autowired
 	private AuthorizationServerService authorizationServerService;
 
@@ -58,21 +54,6 @@ public abstract class AuthorizationControllerSupport {
 		mv.addObject(InnerConstants.KEY_LOCALE, locale==null?"":locale);
 		return mv;
 	}
-	/**
-	 * 登出
-	 */
-	@RequestMapping("/signout")
-	public String logout(HttpServletRequest request, HttpServletResponse response) throws Exception {
-		authorizationCommonService.logout(request, response);
-		return InnerConstants.VIEW_PATH_RESULT;
-	}
-	/**
-	 * 点超链接没权限要进入的页面
-	 */
-	@RequestMapping("/deny")
-	public String deny() {
-		return "/deny";
-	}
 
 	protected Result doPwdLogin(HttpServletRequest request, String username, String _password) throws Exception {
 		String password = CommonHelper.trim(_password);
@@ -101,7 +82,7 @@ public abstract class AuthorizationControllerSupport {
 			result.setMsg(requestContext.getMessage("auth.account.pwd_incorrect"));
 			return result;
 		}
-		XSession session = authorizationServerService.setSession(request, CommonHelper.trim(user.getJsessionid()), user.getId(), new AuthCallback() {
+		XSession session = authorizationServerService.setSession(request, new AuthCallback() {
 			@Override
 			public void updateLastLogined(String jsessionid) {
 				updateLastLogin(user.getId(), client, jsessionid);

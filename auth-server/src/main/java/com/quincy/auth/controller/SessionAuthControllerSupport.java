@@ -1,10 +1,10 @@
-package com.quincy.auth;
+package com.quincy.auth.controller;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.quincy.auth.controller.AuthorizationControllerSupport;
+import com.quincy.auth.AuthCommonConstants;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.Result;
 

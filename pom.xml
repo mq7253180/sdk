@@ -132,13 +132,8 @@
 		<module>redis</module>
 		<module>zookeeper</module>
 		<module>sftp</module>
-		<module>auth-oauth2</module>
 		<module>auth-common</module>
 		<module>auth-server</module>
-		<module>auth-session</module>
-		<module>auth-common-cache</module>
 		<module>auth-server-cache</module>
-		<module>auth-resource</module>
-		<module>auth-sso</module>
 	</modules>
 </project>

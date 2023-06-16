@@ -8,17 +8,15 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.support.RequestContext;
 
 import com.quincy.auth.AuthCommonConstants;
+import com.quincy.auth.AuthHelper;
 import com.quincy.auth.o.XSession;
-import com.quincy.auth.service.AuthorizationCommonService;
-import com.quincy.core.InnerConstants;
 import com.quincy.core.InnerHelper;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 public abstract class AuthorizationInterceptorSupport extends HandlerInterceptorAdapter {
-	@Autowired
-	private AuthorizationCommonService authorizationService;
 	@Autowired
 	@Qualifier("signinUrl")
 	private String signinUrl;
@@ -27,13 +25,14 @@ public abstract class AuthorizationInterceptorSupport extends HandlerInterceptor
 	private String denyUrl;
 
 	protected boolean doAuth(HttpServletRequest request, HttpServletResponse response, Object handler, String permissionNeeded) throws Exception {
-		XSession session = authorizationService.getSession(request);
+		HttpSession session = request.getSession(false);
+		XSession xsession = AuthHelper.getSession(request);//authorizationService.getSession(request);
 		if(session==null) {
 			InnerHelper.outputOrForward(request, response, handler, 0, new RequestContext(request).getMessage("auth.timeout.ajax"), signinUrl, true);
 			return false;
 		} else {
 			if(permissionNeeded!=null) {
-				List<String> permissions = session.getPermissions();
+				List<String> permissions = xsession.getPermissions();
 				boolean hasPermission = false;
 				for(String permission:permissions) {
 					if(permission.equals(permissionNeeded)) {
@@ -50,12 +49,8 @@ public abstract class AuthorizationInterceptorSupport extends HandlerInterceptor
 					return false;
 				}
 			}
-			request.setAttribute(InnerConstants.ATTR_SESSION, session);
+//			request.setAttribute(InnerConstants.ATTR_SESSION, xsession);
 			return true;
 		}
-	}
-
-	protected void setExpiry(HttpServletRequest request, boolean deleteCookieIfExpired) throws Exception {
-		authorizationService.setExpiry(request, deleteCookieIfExpired);
 	}
 }

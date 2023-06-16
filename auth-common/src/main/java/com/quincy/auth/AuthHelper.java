@@ -5,11 +5,13 @@ import com.quincy.core.InnerConstants;
 import com.quincy.sdk.helper.CommonHelper;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 public class AuthHelper {
 	public static XSession getSession(HttpServletRequest request) {
-		XSession session = (XSession)request.getAttribute(InnerConstants.ATTR_SESSION);
-		return session;
+		HttpSession session = request.getSession(false);
+		XSession xsession = session==null?null:(XSession)session.getAttribute(InnerConstants.ATTR_SESSION);
+		return xsession;
 	}
 
 	public static XSession getSession() {
