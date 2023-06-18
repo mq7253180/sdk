@@ -34,7 +34,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
-public class AuthServerInitialization implements BeanDefinitionRegistryPostProcessor {
+public class AuthServerInitialization {//implements BeanDefinitionRegistryPostProcessor {
 	@Autowired
     private RequestMappingHandlerMapping requestMappingHandlerMapping;
 	@Autowired
@@ -82,7 +82,7 @@ public class AuthServerInitialization implements BeanDefinitionRegistryPostProce
 	public PrivateKey privateKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
 		return RSASecurityHelper.extractPrivateKey(privateKeyStr);
 	}
-
+	/*
 	private final static String SERVICE_BEAN_NAME_TO_REMOVE = "authorizationServerServiceSessionImpl";
 
 	@Override
@@ -95,4 +95,5 @@ public class AuthServerInitialization implements BeanDefinitionRegistryPostProce
 		if (registry.containsBeanDefinition(SERVICE_BEAN_NAME_TO_REMOVE))
         	registry.removeBeanDefinition(SERVICE_BEAN_NAME_TO_REMOVE);
 	}
+	*/
 }
