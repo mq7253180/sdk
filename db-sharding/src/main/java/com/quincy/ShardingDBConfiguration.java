@@ -1,4 +1,4 @@
-package com.quincy.auth;
+package com.quincy;
 
 import org.springframework.context.annotation.Configuration;
 
