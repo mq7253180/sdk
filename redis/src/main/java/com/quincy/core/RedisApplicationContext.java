@@ -92,11 +92,6 @@ public class RedisApplicationContext {
 		return applicationName+".cache.";
 	}
 
-	@Bean("loginFailuresHolderKey")
-	public String loginFailuresHolderKey() {
-		return applicationName+".login_failures";
-	}
-
 	@PreDestroy
 	private void destroy() throws IOException {
 		if(pool!=null)

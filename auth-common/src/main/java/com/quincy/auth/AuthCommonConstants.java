@@ -8,4 +8,5 @@ public class AuthCommonConstants {
 	public final static String ATTR_DENIED_PERMISSION = "denied_permission";
 	public final static String PARA_NAME_USERNAME = "username";
 	public final static String PARA_NAME_PASSWORD = "password";
+	public final static String VCODE_ATTR_KEY = "vcode";
 }

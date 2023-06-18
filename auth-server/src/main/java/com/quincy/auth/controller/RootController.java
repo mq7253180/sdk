@@ -9,7 +9,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.quincy.auth.AuthContext;
 import com.quincy.auth.AuthHandler;
-import com.quincy.auth.AuthServerConstants;
+import com.quincy.auth.AuthConstants;
 import com.quincy.auth.annotation.LoginRequired;
 import com.quincy.core.InnerConstants;
 
@@ -43,7 +43,7 @@ public class RootController implements AuthContext {
 	 * 进入密码设置页
 	 */
 	@LoginRequired
-	@RequestMapping(AuthServerConstants.URI_PWD_SET)
+	@RequestMapping(AuthConstants.URI_PWD_SET)
 	public String toPwdSet() {
 		return "/password";
 	}

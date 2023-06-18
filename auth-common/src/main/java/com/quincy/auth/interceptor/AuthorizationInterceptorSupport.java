@@ -25,9 +25,8 @@ public abstract class AuthorizationInterceptorSupport extends HandlerInterceptor
 	private String denyUrl;
 
 	protected boolean doAuth(HttpServletRequest request, HttpServletResponse response, Object handler, String permissionNeeded) throws Exception {
-		HttpSession session = request.getSession(false);
 		XSession xsession = AuthHelper.getSession(request);//authorizationService.getSession(request);
-		if(session==null) {
+		if(xsession==null) {
 			InnerHelper.outputOrForward(request, response, handler, 0, new RequestContext(request).getMessage("auth.timeout.ajax"), signinUrl, true);
 			return false;
 		} else {

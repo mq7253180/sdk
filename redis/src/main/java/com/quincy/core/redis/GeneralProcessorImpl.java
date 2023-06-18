@@ -1,18 +1,7 @@
 package com.quincy.core.redis;
 
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.text.MessageFormat;
 import java.util.Properties;
-import java.util.Random;
 import java.util.UUID;
-
-import javax.imageio.ImageIO;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -22,18 +11,15 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.support.RequestContext;
 
+import com.quincy.auth.annotation.VCodeRequired;
 import com.quincy.core.InnerConstants;
 import com.quincy.core.InnerHelper;
 import com.quincy.sdk.Client;
-import com.quincy.sdk.EmailService;
 import com.quincy.sdk.RedisOperation;
 import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.RedisWebOperation;
 import com.quincy.sdk.Result;
-import com.quincy.sdk.VCodeSender;
-import com.quincy.sdk.VCodeCharsFrom;
 import com.quincy.sdk.annotation.JedisSupport;
-import com.quincy.sdk.annotation.VCodeRequired;
 import com.quincy.sdk.helper.CommonHelper;
 
 import jakarta.servlet.http.Cookie;
@@ -130,6 +116,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		});
 	}
 
+	/*
 	private String cacheStr(HttpServletRequest request, String flag, String content, String clientTokenName, int expireSeconds) {
 		String token = this.createOrGetToken(request, clientTokenName);
 		String key = combineAsKey(flag, token);
@@ -139,6 +126,7 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 		} else
 			throw new RuntimeException("Redis set and expire failed.");
 	}
+	*/
 
 	private String getCachedStr(HttpServletRequest request, String flag, String clientTokenName) throws Exception {
 		Object retVal = this.opt(request, new RedisWebOperation() {
@@ -243,82 +231,6 @@ public class GeneralProcessorImpl extends HandlerInterceptorAdapter implements R
 
 	private void rmCachedVCode(HttpServletRequest request, String clientTokenName) {
 		this.rmCachedStr(request, FLAG_VCODE, clientTokenName);
-	}
-
-	@Override
-	public String vcode(HttpServletRequest request, VCodeCharsFrom _charsFrom, int length, String clientTokenName, VCodeSender sender) throws Exception {
-		String charsFrom = (_charsFrom==null?VCodeCharsFrom.MIXED:_charsFrom).getValue();
-		Random random = new Random();
-		StringBuilder sb = new StringBuilder(length);
-		char[] _vcode = new char[length];
-		for(int i=0;i<length;i++) {
-			char c = charsFrom.charAt(random.nextInt(charsFrom.length()));
-			sb.append(c);
-			_vcode[i] = c;
-		}
-		String vcode = sb.toString();
-		String token = this.cacheStr(request, FLAG_VCODE, vcode, clientTokenName, Integer.parseInt(properties.getProperty("vcode.expire"))*60);
-		sender.send(_vcode, token);
-		return token;
-	}
-
-	private final double radians = Math.PI/180;
-
-	@Override
-	public String vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, String clientTokenName, HttpServletResponse response, int size, int start, int space, int width, int height) throws Exception {
-		return this.vcode(request, charsFrom, length, clientTokenName, new VCodeSender() {
-			@Override
-			public void send(char[] vcode, String token) throws IOException {
-				BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
-				Graphics g = image.getGraphics();
-				Graphics2D gg = (Graphics2D)g;
-				g.setColor(Color.WHITE);
-				g.fillRect(0, 0, width, height);//填充背景
-				int lines = Integer.parseInt(properties.getProperty("vcode.lines"));
-				Random random = new Random();
-				for(int i=0;i<lines;i++) {
-					g.setColor(new Color(random.nextInt(255), random.nextInt(255), random.nextInt(255)));
-					g.drawLine(random.nextInt(width), random.nextInt(height), random.nextInt(width), random.nextInt(height));
-				}
-				Font font = new Font("Times New Roman", Font.ROMAN_BASELINE, size);
-				g.setFont(font);
-//				g.translate(random.nextInt(3), random.nextInt(3));
-		        int x = start;//旋转原点的 x 坐标
-				for(char c:vcode) {
-		            double tiltAngle = random.nextInt()%30*radians;//角度小于30度
-					g.setColor(new Color(random.nextInt(255), random.nextInt(255), random.nextInt(255)));
-					gg.rotate(tiltAngle, x, 45);
-					g.drawString(c+"", x, size);
-		            gg.rotate(-tiltAngle, x, 45);
-		            x += space;
-				}
-				OutputStream out = null;
-				try {
-					out = response.getOutputStream();
-					ImageIO.write(image, "jpg", out);
-					out.flush();
-				} finally {
-					if(out!=null)
-						out.close();
-				}
-			}
-		});
-	}
-
-	@Autowired
-	private EmailService emailService;
-
-	@Override
-	public String vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, String clientTokenName, String emailTo, String subject, String _content) throws Exception {
-		return this.vcode(request, charsFrom, length, clientTokenName, new VCodeSender() {
-			@Override
-			public void send(char[] _vcode, String token) {
-				String vcode = new String(_vcode);
-				String content = MessageFormat.format(_content, vcode, token);
-//				content = String.format(content, vcode, token);
-				emailService.send(emailTo, subject, content, "", null, null, null, null);
-			}
-		});
 	}
 
 	private final static String TYPE_FLAG_STRING = "S";
