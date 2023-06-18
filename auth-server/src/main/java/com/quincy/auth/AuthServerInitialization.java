@@ -10,9 +10,13 @@ import java.util.Properties;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -30,7 +34,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
-public class AuthServerInitialization {
+public class AuthServerInitialization implements BeanDefinitionRegistryPostProcessor {
 	@Autowired
     private RequestMappingHandlerMapping requestMappingHandlerMapping;
 	@Autowired
@@ -77,5 +81,18 @@ public class AuthServerInitialization {
 	@Bean("selfPrivateKey")
 	public PrivateKey privateKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
 		return RSASecurityHelper.extractPrivateKey(privateKeyStr);
+	}
+
+	private final static String SERVICE_BEAN_NAME_TO_REMOVE = "authorizationServerServiceSessionImpl";
+
+	@Override
+	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+		
+	}
+
+	@Override
+	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
+		if (registry.containsBeanDefinition(SERVICE_BEAN_NAME_TO_REMOVE))
+        	registry.removeBeanDefinition(SERVICE_BEAN_NAME_TO_REMOVE);
 	}
 }

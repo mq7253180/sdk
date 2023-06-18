@@ -129,11 +129,11 @@
 	<modules>
 		<module>sdk</module>
 		<module>db</module>
+		<module>db-sharding</module>
 		<module>redis</module>
 		<module>zookeeper</module>
 		<module>sftp</module>
 		<module>auth-common</module>
 		<module>auth-server</module>
-		<module>auth-server-cache</module>
 	</modules>
 </project>
