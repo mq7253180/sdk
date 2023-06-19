@@ -6,6 +6,7 @@ import org.apache.commons.pool2.impl.AbandonedConfig;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -80,25 +81,31 @@ public class CommonApplicationContext2 {
 		return poolParams;
 	}
 
+	@Value("${pool.removeAbandonedOnMaintenance:#{null}}")
+	private Boolean removeAbandonedOnMaintenance;
+	@Value("${pool.removeAbandonedOnBorrow:#{null}}")
+	private Boolean removeAbandonedOnBorrow;
+	@Value("${pool.removeAbandonedTimeout:#{null}}")
+	private Integer removeAbandonedTimeout;
+	@Value("${pool.logAbandoned:#{null}}")
+	private Boolean logAbandoned;
+	@Value("${pool.useUsageTracking:#{null}}")
+	private Boolean useUsageTracking;
+
 	@Bean
 	public AbandonedConfig abandonedConfig() {
-		String removeAbandonedOnMaintenance = CommonHelper.trim(properties.getProperty("pool.removeAbandonedOnMaintenance"));
-		String removeAbandonedOnBorrow = CommonHelper.trim(properties.getProperty("pool.removeAbandonedOnBorrow"));
-		String removeAbandonedTimeout = CommonHelper.trim(properties.getProperty("pool.removeAbandonedTimeout"));
-		String logAbandoned = CommonHelper.trim(properties.getProperty("pool.logAbandoned"));
-		String useUsageTracking = CommonHelper.trim(properties.getProperty("pool.useUsageTracking"));
-//		String requireFullStackTrace = CommonHelper.trim(properties.getProperty("pool.requireFullStackTrace"));
+		String requireFullStackTrace = CommonHelper.trim(properties.getProperty("pool.requireFullStackTrace"));
 		AbandonedConfig ac = new AbandonedConfig();
 		if(removeAbandonedOnMaintenance!=null)
-			ac.setRemoveAbandonedOnMaintenance(Boolean.parseBoolean(removeAbandonedOnMaintenance));//在Maintenance的时候检查是否有泄漏
+			ac.setRemoveAbandonedOnMaintenance(removeAbandonedOnMaintenance);//在Maintenance的时候检查是否有泄漏
 		if(removeAbandonedOnBorrow!=null)
-			ac.setRemoveAbandonedOnBorrow(Boolean.parseBoolean(removeAbandonedOnBorrow));//borrow的时候检查泄漏
+			ac.setRemoveAbandonedOnBorrow(removeAbandonedOnBorrow);//borrow的时候检查泄漏
 		if(removeAbandonedTimeout!=null)
-			ac.setRemoveAbandonedTimeout(Integer.parseInt(removeAbandonedTimeout));//如果一个对象borrow之后n秒还没有返还给pool，认为是泄漏的对象
+			ac.setRemoveAbandonedTimeout(removeAbandonedTimeout);//如果一个对象borrow之后n秒还没有返还给pool，认为是泄漏的对象
 		if(logAbandoned!=null)
-			ac.setLogAbandoned(Boolean.parseBoolean(logAbandoned));
+			ac.setLogAbandoned(logAbandoned);
 		if(useUsageTracking!=null)
-			ac.setUseUsageTracking(Boolean.parseBoolean(useUsageTracking));
+			ac.setUseUsageTracking(useUsageTracking);
 		/*if(requireFullStackTrace!=null)
 			ac.setRequireFullStackTrace(Boolean.parseBoolean(requireFullStackTrace));*/
 //		ac.setLogWriter(logWriter);
