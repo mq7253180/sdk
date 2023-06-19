@@ -8,10 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
-import java.util.Properties;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -107,9 +105,6 @@ public class AuthorizationServerServiceImpl implements AuthorizationServerServic
 			httpSession.invalidate();
 	}
 
-	@Autowired
-	@Qualifier(InnerConstants.BEAN_NAME_PROPERTIES)
-	private Properties properties;
 	@Value("${server.servlet.session.timeout}")
 	private String sessionTimeout;
 

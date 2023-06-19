@@ -21,17 +21,16 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor;
 
-import com.quincy.core.InnerConstants;
 import com.quincy.core.web.GlobalHandlerExceptionResolver;
 import com.quincy.core.web.GlobalHandlerMethodReturnValueHandler;
 import com.quincy.core.web.GlobalLocaleResolver;
+import com.quincy.core.InnerConstants;
 import com.quincy.core.web.GeneralInterceptor;
 import com.quincy.core.web.StaticInterceptor;
 import com.quincy.core.web.freemarker.AttributeTemplateDirectiveModelBean;
 import com.quincy.core.web.freemarker.I18NTemplateDirectiveModelBean;
 import com.quincy.core.web.freemarker.LocaleTemplateDirectiveModelBean;
 import com.quincy.core.web.freemarker.PropertiesTemplateDirectiveModelBean;
-import com.quincy.sdk.helper.CommonHelper;
 
 import freemarker.template.Configuration;
 
@@ -40,18 +39,18 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport implements I
     private RequestMappingHandlerAdapter adapter;
 	@Autowired
 	private ApplicationContext applicationContext;
-	@Autowired
-	@Qualifier(InnerConstants.BEAN_NAME_PROPERTIES)
-    private Properties properties;
 	@Value("${env}")
 	private String env;
+	@Value("${impl.auth.interceptor:#{null}}")
+	private String interceptorImpl;
+	@Value("${server.port}")
+	private String serverPort;
 
 	@Override
 	protected void addInterceptors(InterceptorRegistry registry) {
 		if(Constants.ENV_DEV.equals(env))
 			registry.addInterceptor(new StaticInterceptor()).addPathPatterns("/static/**");
 		registry.addInterceptor(new GeneralInterceptor()).addPathPatterns("/**");
-		String interceptorImpl = CommonHelper.trim(properties.getProperty("impl.auth.interceptor"));
 		if(interceptorImpl!=null) {
 			HandlerInterceptorAdapter handlerInterceptorAdapter = applicationContext.getBean(interceptorImpl, HandlerInterceptorAdapter.class);
 			registry.addInterceptor(handlerInterceptorAdapter).addPathPatterns("/**");
@@ -69,8 +68,7 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport implements I
     private void decorateHandlers(List<HandlerMethodReturnValueHandler> handlers) {
         for(HandlerMethodReturnValueHandler handler:handlers) {
             if(handler instanceof RequestResponseBodyMethodProcessor) {
-            	String cluster = CommonHelper.trim(properties.getProperty("server.port"));
-            	HandlerMethodReturnValueHandler decorator = new GlobalHandlerMethodReturnValueHandler(handler, applicationContext, cluster);
+            	HandlerMethodReturnValueHandler decorator = new GlobalHandlerMethodReturnValueHandler(handler, applicationContext, serverPort);
                 int index = handlers.indexOf(handler);
                 handlers.set(index, decorator);
                 break;
@@ -90,6 +88,9 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport implements I
 
     @Autowired
     private Configuration freemarkerCfg;
+    @Autowired
+    @Qualifier(InnerConstants.BEAN_NAME_PROPERTIES)
+    private Properties properties;
 
     @PostConstruct
     public void freeMarkerConfigurer() {

@@ -66,7 +66,7 @@ public class CommonApplicationContext {//implements TransactionManagementConfigu
 		return bean;
 	}
 
-	private abstract class ClassPathHandler {
+	public static abstract class ClassPathHandler {
 		protected abstract void run(List<Resource> resources);
 
 		public void start(String... locationPatterns) throws IOException {

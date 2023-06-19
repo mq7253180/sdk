@@ -8,13 +8,12 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.MessageFormat;
-import java.util.Properties;
 import java.util.Random;
 
 import javax.imageio.ImageIO;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import com.quincy.auth.AuthCommonConstants;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.EmailService;
-import com.quincy.sdk.helper.CommonHelper;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -49,11 +47,12 @@ public class AuthorizationCommonController {
 	public String deny() {
 		return "/deny";
 	}
-	@Autowired
-	@Qualifier(InnerConstants.BEAN_NAME_PROPERTIES)
-	private Properties properties;
+
 	private final double VCODE_RADIANS = Math.PI/180;
-	private final static int VCODE_DEFAULT_TIMEOUT_SECONDS = 120;
+	@Value("${vcode.length}")
+	private int vcodeLength;
+	@Value("${vcode.lines}")
+	private int vcodeLines;
 	/**
 	 * Example: 25/10/25/110/35
 	 */
@@ -64,7 +63,7 @@ public class AuthorizationCommonController {
 			@PathVariable(required = true, name = "space")int space,
 			@PathVariable(required = true, name = "width")int width, 
 			@PathVariable(required = true, name = "height")int height) throws Exception {
-		this.vcode(request, VCodeCharsFrom.MIXED, Integer.parseInt(properties.getProperty("vcode.length")), null, new VCodeSender() {
+		this.vcode(request, VCodeCharsFrom.MIXED, vcodeLength, null, new VCodeSender() {
 			@Override
 			public void send(char[] vcode) throws IOException {
 				BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
@@ -72,9 +71,8 @@ public class AuthorizationCommonController {
 				Graphics2D gg = (Graphics2D)g;
 				g.setColor(Color.WHITE);
 				g.fillRect(0, 0, width, height);//填充背景
-				int lines = Integer.parseInt(properties.getProperty("vcode.lines"));
 				Random random = new Random();
-				for(int i=0;i<lines;i++) {
+				for(int i=0;i<vcodeLines;i++) {
 					g.setColor(new Color(random.nextInt(255), random.nextInt(255), random.nextInt(255)));
 					g.drawLine(random.nextInt(width), random.nextInt(height), random.nextInt(width), random.nextInt(height));
 				}
@@ -103,6 +101,9 @@ public class AuthorizationCommonController {
 		});
 	}
 
+	@Value("${auth.vcode.timeout:120}")
+	private int vcodeTimeoutSeconds;
+
 	public String vcode(HttpServletRequest request, VCodeCharsFrom _charsFrom, int length, String clientTokenName, VCodeSender sender) throws Exception {
 		String charsFrom = (_charsFrom==null?VCodeCharsFrom.MIXED:_charsFrom).getValue();
 		Random random = new Random();
@@ -114,10 +115,8 @@ public class AuthorizationCommonController {
 			_vcode[i] = c;
 		}
 		String vcode = sb.toString();
-		String maxInactiveIntervalStr = CommonHelper.trim(properties.getProperty("auth.vcode.timeout"));
-		int maxInactiveInterval = maxInactiveIntervalStr==null?VCODE_DEFAULT_TIMEOUT_SECONDS:Integer.parseInt(maxInactiveIntervalStr);
 		HttpSession session = request.getSession();
-		session.setMaxInactiveInterval(maxInactiveInterval);
+		session.setMaxInactiveInterval(vcodeTimeoutSeconds);
 		session.setAttribute(AuthCommonConstants.VCODE_ATTR_KEY, vcode);
 		sender.send(_vcode);
 		return session.getId();

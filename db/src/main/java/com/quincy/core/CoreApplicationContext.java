@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 import javax.sql.DataSource;
 
@@ -13,11 +12,9 @@ import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.commons.pool2.impl.AbandonedConfig;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 
 import com.quincy.core.db.DataSourceHolder;
 import com.quincy.core.db.RoutingDataSource;
@@ -25,7 +22,6 @@ import com.quincy.sdk.helper.CommonHelper;
 
 import lombok.Data;
 
-@PropertySource({"classpath:application-sdk.properties", "classpath:application-sensitiveness.properties"})
 @Configuration
 //@AutoConfigureAfter(CommonApplicationContext.class)
 //@Import(CommonApplicationContext.class)
@@ -46,9 +42,6 @@ public class CoreApplicationContext {//implements TransactionManagementConfigure
 	private String slavePassword;
 	@Value("${spring.datasource.pool.masterRatio}")
 	private int masterRatio;
-	@Autowired
-	@Qualifier(InnerConstants.BEAN_NAME_PROPERTIES)
-	private Properties properties;
 
 	@Bean(name = "dataSource")
     public DataSource routingDataSource() throws SQLException {
@@ -101,40 +94,57 @@ public class CoreApplicationContext {//implements TransactionManagementConfigure
 		private boolean accessToUnderlyingConnectionAllowed;
 	}
 
+	@Value("${spring.datasource.dbcp2.poolPreparedStatements:#{null}}")
+	private Boolean poolPreparedStatements;
+	@Value("${spring.datasource.dbcp2.maxOpenPreparedStatements:#{null}}")
+	private Integer maxOpenPreparedStatements;
+	@Value("${spring.datasource.dbcp2.initialSize:#{null}}")
+	private Integer initialSize;
+	@Value("${spring.datasource.dbcp2.defaultQueryTimeoutSeconds:#{null}}")
+	private Integer defaultQueryTimeoutSeconds;
+	@Value("${spring.datasource.dbcp2.validationQuery:#{null}}")
+	private String validationQuery;
+	@Value("${spring.datasource.dbcp2.validationQueryTimeoutSeconds:#{null}}")
+	private Integer validationQueryTimeoutSeconds;
+	@Value("${spring.datasource.dbcp2.maxConnLifetimeMillis:#{null}}")
+	private Long maxConnLifetimeMillis;
+	@Value("${spring.datasource.dbcp2.logExpiredConnections:#{null}}")
+	private Boolean logExpiredConnections;
+	@Value("${spring.datasource.dbcp2.cacheState:#{null}}")
+	private Boolean cacheState;
+	@Value("${spring.datasource.dbcp2.connectionInitSqls:#{null}}")
+	private String _connectionInitSqls;
+	@Value("${spring.datasource.dbcp2.defaultTransactionIsolation:#{null}}")
+	private Integer defaultTransactionIsolation;
+	@Value("${spring.datasource.dbcp2.connectionProperties:#{null}}")
+	private String connectionProperties;
+	@Value("${spring.datasource.dbcp2.fastFailValidation:#{null}}")
+	private Boolean fastFailValidation;
+	@Value("${spring.datasource.dbcp2.disconnectionSqlCodes:#{null}}")
+	private String _disconnectionSqlCodes;
+	@Value("${spring.datasource.dbcp2.defaultCatalog}")
+	private String defaultCatalog;
+	@Value("${spring.datasource.dbcp2.accessToUnderlyingConnectionAllowed:#{null}}")
+	private Boolean accessToUnderlyingConnectionAllowed;
+
 	@Bean
 	public DBConnPoolParams dbConnPoolParams() throws SQLException {
-		String poolPreparedStatements = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.poolPreparedStatements"));
-		String maxOpenPreparedStatements = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.maxOpenPreparedStatements"));
-		String initialSize = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.initialSize"));
-		String defaultQueryTimeoutSeconds = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.defaultQueryTimeoutSeconds"));
-		String validationQuery = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.validationQuery"));
-		String validationQueryTimeoutSeconds = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.validationQueryTimeoutSeconds"));
-		String maxConnLifetimeMillis = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.maxConnLifetimeMillis"));
-		String logExpiredConnections = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.logExpiredConnections"));
-		String cacheState = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.cacheState"));
-		String _connectionInitSqls = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.connectionInitSqls"));
-		String defaultTransactionIsolation = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.defaultTransactionIsolation"));
-		String connectionProperties = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.connectionProperties"));
-		String fastFailValidation = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.fastFailValidation"));
-		String _disconnectionSqlCodes = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.disconnectionSqlCodes"));
-		String defaultCatalog = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.defaultCatalog"));
-		String accessToUnderlyingConnectionAllowed = CommonHelper.trim(properties.getProperty("spring.datasource.dbcp2.accessToUnderlyingConnectionAllowed"));
 		BasicDataSource ds = new BasicDataSource();
 		DBConnPoolParams p = new DBConnPoolParams();
-		p.setPoolingStatements(poolPreparedStatements==null?ds.isPoolPreparedStatements():Boolean.parseBoolean(poolPreparedStatements));
-		p.setMaxOpenPreparedStatements(maxOpenPreparedStatements==null?ds.getMaxOpenPreparedStatements():Integer.parseInt(maxOpenPreparedStatements));
-		p.setInitialSize(initialSize==null?ds.getInitialSize():Integer.parseInt(initialSize));
-		p.setDefaultQueryTimeoutSeconds(defaultQueryTimeoutSeconds==null?ds.getDefaultQueryTimeout():Integer.valueOf(defaultQueryTimeoutSeconds));
+		p.setPoolingStatements(poolPreparedStatements==null?ds.isPoolPreparedStatements():poolPreparedStatements);
+		p.setMaxOpenPreparedStatements(maxOpenPreparedStatements==null?ds.getMaxOpenPreparedStatements():maxOpenPreparedStatements);
+		p.setInitialSize(initialSize==null?ds.getInitialSize():initialSize);
+		p.setDefaultQueryTimeoutSeconds(defaultQueryTimeoutSeconds==null?ds.getDefaultQueryTimeout():defaultQueryTimeoutSeconds);
 		p.setValidationQuery(validationQuery==null?ds.getValidationQuery():CommonHelper.trim(validationQuery));
-		p.setValidationQueryTimeoutSeconds(validationQueryTimeoutSeconds==null?ds.getValidationQueryTimeout():Integer.parseInt(validationQueryTimeoutSeconds));
-		p.setMaxConnLifetimeMillis(maxConnLifetimeMillis==null?ds.getMaxConnLifetimeMillis():Long.parseLong(maxConnLifetimeMillis));
-		p.setLogExpiredConnections(logExpiredConnections==null?ds.getLogExpiredConnections():Boolean.parseBoolean(logExpiredConnections));
-		p.setCacheState(cacheState==null?ds.getCacheState():Boolean.parseBoolean(cacheState));
-		p.setDefaultTransactionIsolation(defaultTransactionIsolation==null?ds.getDefaultTransactionIsolation():Integer.parseInt(defaultTransactionIsolation));
+		p.setValidationQueryTimeoutSeconds(validationQueryTimeoutSeconds==null?ds.getValidationQueryTimeout():validationQueryTimeoutSeconds);
+		p.setMaxConnLifetimeMillis(maxConnLifetimeMillis==null?ds.getMaxConnLifetimeMillis():maxConnLifetimeMillis);
+		p.setLogExpiredConnections(logExpiredConnections==null?ds.getLogExpiredConnections():logExpiredConnections);
+		p.setCacheState(cacheState==null?ds.getCacheState():cacheState);
+		p.setDefaultTransactionIsolation(defaultTransactionIsolation==null?ds.getDefaultTransactionIsolation():defaultTransactionIsolation);
 		p.setConnectionProperties(connectionProperties);
-		p.setFastFailValidation(fastFailValidation==null?ds.getFastFailValidation():Boolean.parseBoolean(fastFailValidation));
+		p.setFastFailValidation(fastFailValidation==null?ds.getFastFailValidation():fastFailValidation);
 		p.setDefaultCatalog(defaultCatalog);
-		p.setAccessToUnderlyingConnectionAllowed(accessToUnderlyingConnectionAllowed==null?ds.isAccessToUnderlyingConnectionAllowed():Boolean.parseBoolean(accessToUnderlyingConnectionAllowed));
+		p.setAccessToUnderlyingConnectionAllowed(accessToUnderlyingConnectionAllowed==null?ds.isAccessToUnderlyingConnectionAllowed():accessToUnderlyingConnectionAllowed);
 		if(_connectionInitSqls!=null) {
 			String[] connectionInitSqls = _connectionInitSqls.split(";");
 			if(connectionInitSqls!=null&&connectionInitSqls.length>0)
