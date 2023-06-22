@@ -67,17 +67,12 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		<!-- MyBatis注解; Property 'sqlSessionFactory' or 'sqlSessionTemplate' are required -->
+		<!-- https://mvnrepository.com/artifact/org.mybatis/mybatis -->
 		<dependency>
-			<!-- MyBatis注解; Property 'sqlSessionFactory' or 'sqlSessionTemplate' are required -->
-		    <groupId>org.mybatis.spring.boot</groupId>
-		    <artifactId>mybatis-spring-boot-starter</artifactId>
-		    <version>3.0.1</version>
-		    <exclusions>
-		    	<exclusion>
-		    		<groupId>org.apache.logging.log4j</groupId>
-		    		<artifactId>log4j-api</artifactId>
-		    	</exclusion>
-		    </exclusions>
+		    <groupId>org.mybatis</groupId>
+		    <artifactId>mybatis</artifactId>
+		    <version>3.5.11</version>
 		</dependency>
 		<!-- 脱离Spring Boot加载JPA抛异常: java.lang.ArrayStoreException: sun.reflect.annotation.TypeNotPresentExceptionProxy -->
 		<!-- dependency>
