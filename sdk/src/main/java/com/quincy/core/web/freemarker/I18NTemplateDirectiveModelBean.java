@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.text.MessageFormat;
 import java.util.Map;
-import java.util.Properties;
 
 import org.springframework.web.servlet.support.RequestContext;
 
@@ -17,10 +16,10 @@ import freemarker.template.TemplateException;
 import freemarker.template.TemplateModel;
 
 public class I18NTemplateDirectiveModelBean implements TemplateDirectiveModel {
-	private Properties properties;
+	private org.springframework.core.env.Environment environment;
 
-	public I18NTemplateDirectiveModelBean(Properties properties) {
-		this.properties = properties;
+	public I18NTemplateDirectiveModelBean(org.springframework.core.env.Environment environment) {
+		this.environment = environment;
 	}
 
 	@Override
@@ -29,22 +28,22 @@ public class I18NTemplateDirectiveModelBean implements TemplateDirectiveModel {
 		RequestContext requestContext = new RequestContext(CommonHelper.getRequest());
 		String msg = requestContext.getMessage(params.get("key").toString());
 		if(body!=null) {
-			body.render(new PlaceHolderWriter(env.getOut(), requestContext, properties, msg));
+			body.render(new PlaceHolderWriter(env.getOut(), requestContext, environment, msg));
 		} else
 			env.getOut().write(msg);
 	}
 
 	private static class PlaceHolderWriter extends Writer {
 		private RequestContext requestContext;
-		private Properties properties;
+		private org.springframework.core.env.Environment environment;
 		private final Writer out;
 		private String msg;
 		
-		public PlaceHolderWriter(Writer out, RequestContext requestContext, Properties properties, String msg) {
+		public PlaceHolderWriter(Writer out, RequestContext requestContext, org.springframework.core.env.Environment environment, String msg) {
             this.out = out;
             this.msg = msg;
             this.requestContext = requestContext;
-            this.properties = properties;
+            this.environment = environment;
         }
 
 		@Override
@@ -62,7 +61,7 @@ public class I18NTemplateDirectiveModelBean implements TemplateDirectiveModel {
 					type = placeholderValue[0].trim();
 					value = placeholderValue.length>1?placeholderValue[1].trim():type;
 					if("property".equals(type)) {
-						args[i] = properties.getProperty(value);
+						args[i] = environment.getProperty(value);
 					} else if("i18n".equals(type))
 						args[i] = requestContext.getMessage(value);
 				}
@@ -79,12 +78,5 @@ public class I18NTemplateDirectiveModelBean implements TemplateDirectiveModel {
 		public void close() throws IOException {
 			out.close();
 		}
-	}
-
-	public Properties getProperties() {
-		return properties;
-	}
-	public void setProperties(Properties properties) {
-		this.properties = properties;
 	}
 }

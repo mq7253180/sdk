@@ -3,7 +3,6 @@ package com.quincy.core.web.freemarker;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
-import java.util.Properties;
 
 import freemarker.core.Environment;
 import freemarker.template.TemplateDirectiveBody;
@@ -12,10 +11,10 @@ import freemarker.template.TemplateException;
 import freemarker.template.TemplateModel;
 
 public class PropertiesTemplateDirectiveModelBean implements TemplateDirectiveModel {
-	private Properties properties;
+	private org.springframework.core.env.Environment environment;
 
-	public PropertiesTemplateDirectiveModelBean(Properties properties) {
-		this.properties = properties;
+	public PropertiesTemplateDirectiveModelBean(org.springframework.core.env.Environment environment) {
+		this.environment = environment;
 	}
 
 	@Override
@@ -23,14 +22,7 @@ public class PropertiesTemplateDirectiveModelBean implements TemplateDirectiveMo
 			throws TemplateException, IOException {
 		Object key = params.get("key");
 		Writer out = env.getOut();
-		String value = properties.getProperty(key.toString());
+		String value = environment.getProperty(key.toString());
 		out.write(value==null?"["+key.toString()+": null]":value);
-	}
-
-	public Properties getProperties() {
-		return properties;
-	}
-	public void setProperties(Properties properties) {
-		this.properties = properties;
 	}
 }

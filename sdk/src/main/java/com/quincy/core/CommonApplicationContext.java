@@ -49,7 +49,7 @@ public class CommonApplicationContext {//implements TransactionManagementConfigu
         return messageSource;
     }
 
-	@Bean(InnerConstants.BEAN_NAME_PROPERTIES)
+//	@Bean(InnerConstants.BEAN_NAME_PROPERTIES)
 	public PropertiesFactoryBean properties() throws IOException {
 		List<Resource> resourceList = new ArrayList<Resource>();
 		new ClassPathHandler() {

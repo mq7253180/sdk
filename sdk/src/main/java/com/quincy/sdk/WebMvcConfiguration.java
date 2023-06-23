@@ -2,13 +2,11 @@ package com.quincy.sdk;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -24,7 +22,6 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBody
 import com.quincy.core.web.GlobalHandlerExceptionResolver;
 import com.quincy.core.web.GlobalHandlerMethodReturnValueHandler;
 import com.quincy.core.web.GlobalLocaleResolver;
-import com.quincy.core.InnerConstants;
 import com.quincy.core.web.GeneralInterceptor;
 import com.quincy.core.web.StaticInterceptor;
 import com.quincy.core.web.freemarker.AttributeTemplateDirectiveModelBean;
@@ -88,15 +85,12 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport implements I
 
     @Autowired
     private Configuration freemarkerCfg;
-    @Autowired
-    @Qualifier(InnerConstants.BEAN_NAME_PROPERTIES)
-    private Properties properties;
 
     @PostConstruct
     public void freeMarkerConfigurer() {
     	freemarkerCfg.setSharedVariable("attr", new AttributeTemplateDirectiveModelBean());
-		freemarkerCfg.setSharedVariable("i18n", new I18NTemplateDirectiveModelBean(properties));
-		freemarkerCfg.setSharedVariable("property", new PropertiesTemplateDirectiveModelBean(properties));
+		freemarkerCfg.setSharedVariable("i18n", new I18NTemplateDirectiveModelBean(applicationContext.getEnvironment()));
+		freemarkerCfg.setSharedVariable("property", new PropertiesTemplateDirectiveModelBean(applicationContext.getEnvironment()));
 		freemarkerCfg.setSharedVariable("locale", new LocaleTemplateDirectiveModelBean());
     }
 
