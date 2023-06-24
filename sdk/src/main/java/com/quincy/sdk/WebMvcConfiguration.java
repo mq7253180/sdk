@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
-import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
@@ -19,7 +18,6 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor;
 
-import com.quincy.core.web.GlobalHandlerExceptionResolver;
 import com.quincy.core.web.GlobalHandlerMethodReturnValueHandler;
 import com.quincy.core.web.GlobalLocaleResolver;
 import com.quincy.core.web.GeneralInterceptor;
@@ -76,11 +74,6 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport implements I
     @Bean
     public LocaleResolver localeResolver() {
         return new GlobalLocaleResolver();
-    }
-
-    @Bean
-    public HandlerExceptionResolver handlerExceptionResolver() {
-    	return new GlobalHandlerExceptionResolver();
     }
 
     @Autowired
