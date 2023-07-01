@@ -8,7 +8,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.quincy.core.db.DataSourceHolder;
+import com.quincy.core.db.SingleDataSourceHolder;
 import com.quincy.sdk.helper.AopHelper;
 
 @Aspect
@@ -24,14 +24,14 @@ public class ReadOnlyAop {
 		if(transactionalAnnotation==null) {
 			boolean stackRoot = false;
 			try {
-				if(DataSourceHolder.getDetermineCurrentLookupKey()==null) {
+				if(SingleDataSourceHolder.getDetermineCurrentLookupKey()==null) {
 					stackRoot = true;
-					DataSourceHolder.setSlave();
+					SingleDataSourceHolder.setSlave();
 				}
 				return joinPoint.proceed();
 			} finally {
 				if(stackRoot)
-					DataSourceHolder.remove();
+					SingleDataSourceHolder.remove();
 			}
 		} else {
 			return joinPoint.proceed();

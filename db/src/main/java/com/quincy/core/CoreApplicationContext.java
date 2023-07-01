@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.quincy.core.db.DataSourceHolder;
+import com.quincy.core.db.SingleDataSourceHolder;
 import com.quincy.core.db.RoutingDataSource;
 
 @Configuration
@@ -61,8 +61,8 @@ public class CoreApplicationContext {//implements TransactionManagementConfigure
 		slaveDB.setDefaultReadOnly(true);
 
 		Map<Object, Object> targetDataSources = new HashMap<Object, Object>(2);
-		targetDataSources.put(DataSourceHolder.MASTER, masterDB);
-		targetDataSources.put(DataSourceHolder.SLAVE, slaveDB);
+		targetDataSources.put(SingleDataSourceHolder.MASTER, masterDB);
+		targetDataSources.put(SingleDataSourceHolder.SLAVE, slaveDB);
 		RoutingDataSource db = new RoutingDataSource();
 		db.setTargetDataSources(targetDataSources);
 		db.setDefaultTargetDataSource(masterDB);

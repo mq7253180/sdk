@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import com.quincy.core.InnerConstants;
 import com.quincy.core.redis.JedisSource;
@@ -62,25 +63,19 @@ public class JedisSupportAop {
         		jedis = jedisSource.get();
         		jedisCluster = (jedis instanceof QuincyJedis)?((QuincyJedis)jedis).getJedisCluster():null;
         		if(annotation.transactional()) {
-        			if(jedisCluster==null) {
-            			tx = jedis.multi();
-        			} else
-        				throw new RuntimeException(MSG_TX_NOT_SUPPORTED);
+        			Assert.isNull(jedisCluster, MSG_TX_NOT_SUPPORTED);
+        			tx = jedis.multi();
         		}
         		for(Integer i:index) {
         			String className = classes[i].getName();
         			if(Jedis.class.getName().equals(className)) {
         				args[i] = jedis;
         			} else if(Transaction.class.getName().equals(className)) {
-        				if(tx==null) {
-        					throw new RuntimeException(jedisCluster==null?"Redis transation is currently not enabled. Please set 'transactional' to true if you are using redis in transaction.":MSG_TX_NOT_SUPPORTED+" Please remove the argument(s) of Transaction.");
-        				} else
-        					args[i] = tx;
+        				Assert.notNull(tx, jedisCluster==null?"Redis transation is currently not enabled. Please set 'transactional' to true if you are using redis in transaction.":MSG_TX_NOT_SUPPORTED+" Please remove the argument(s) of Transaction.");
+        				args[i] = tx;
         			} else if(JedisCluster.class.getName().equals(className)) {
-        				if(jedisCluster==null) {
-        					throw new RuntimeException("Redis is currently not in cluster mode.");
-        				} else
-        					args[i] = jedisCluster;
+        				Assert.notNull(tx, "Redis is currently not in cluster mode.");
+        				args[i] = jedisCluster;
         			} 
         		}
         		return joinPoint.proceed(args);
