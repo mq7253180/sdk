@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 
 @Documented
 @Retention(value = RetentionPolicy.RUNTIME)
-@Target(value = {ElementType.ANNOTATION_TYPE, ElementType.FIELD})
+@Target(value = {ElementType.ANNOTATION_TYPE, ElementType.PARAMETER})
 public @interface ShardingKey {
 	
 }

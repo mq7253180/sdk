@@ -25,7 +25,7 @@ public class ShardingAop {
 	private int shardingCount;
 
 	@Pointcut("@annotation(com.quincy.sdk.annotation.Sharding)")
-    public void shardPointCut() {}
+    public void shardingPointCut() {}
 	@Pointcut("@annotation(org.springframework.transaction.annotation.Transactional)")
     public void transactionalPointCut() {}
 	@Pointcut("@annotation(com.quincy.sdk.annotation.ReadOnly)")
@@ -65,7 +65,7 @@ public class ShardingAop {
 		}
 	}
 
-	@Around("shardPointCut()")
+	@Around("shardingPointCut()")
     public Object doShardingAround(ProceedingJoinPoint joinPoint) throws Throwable {
 		return this.doAround(joinPoint, ShardingBDConstants.MASTER);
 	}

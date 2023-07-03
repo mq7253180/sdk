@@ -74,6 +74,7 @@ public class ShardingDBConfiguration {
 		}
 		RoutingDataSource db = new RoutingDataSource();
 		db.setTargetDataSources(targetDataSources);
+		db.setDefaultTargetDataSource(targetDataSources.get(ShardingBDConstants.MASTER+0));
 		return db;
 	}
 }
