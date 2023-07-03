@@ -105,8 +105,10 @@ public class AuthorizationServerServiceImpl implements AuthorizationServerServic
 			httpSession.invalidate();
 	}
 
-	@Value("${server.servlet.session.timeout}")
+	@Value("${server.servlet.session.timeout:#{null}}")
 	private String sessionTimeout;
+	@Value("${server.servlet.session.timeout.app:#{null}}")
+	private String sessionTimeoutApp;
 
 	@Override
 	public XSession setSession(HttpServletRequest request, AuthCallback callback) {
@@ -114,8 +116,13 @@ public class AuthorizationServerServiceImpl implements AuthorizationServerServic
 		String originalJsessionid = CommonHelper.trim(user.getJsessionid());
 		if(originalJsessionid!=null)//同一user不同客户端登录互踢
 			this.excludeSession(originalJsessionid);
+		int maxInactiveInterval = -1;
+		if(CommonHelper.isApp(request)) {
+			maxInactiveInterval = sessionTimeoutApp==null?86400:Integer.parseInt(String.valueOf(Duration.parse(sessionTimeoutApp).getSeconds()));
+		} else
+			maxInactiveInterval = sessionTimeout==null?18000:Integer.parseInt(String.valueOf(Duration.parse(sessionTimeout).getSeconds()));
 		HttpSession session = request.getSession();
-		session.setMaxInactiveInterval(sessionTimeout==null?18000:Integer.parseInt(String.valueOf(Duration.parse(sessionTimeout).getSeconds())));//验证码接口会设置一个较短的超时时间，登录成功后在这里给恢复回来，如果没有设置取默认半小时
+		session.setMaxInactiveInterval(maxInactiveInterval);//验证码接口会设置一个较短的超时时间，登录成功后在这里给恢复回来，如果没有设置取默认半小时
 		String jsessionid = session.getId();
 		user.setJsessionid(jsessionid);
 		XSession xsession = this.createSession(user);
