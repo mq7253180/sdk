@@ -143,7 +143,7 @@ public class CommonHelper {
 						return locale;
 				}
 			}
-			return this.next==null?null:this.next.support(request);
+			return this.next==null?"zh_CN":this.next.support(request);
 		}
 	}
 
