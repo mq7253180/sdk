@@ -26,7 +26,7 @@ public class GlobalHandlerExceptionResolver {//implements HandlerExceptionResolv
 		if(!InnerConstants.CLIENT_TYPE_J.equals(clientType)) {
 			exception = this.getExceptionStackTrace(e, "<br/>", "&nbsp;");
 		} else {
-			exception = e.toString().replaceAll("\n", "").replaceAll("\r", "").replaceAll("\\\\", "/");
+			exception = e.toString().replaceAll("\n", "").replaceAll("\r", "").replaceAll("\\\\", "/").replaceAll("\"", "'");
 			response.setHeader("Content-Type", "application/json;charset=UTF-8");
 		}
 		RequestContext requestContext = new RequestContext(request);

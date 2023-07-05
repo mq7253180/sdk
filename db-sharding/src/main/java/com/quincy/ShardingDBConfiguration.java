@@ -16,6 +16,9 @@ import org.springframework.util.Assert;
 
 import com.quincy.core.DBCommonApplicationContext;
 import com.quincy.core.db.RoutingDataSource;
+import com.quincy.sdk.MasterOrSlave;
+
+import jakarta.annotation.PostConstruct;
 
 @Configuration
 public class ShardingDBConfiguration {
@@ -69,12 +72,12 @@ public class ShardingDBConfiguration {
 			slaveDB.setRollbackOnReturn(true);
 			slaveDB.setDefaultReadOnly(true);
 
-			targetDataSources.put(ShardingBDConstants.MASTER+i, masterDB);
-			targetDataSources.put(ShardingBDConstants.SLAVE+i, slaveDB);
+			targetDataSources.put(MasterOrSlave.MASTER.value()+i, masterDB);
+			targetDataSources.put(MasterOrSlave.SLAVE.value()+i, slaveDB);
 		}
 		RoutingDataSource db = new RoutingDataSource();
 		db.setTargetDataSources(targetDataSources);
-		db.setDefaultTargetDataSource(targetDataSources.get(ShardingBDConstants.MASTER+0));
+		db.setDefaultTargetDataSource(targetDataSources.get(MasterOrSlave.MASTER.value()+0));
 		return db;
 	}
 }

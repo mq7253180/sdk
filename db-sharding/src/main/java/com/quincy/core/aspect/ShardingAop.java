@@ -13,8 +13,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import com.quincy.ShardingBDConstants;
 import com.quincy.core.db.DataSourceHolder;
+import com.quincy.sdk.MasterOrSlave;
 import com.quincy.sdk.annotation.ShardingKey;
 
 @Aspect
@@ -67,16 +67,16 @@ public class ShardingAop {
 
 	@Around("shardingPointCut()")
     public Object doShardingAround(ProceedingJoinPoint joinPoint) throws Throwable {
-		return this.doAround(joinPoint, ShardingBDConstants.MASTER);
+		return this.doAround(joinPoint, MasterOrSlave.MASTER.value());
 	}
 
 	@Around("transactionalPointCut()")
     public Object doTransactionalAround(ProceedingJoinPoint joinPoint) throws Throwable {
-		return this.doAround(joinPoint, ShardingBDConstants.MASTER);
+		return this.doAround(joinPoint, MasterOrSlave.MASTER.value());
 	}
 
 	@Around("readOnlyPointCut()")
     public Object doReadOnlyAround(ProceedingJoinPoint joinPoint) throws Throwable {
-		return this.doAround(joinPoint, ShardingBDConstants.SLAVE);
+		return this.doAround(joinPoint, MasterOrSlave.SLAVE.value());
 	}
 }
