@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 
 @Documented
 @Retention(value = RetentionPolicy.RUNTIME)
-@Target(value = {ElementType.ANNOTATION_TYPE, ElementType.METHOD})
+@Target(value = {ElementType.METHOD})
 public @interface ReadOnly {
 	
 }

@@ -10,7 +10,7 @@ import com.quincy.auth.AuthConstants;
 
 @Documented
 @Retention(value = RetentionPolicy.RUNTIME)
-@Target(value = {ElementType.ANNOTATION_TYPE, ElementType.METHOD})
+@Target(value = {ElementType.METHOD})
 public @interface VCodeRequired {
 	public String clientTokenName() default "";
 	public boolean ignoreCase() default true;
