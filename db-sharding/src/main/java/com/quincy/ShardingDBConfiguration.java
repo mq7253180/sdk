@@ -18,8 +18,6 @@ import com.quincy.core.DBCommonApplicationContext;
 import com.quincy.core.db.RoutingDataSource;
 import com.quincy.sdk.MasterOrSlave;
 
-import jakarta.annotation.PostConstruct;
-
 @Configuration
 public class ShardingDBConfiguration {
 	@Value("${spring.datasource.driver-class-name}")

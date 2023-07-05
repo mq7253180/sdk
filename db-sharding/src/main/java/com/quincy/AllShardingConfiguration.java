@@ -18,7 +18,6 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.util.Assert;
 
 import com.quincy.core.db.RoutingDataSource;
 import com.quincy.sdk.annotation.AllShardSQL;
