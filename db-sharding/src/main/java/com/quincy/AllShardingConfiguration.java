@@ -9,11 +9,8 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.util.Set;
 
-import javax.sql.DataSource;
-
 import org.reflections.Reflections;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
@@ -25,8 +22,7 @@ import com.quincy.sdk.annotation.Select;
 
 @Configuration
 public class AllShardingConfiguration implements BeanDefinitionRegistryPostProcessor {
-	@Autowired
-	private DataSource dataSource;
+	private RoutingDataSource dataSource;
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
@@ -40,12 +36,11 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 					Select annotation = method.getAnnotation(Select.class);
 					if(annotation!=null) {
 						String sql = annotation.value();
-						RoutingDataSource realDataSource = (RoutingDataSource)dataSource;
-						int shardCount = realDataSource.getResolvedDataSources().size()/2;
+						int shardCount = dataSource.getResolvedDataSources().size()/2;
 						System.out.println("Duration1===================="+(System.currentTimeMillis()-start));
 						for(int i=0;i<shardCount;i++) {
 							String key = annotation.masterOrSlave().value()+i;
-							Connection conn = realDataSource.getResolvedDataSources().get(key).getConnection();
+							Connection conn = dataSource.getResolvedDataSources().get(key).getConnection();
 							PreparedStatement statment = conn.prepareStatement(sql);
 //							statment.setString(0, sql);
 							ResultSet rs = statment.executeQuery();
@@ -81,7 +76,7 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 		
 	}
 
-	public void setDataSource(DataSource dataSource) {
+	public void setDataSource(RoutingDataSource dataSource) {
 		this.dataSource = dataSource;
 	}
 }
