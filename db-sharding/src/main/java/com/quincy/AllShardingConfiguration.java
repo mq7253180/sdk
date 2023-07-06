@@ -30,7 +30,9 @@ import org.springframework.util.Assert;
 
 import com.quincy.core.db.RoutingDataSource;
 import com.quincy.sdk.annotation.AllShardDao;
+import com.quincy.sdk.annotation.Execute;
 import com.quincy.sdk.annotation.ExecuteQuery;
+import com.quincy.sdk.annotation.ExecuteUpdate;
 
 @Configuration
 public class AllShardingConfiguration implements BeanDefinitionRegistryPostProcessor {
@@ -60,6 +62,7 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 							String key = queryAnnotation.masterOrSlave().value()+i;
 							Connection conn = null;
 							PreparedStatement statment = null;
+							ResultSet rs = null;
 							try {
 								conn = dataSource.getResolvedDataSources().get(key).getConnection();
 								statment = conn.prepareStatement(queryAnnotation.sql());
@@ -67,7 +70,7 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 									for(int j=0;j<args.length;j++)
 										statment.setObject(j+1, args[j]);
 								}
-								ResultSet rs = statment.executeQuery();
+								rs = statment.executeQuery();
 								while(rs.next()) {
 									Object item = returnItemType.getDeclaredConstructor().newInstance();
 									ResultSetMetaData rsmd = rs.getMetaData();
@@ -127,8 +130,9 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 									}
 									list.add(item);
 								}
-								statment.close();
 							} finally {
+								if(rs!=null)
+									rs.close();
 								if(statment!=null)
 									statment.close();
 								if(conn!=null)
@@ -137,6 +141,14 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 						}
 						System.out.println("Duration2===================="+(System.currentTimeMillis()-start));
 						return (returnType.getName().equals(returnItemType.getName())&&list.size()==1)?list.get(0):list;
+					}
+					Execute executeAnnotation = method.getAnnotation(Execute.class);
+					if(executeAnnotation!=null) {
+						
+					}
+					ExecuteUpdate executeUpdateAnnotation = method.getAnnotation(ExecuteUpdate.class);
+					if(executeUpdateAnnotation!=null) {
+						
 					}
 					return null;
 				}
