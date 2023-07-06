@@ -6,13 +6,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.quincy.sdk.MasterOrSlave;
-
 @Documented
 @Retention(value = RetentionPolicy.RUNTIME)
-@Target(value = {ElementType.METHOD})
-public @interface ExecuteQuery {
-	public String sql();
-	public MasterOrSlave masterOrSlave();
-	public Class<?> returnItemType();
+@Target(value = {ElementType.FIELD})
+public @interface Column {
+	public String value();
 }
