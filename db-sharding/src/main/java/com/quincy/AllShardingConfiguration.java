@@ -34,6 +34,9 @@ import com.quincy.sdk.annotation.Execute;
 import com.quincy.sdk.annotation.ExecuteQuery;
 import com.quincy.sdk.annotation.ExecuteUpdate;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Configuration
 public class AllShardingConfiguration implements BeanDefinitionRegistryPostProcessor {
 	private RoutingDataSource dataSource;
@@ -57,7 +60,6 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 						Map<String, Method> map = classMethodMap.get(returnItemType);
 						List<Object> list = new ArrayList<>();
 						int shardCount = dataSource.getResolvedDataSources().size()/2;
-						System.out.println("Duration1===================="+(System.currentTimeMillis()-start));
 						for(int i=0;i<shardCount;i++) {
 							String key = queryAnnotation.masterOrSlave().value()+i;
 							Connection conn = null;
@@ -128,9 +130,13 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 											setterMethod.invoke(item, v);
 										}
 									}
-									list.add(item);
+									if(returnType.getName().equals(returnItemType.getName())) {
+										return item;
+									} else
+										list.add(item);
 								}
 							} finally {
+								log.warn("第{}个分片耗时========Duration============{}", (i+1), (System.currentTimeMillis()-start));
 								if(rs!=null)
 									rs.close();
 								if(statment!=null)
@@ -139,8 +145,7 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 									conn.close();
 							}
 						}
-						System.out.println("Duration2===================="+(System.currentTimeMillis()-start));
-						return (returnType.getName().equals(returnItemType.getName())&&list.size()==1)?list.get(0):list;
+						return list;
 					}
 					Execute executeAnnotation = method.getAnnotation(Execute.class);
 					if(executeAnnotation!=null) {
