@@ -337,7 +337,7 @@ public class CommonHelper {
 		ByteArrayInputStream bis = null;
         ObjectInputStream ois = null;
         try {
-        	bis = new ByteArrayInputStream (byteArray);
+        	bis = new ByteArrayInputStream(byteArray);
 			ois = new ObjectInputStream(bis);
 			return ois.readObject();
 		} finally {

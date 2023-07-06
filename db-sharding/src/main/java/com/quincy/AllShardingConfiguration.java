@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 
 import com.quincy.core.db.RoutingDataSource;
-import com.quincy.sdk.annotation.AllShardSQL;
+import com.quincy.sdk.annotation.AllShardDao;
 import com.quincy.sdk.annotation.ExecuteQuery;
 
 @Configuration
@@ -41,31 +41,32 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		this.reflections = new Reflections("");
-		Set<Class<?>> classes = this.reflections.getTypesAnnotatedWith(AllShardSQL.class);
+		Set<Class<?>> classes = this.reflections.getTypesAnnotatedWith(AllShardDao.class);
 		for(Class<?> clazz:classes) {
 			Object o = Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[] {clazz}, new InvocationHandler() {
 				@Override
 				public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 					long start = System.currentTimeMillis();
 					Class<?> returnType = method.getReturnType();
-					Assert.isTrue(returnType.getName().equals(List.class.getName())||returnType.getName().equals(ArrayList.class.getName()), "Return type must be List or ArrayList.");
-					returnType.getGenericInterfaces();
-					ExecuteQuery annotation = method.getAnnotation(ExecuteQuery.class);
-					if(annotation!=null) {
-						String sql = annotation.sql();
-						Class<?> returnItemType = annotation.returnItemType();
+					ExecuteQuery queryAnnotation = method.getAnnotation(ExecuteQuery.class);
+					if(queryAnnotation!=null) {
+						Class<?> returnItemType = queryAnnotation.returnItemType();
+						Assert.isTrue(returnType.getName().equals(List.class.getName())||returnType.getName().equals(ArrayList.class.getName())||returnType.getName().equals(returnItemType.getName()), "Return type must be List or ArrayList or given returnItemType.");
 						Map<String, Method> map = classMethodMap.get(returnItemType);
 						List<Object> list = new ArrayList<>();
 						int shardCount = dataSource.getResolvedDataSources().size()/2;
 						System.out.println("Duration1===================="+(System.currentTimeMillis()-start));
 						for(int i=0;i<shardCount;i++) {
-							String key = annotation.masterOrSlave().value()+i;
+							String key = queryAnnotation.masterOrSlave().value()+i;
 							Connection conn = null;
 							PreparedStatement statment = null;
 							try {
 								conn = dataSource.getResolvedDataSources().get(key).getConnection();
-								statment = conn.prepareStatement(sql);
-//								statment.setString(0, sql);
+								statment = conn.prepareStatement(queryAnnotation.sql());
+								if(args!=null&&args.length>0) {
+									for(int j=0;j<args.length;j++)
+										statment.setObject(j+1, args[j]);
+								}
 								ResultSet rs = statment.executeQuery();
 								while(rs.next()) {
 									Object item = returnItemType.getDeclaredConstructor().newInstance();
@@ -135,7 +136,7 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 							}
 						}
 						System.out.println("Duration2===================="+(System.currentTimeMillis()-start));
-						return list;
+						return (returnType.getName().equals(returnItemType.getName())&&list.size()==1)?list.get(0):list;
 					}
 					return null;
 				}
