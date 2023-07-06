@@ -11,7 +11,7 @@ import com.quincy.sdk.MasterOrSlave;
 @Documented
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(value = {ElementType.METHOD})
-public @interface Select {
-	public String value();
+public @interface ExecuteQuery {
+	public String sql();
 	public MasterOrSlave masterOrSlave();
 }

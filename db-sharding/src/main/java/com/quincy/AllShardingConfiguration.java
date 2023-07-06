@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Configuration;
 
 import com.quincy.core.db.RoutingDataSource;
 import com.quincy.sdk.annotation.AllShardSQL;
-import com.quincy.sdk.annotation.Select;
+import com.quincy.sdk.annotation.ExecuteQuery;
 
 @Configuration
 public class AllShardingConfiguration implements BeanDefinitionRegistryPostProcessor {
@@ -33,9 +33,9 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 				@Override
 				public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 					long start = System.currentTimeMillis();
-					Select annotation = method.getAnnotation(Select.class);
+					ExecuteQuery annotation = method.getAnnotation(ExecuteQuery.class);
 					if(annotation!=null) {
-						String sql = annotation.value();
+						String sql = annotation.sql();
 						int shardCount = dataSource.getResolvedDataSources().size()/2;
 						System.out.println("Duration1===================="+(System.currentTimeMillis()-start));
 						for(int i=0;i<shardCount;i++) {
