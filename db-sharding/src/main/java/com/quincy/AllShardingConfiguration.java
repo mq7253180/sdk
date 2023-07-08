@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 
 import com.quincy.core.db.RoutingDataSource;
-import com.quincy.sdk.annotation.AllShardDao;
+import com.quincy.sdk.annotation.AllShardsJDBCDao;
 import com.quincy.sdk.annotation.ExecuteQuery;
 import com.quincy.sdk.annotation.ExecuteUpdate;
 
@@ -45,7 +45,7 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 		this.reflections = new Reflections("");
-		Set<Class<?>> classes = this.reflections.getTypesAnnotatedWith(AllShardDao.class);
+		Set<Class<?>> classes = this.reflections.getTypesAnnotatedWith(AllShardsJDBCDao.class);
 		for(Class<?> clazz:classes) {
 			Object o = Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[] {clazz}, new InvocationHandler() {
 				@Override
