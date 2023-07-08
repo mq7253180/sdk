@@ -30,7 +30,6 @@ import org.springframework.util.Assert;
 
 import com.quincy.core.db.RoutingDataSource;
 import com.quincy.sdk.annotation.AllShardDao;
-import com.quincy.sdk.annotation.Execute;
 import com.quincy.sdk.annotation.ExecuteQuery;
 import com.quincy.sdk.annotation.ExecuteUpdate;
 
@@ -146,10 +145,6 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 							}
 						}
 						return list;
-					}
-					Execute executeAnnotation = method.getAnnotation(Execute.class);
-					if(executeAnnotation!=null) {
-						
 					}
 					ExecuteUpdate executeUpdateAnnotation = method.getAnnotation(ExecuteUpdate.class);
 					if(executeUpdateAnnotation!=null) {
