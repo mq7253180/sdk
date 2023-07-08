@@ -55,11 +55,13 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 					ExecuteQuery queryAnnotation = method.getAnnotation(ExecuteQuery.class);
 					if(queryAnnotation!=null) {
 						Class<?> returnItemType = queryAnnotation.returnItemType();
-						Assert.isTrue(returnType.getName().equals(List.class.getName())||returnType.getName().equals(ArrayList.class.getName())||returnType.getName().equals(returnItemType.getName()), "Return type must be List or ArrayList or given returnItemType.");
+						Assert.isTrue(returnType.getName().equals(List[].class.getName())||returnType.getName().equals(ArrayList[].class.getName())||returnType.getName().equals(returnItemType.getName()), "Return type must be List[] or ArrayList[] or given returnItemType.");
 						Map<String, Method> map = classMethodMap.get(returnItemType);
-						List<Object> list = new ArrayList<>();
 						int shardCount = dataSource.getResolvedDataSources().size()/2;
+						@SuppressWarnings("unchecked")
+						List<Object>[] lists = new ArrayList[shardCount];
 						for(int i=0;i<shardCount;i++) {
+							List<Object> list = new ArrayList<>();
 							String key = queryAnnotation.masterOrSlave().value()+i;
 							Connection conn = null;
 							PreparedStatement statment = null;
@@ -134,6 +136,7 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 									} else
 										list.add(item);
 								}
+								lists[i] = list;
 							} finally {
 								log.warn("第{}个分片耗时========Duration============{}", (i+1), (System.currentTimeMillis()-start));
 								if(rs!=null)
@@ -144,11 +147,34 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 									conn.close();
 							}
 						}
-						return list;
+						return lists;
 					}
 					ExecuteUpdate executeUpdateAnnotation = method.getAnnotation(ExecuteUpdate.class);
 					if(executeUpdateAnnotation!=null) {
-						
+						Assert.isTrue(returnType.getName().equals(int[].class.getName())||returnType.getName().equals(Integer[].class.getName()), "Return type must be int[] or Integer[].");
+						int shardCount = dataSource.getResolvedDataSources().size()/2;
+						int[] toReturn = new int[shardCount];
+						for(int i=0;i<shardCount;i++) {
+							String key = executeUpdateAnnotation.masterOrSlave().value()+i;
+							Connection conn = null;
+							PreparedStatement statment = null;
+							try {
+								conn = dataSource.getResolvedDataSources().get(key).getConnection();
+								statment = conn.prepareStatement(executeUpdateAnnotation.sql());
+								if(args!=null&&args.length>0) {
+									for(int j=0;j<args.length;j++)
+										statment.setObject(j+1, args[j]);
+								}
+								toReturn[i] = statment.executeUpdate();
+							} finally {
+								log.warn("第{}个分片耗时========Duration============{}", (i+1), (System.currentTimeMillis()-start));
+								if(statment!=null)
+									statment.close();
+								if(conn!=null)
+									conn.close();
+							}
+						}
+						return toReturn;
 					}
 					return null;
 				}
