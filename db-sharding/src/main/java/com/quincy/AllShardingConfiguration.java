@@ -140,7 +140,7 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 								}
 								lists[i] = list;
 							} finally {
-								log.warn("第{}个分片耗时========Duration============{}", (i+1), (System.currentTimeMillis()-start));
+								log.warn("第{}个分片耗时========Duration============{}", i, (System.currentTimeMillis()-start));
 								if(rs!=null)
 									rs.close();
 								if(statment!=null)
@@ -168,7 +168,7 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 								}
 								toReturn[i] = statment.executeUpdate();
 							} finally {
-								log.warn("第{}个分片耗时========Duration============{}", (i+1), (System.currentTimeMillis()-start));
+								log.warn("第{}个分片耗时========Duration============{}", i, (System.currentTimeMillis()-start));
 								if(statment!=null)
 									statment.close();
 								if(conn!=null)
