@@ -51,8 +51,10 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 				@Override
 				public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 					long start = System.currentTimeMillis();
-					Class<?> returnType = method.getReturnType();
 					ExecuteQuery queryAnnotation = method.getAnnotation(ExecuteQuery.class);
+					ExecuteUpdate executeUpdateAnnotation = method.getAnnotation(ExecuteUpdate.class);
+					Assert.isTrue(queryAnnotation!=null||executeUpdateAnnotation!=null, "What do you want to do?");
+					Class<?> returnType = method.getReturnType();
 					if(queryAnnotation!=null) {
 						Class<?> returnItemType = queryAnnotation.returnItemType();
 						Assert.isTrue(returnType.getName().equals(List[].class.getName())||returnType.getName().equals(ArrayList[].class.getName())||returnType.getName().equals(returnItemType.getName()), "Return type must be List[] or ArrayList[] or given returnItemType.");
@@ -149,7 +151,6 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 						}
 						return lists;
 					}
-					ExecuteUpdate executeUpdateAnnotation = method.getAnnotation(ExecuteUpdate.class);
 					if(executeUpdateAnnotation!=null) {
 						Assert.isTrue(returnType.getName().equals(int[].class.getName())||returnType.getName().equals(Integer[].class.getName()), "Return type must be int[] or Integer[].");
 						int shardCount = dataSource.getResolvedDataSources().size()/2;
