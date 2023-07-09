@@ -1,13 +1,13 @@
 package com.quincy.core.db;
 
-public class SingleDataSourceHolder extends DataSourceHolder {
-	public final static String MASTER = "master";
-	public final static String SLAVE = "slave";
+import com.quincy.sdk.MasterOrSlave;
 
+public class SingleDataSourceHolder extends DataSourceHolder {
     public static void setMaster() {
-        set(MASTER);
+        set(MasterOrSlave.MASTER.value());
     }
+
     public static void setSlave() {
-        set(SLAVE);
+        set(MasterOrSlave.SLAVE.value());
     }
 }
