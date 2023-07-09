@@ -29,9 +29,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 
 import com.quincy.core.db.RoutingDataSource;
-import com.quincy.sdk.annotation.AllShardsJDBCDao;
-import com.quincy.sdk.annotation.ExecuteQuery;
-import com.quincy.sdk.annotation.ExecuteUpdate;
+import com.quincy.sdk.annotation.sharding.AllShardsJDBCDao;
+import com.quincy.sdk.annotation.sharding.ExecuteQuery;
+import com.quincy.sdk.annotation.sharding.ExecuteUpdate;
 
 import lombok.extern.slf4j.Slf4j;
 

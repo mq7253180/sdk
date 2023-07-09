@@ -1,4 +1,4 @@
-package com.quincy.sdk.annotation;
+package com.quincy.sdk.annotation.sharding;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 
 @Documented
 @Retention(value = RetentionPolicy.RUNTIME)
-@Target(value = {ElementType.METHOD})
-public @interface Sharding {
+@Target(value = {ElementType.PARAMETER})
+public @interface ShardingKey {
 	
 }

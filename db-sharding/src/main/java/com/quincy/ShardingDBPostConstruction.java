@@ -18,7 +18,7 @@ import com.quincy.sdk.annotation.DTO;
 import jakarta.annotation.PostConstruct;
 
 @Configuration
-public class PostConstruction {
+public class ShardingDBPostConstruction {
 	@Autowired
 	private DataSource dataSource;
 	@Autowired

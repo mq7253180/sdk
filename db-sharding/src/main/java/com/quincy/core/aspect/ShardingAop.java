@@ -15,7 +15,7 @@ import org.springframework.util.Assert;
 
 import com.quincy.core.db.DataSourceHolder;
 import com.quincy.sdk.MasterOrSlave;
-import com.quincy.sdk.annotation.ShardingKey;
+import com.quincy.sdk.annotation.sharding.ShardingKey;
 
 @Aspect
 @Order(6)
@@ -24,7 +24,7 @@ public class ShardingAop {
 	@Value("${spring.datasource.sharding.count}")
 	private int shardingCount;
 
-	@Pointcut("@annotation(com.quincy.sdk.annotation.Sharding)")
+	@Pointcut("@annotation(com.quincy.sdk.annotation.sharding.Sharding)")
     public void shardingPointCut() {}
 	@Pointcut("@annotation(org.springframework.transaction.annotation.Transactional)")
     public void transactionalPointCut() {}
