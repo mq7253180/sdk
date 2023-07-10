@@ -3,6 +3,7 @@ package com.quincy.core;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -13,7 +14,7 @@ import org.springframework.context.annotation.Configuration;
 
 import com.quincy.core.db.RoutingDataSource;
 import com.quincy.sdk.annotation.Column;
-import com.quincy.sdk.annotation.DTO;
+//import com.quincy.sdk.annotation.DTO;
 
 import jakarta.annotation.PostConstruct;
 
@@ -27,7 +28,7 @@ public class DBCommonPostConstruction {
 	@PostConstruct
 	public void init() throws NoSuchMethodException, SecurityException {
 		traditionalDaoConfiguration.setDataSource((RoutingDataSource)dataSource);
-		Set<Class<?>> classes = traditionalDaoConfiguration.getReflections().getTypesAnnotatedWith(DTO.class);
+		Set<Class<?>> classes = new HashSet<>();//traditionalDaoConfiguration.getReflections().getTypesAnnotatedWith(DTO.class);
 		Map<Class<?>, Map<String, Method>> map = new HashMap<Class<?>, Map<String, Method>>();
 		for(Class<?> clazz:classes) {
 			Map<String, Method> subMap = new HashMap<String, Method>();
