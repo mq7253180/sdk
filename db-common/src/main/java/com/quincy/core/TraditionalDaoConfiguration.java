@@ -16,11 +16,11 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.reflections.Reflections;
 //import org.reflections.Reflections;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -34,7 +34,7 @@ import org.springframework.util.Assert;
 import com.quincy.core.db.RoutingDataSource;
 import com.quincy.sdk.annotation.ExecuteQuery;
 import com.quincy.sdk.annotation.ExecuteUpdate;
-//import com.quincy.sdk.annotation.JDBCDao;
+import com.quincy.sdk.annotation.JDBCDao;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,12 +43,13 @@ import lombok.extern.slf4j.Slf4j;
 public class TraditionalDaoConfiguration implements BeanDefinitionRegistryPostProcessor {
 	private RoutingDataSource dataSource;
 	private Map<Class<?>, Map<String, Method>> classMethodMap;
-//	private Reflections reflections;
+	private static Reflections reflections;
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-//		this.reflections = new Reflections("");
-		Set<Class<?>> classes = new HashSet<>();//this.reflections.getTypesAnnotatedWith(JDBCDao.class);
+		if(reflections==null)
+			reflections = new Reflections("");
+		Set<Class<?>> classes = reflections.getTypesAnnotatedWith(JDBCDao.class);
 		for(Class<?> clazz:classes) {
 			Object o = Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[] {clazz}, new InvocationHandler() {
 				@Override
@@ -185,7 +186,11 @@ public class TraditionalDaoConfiguration implements BeanDefinitionRegistryPostPr
 		this.classMethodMap = classMethodMap;
 	}
 
-//	public Reflections getReflections() {
-//		return reflections;
-//	}
+	public static Reflections getReflections() {
+		return reflections;
+	}
+
+	public static void setReflections(Reflections reflections) {
+		TraditionalDaoConfiguration.reflections = reflections;
+	}
 }

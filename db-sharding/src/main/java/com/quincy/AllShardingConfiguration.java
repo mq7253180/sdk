@@ -28,6 +28,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 
+import com.quincy.core.TraditionalDaoConfiguration;
 import com.quincy.core.db.RoutingDataSource;
 import com.quincy.sdk.annotation.sharding.AllShardsJDBCDao;
 import com.quincy.sdk.annotation.sharding.ExecuteQuery;
@@ -40,12 +41,15 @@ import lombok.extern.slf4j.Slf4j;
 public class AllShardingConfiguration implements BeanDefinitionRegistryPostProcessor {
 	private RoutingDataSource dataSource;
 	private Map<Class<?>, Map<String, Method>> classMethodMap;
-	private Reflections reflections;
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		this.reflections = new Reflections("");
-		Set<Class<?>> classes = this.reflections.getTypesAnnotatedWith(AllShardsJDBCDao.class);
+		Reflections reflections = TraditionalDaoConfiguration.getReflections();
+		if(reflections==null) {
+			reflections = new Reflections("");
+			TraditionalDaoConfiguration.setReflections(reflections);
+		}
+		Set<Class<?>> classes = reflections.getTypesAnnotatedWith(AllShardsJDBCDao.class);
 		for(Class<?> clazz:classes) {
 			Object o = Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[] {clazz}, new InvocationHandler() {
 				@Override
@@ -197,9 +201,5 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 
 	public void setClassMethodMap(Map<Class<?>, Map<String, Method>> classMethodMap) {
 		this.classMethodMap = classMethodMap;
-	}
-
-	public Reflections getReflections() {
-		return reflections;
 	}
 }

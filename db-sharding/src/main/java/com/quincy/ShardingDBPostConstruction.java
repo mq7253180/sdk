@@ -11,6 +11,7 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 
+import com.quincy.core.TraditionalDaoConfiguration;
 import com.quincy.core.db.RoutingDataSource;
 import com.quincy.sdk.annotation.Column;
 import com.quincy.sdk.annotation.DTO;
@@ -27,7 +28,7 @@ public class ShardingDBPostConstruction {
 	@PostConstruct
 	public void init() throws NoSuchMethodException, SecurityException {
 		allShardingConfiguration.setDataSource((RoutingDataSource)dataSource);
-		Set<Class<?>> classes = allShardingConfiguration.getReflections().getTypesAnnotatedWith(DTO.class);
+		Set<Class<?>> classes = TraditionalDaoConfiguration.getReflections().getTypesAnnotatedWith(DTO.class);
 		Map<Class<?>, Map<String, Method>> map = new HashMap<Class<?>, Map<String, Method>>();
 		for(Class<?> clazz:classes) {
 			Map<String, Method> subMap = new HashMap<String, Method>();
