@@ -46,8 +46,7 @@ public class TraditionalDaoConfiguration implements BeanDefinitionRegistryPostPr
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		if(reflections==null)
-			reflections = new Reflections("");
+		initReflections();
 		Set<Class<?>> classes = reflections.getTypesAnnotatedWith(JDBCDao.class);
 		for(Class<?> clazz:classes) {
 			Object o = Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[] {clazz}, new InvocationHandler() {
@@ -189,7 +188,14 @@ public class TraditionalDaoConfiguration implements BeanDefinitionRegistryPostPr
 		return reflections;
 	}
 
-	public static void setReflections(Reflections reflections) {
-		TraditionalDaoConfiguration.reflections = reflections;
+	private static Object lock = new Object();
+
+	public static void initReflections() {
+		if(reflections==null) {
+			synchronized(lock) {
+				if(reflections==null)
+					reflections = new Reflections("");
+			}
+		}
 	}
 }

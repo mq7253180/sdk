@@ -44,11 +44,8 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+		TraditionalDaoConfiguration.initReflections();
 		Reflections reflections = TraditionalDaoConfiguration.getReflections();
-		if(reflections==null) {
-			reflections = new Reflections("");
-			TraditionalDaoConfiguration.setReflections(reflections);
-		}
 		Set<Class<?>> classes = reflections.getTypesAnnotatedWith(AllShardsJDBCDao.class);
 		for(Class<?> clazz:classes) {
 			Object o = Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[] {clazz}, new InvocationHandler() {
