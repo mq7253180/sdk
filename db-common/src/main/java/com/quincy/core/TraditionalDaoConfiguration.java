@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.sql.DataSource;
+
 import org.reflections.Reflections;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -33,7 +35,6 @@ import org.springframework.jdbc.datasource.ConnectionHolder;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 
-import com.quincy.core.db.RoutingDataSource;
 import com.quincy.sdk.DaoSupport;
 import com.quincy.sdk.annotation.ExecuteQuery;
 import com.quincy.sdk.annotation.ExecuteUpdate;
@@ -44,7 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Configuration
 public class TraditionalDaoConfiguration implements BeanDefinitionRegistryPostProcessor, DaoSupport {
-	private RoutingDataSource dataSource;
+	private DataSource dataSource;
 	private Map<Class<?>, Map<String, Method>> classMethodMap;
 	private static Reflections reflections;
 
@@ -88,7 +89,7 @@ public class TraditionalDaoConfiguration implements BeanDefinitionRegistryPostPr
 		
 	}
 
-	public void setDataSource(RoutingDataSource dataSource) {
+	public void setDataSource(DataSource dataSource) {
 		this.dataSource = dataSource;
 	}
 
@@ -204,7 +205,7 @@ public class TraditionalDaoConfiguration implements BeanDefinitionRegistryPostPr
 	@Override
 	public int executeUpdate(String sql, Object... args) throws SQLException {
 		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
-		Connection conn = ((ConnectionHolder)connectionHolder).getConnection();
+		Connection conn = connectionHolder==null?dataSource.getConnection():((ConnectionHolder)connectionHolder).getConnection();
 		PreparedStatement statment = null;
 		try {
 			statment = conn.prepareStatement(sql);
@@ -216,6 +217,8 @@ public class TraditionalDaoConfiguration implements BeanDefinitionRegistryPostPr
 		} finally {
 			if(statment!=null)
 				statment.close();
+			if(connectionHolder==null&&conn!=null)
+				conn.close();
 		}
 	}
 }

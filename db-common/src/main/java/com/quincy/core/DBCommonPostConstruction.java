@@ -11,7 +11,6 @@ import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 
-import com.quincy.core.db.RoutingDataSource;
 import com.quincy.sdk.annotation.Column;
 import com.quincy.sdk.annotation.DTO;
 
@@ -26,7 +25,7 @@ public class DBCommonPostConstruction {
 
 	@PostConstruct
 	public void init() throws NoSuchMethodException, SecurityException {
-		traditionalDaoConfiguration.setDataSource((RoutingDataSource)dataSource);
+		traditionalDaoConfiguration.setDataSource(dataSource);
 		Set<Class<?>> classes = TraditionalDaoConfiguration.getReflections().getTypesAnnotatedWith(DTO.class);
 		Map<Class<?>, Map<String, Method>> map = new HashMap<Class<?>, Map<String, Method>>();
 		for(Class<?> clazz:classes) {
