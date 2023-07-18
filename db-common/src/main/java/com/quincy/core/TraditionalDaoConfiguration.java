@@ -34,7 +34,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.util.Assert;
 
 import com.quincy.core.db.RoutingDataSource;
-import com.quincy.sdk.JDBCSupport;
+import com.quincy.sdk.DaoSupport;
 import com.quincy.sdk.annotation.ExecuteQuery;
 import com.quincy.sdk.annotation.ExecuteUpdate;
 import com.quincy.sdk.annotation.JDBCDao;
@@ -43,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Configuration
-public class TraditionalDaoConfiguration implements BeanDefinitionRegistryPostProcessor, JDBCSupport {
+public class TraditionalDaoConfiguration implements BeanDefinitionRegistryPostProcessor, DaoSupport {
 	private RoutingDataSource dataSource;
 	private Map<Class<?>, Map<String, Method>> classMethodMap;
 	private static Reflections reflections;

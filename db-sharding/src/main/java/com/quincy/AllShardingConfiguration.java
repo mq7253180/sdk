@@ -33,7 +33,7 @@ import org.springframework.util.Assert;
 
 import com.quincy.core.TraditionalDaoConfiguration;
 import com.quincy.core.db.RoutingDataSource;
-import com.quincy.sdk.AllShardsDBCSupport;
+import com.quincy.sdk.AllShardsDaoSupport;
 import com.quincy.sdk.MasterOrSlave;
 import com.quincy.sdk.annotation.sharding.AllShardsJDBCDao;
 import com.quincy.sdk.annotation.sharding.ExecuteQuery;
@@ -43,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Configuration
-public class AllShardingConfiguration implements BeanDefinitionRegistryPostProcessor, AllShardsDBCSupport {
+public class AllShardingConfiguration implements BeanDefinitionRegistryPostProcessor, AllShardsDaoSupport {
 	private RoutingDataSource dataSource;
 	private Map<Class<?>, Map<String, Method>> classMethodMap;
 
