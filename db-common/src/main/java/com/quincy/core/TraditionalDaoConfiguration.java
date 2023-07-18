@@ -118,7 +118,7 @@ public class TraditionalDaoConfiguration implements BeanDefinitionRegistryPostPr
 		Map<String, Method> map = classMethodMap.get(returnItemType);
 		List<Object> list = new ArrayList<>();
 		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
-		Connection conn = ((ConnectionHolder)connectionHolder).getConnection();
+		Connection conn = connectionHolder==null?dataSource.getConnection():((ConnectionHolder)connectionHolder).getConnection();
 		PreparedStatement statment = null;
 		ResultSet rs = null;
 		try {
@@ -190,12 +190,14 @@ public class TraditionalDaoConfiguration implements BeanDefinitionRegistryPostPr
 				} else
 					list.add(item);
 			}
-			return list;
+			return returnType.getName().equals(returnItemType.getName())?null:list;
 		} finally {
 			if(rs!=null)
 				rs.close();
 			if(statment!=null)
 				statment.close();
+			if(connectionHolder==null&&conn!=null)
+				conn.close();
 		}
 	}
 
