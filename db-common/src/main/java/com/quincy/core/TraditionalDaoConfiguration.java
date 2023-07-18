@@ -112,7 +112,7 @@ public class TraditionalDaoConfiguration implements BeanDefinitionRegistryPostPr
 	}
 
 	@Override
-	public Object executeQuery(String sql, Class<?> returnType, Class<?> returnItemType, Object[] args)
+	public Object executeQuery(String sql, Class<?> returnType, Class<?> returnItemType, Object... args)
 			throws SQLException, IOException, InstantiationException, IllegalAccessException, IllegalArgumentException,
 			InvocationTargetException, NoSuchMethodException, SecurityException {
 		Map<String, Method> map = classMethodMap.get(returnItemType);
@@ -200,7 +200,7 @@ public class TraditionalDaoConfiguration implements BeanDefinitionRegistryPostPr
 	}
 
 	@Override
-	public int executeUpdate(String sql, Object[] args) throws SQLException {
+	public int executeUpdate(String sql, Object... args) throws SQLException {
 		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
 		Connection conn = ((ConnectionHolder)connectionHolder).getConnection();
 		PreparedStatement statment = null;

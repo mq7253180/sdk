@@ -93,7 +93,7 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 	}
 
 	@Override
-	public Object executeQuery(String sql, Class<?> returnType, Class<?> returnItemType, MasterOrSlave masterOrSlave, Object[] args)
+	public Object executeQuery(String sql, Class<?> returnType, Class<?> returnItemType, MasterOrSlave masterOrSlave, Object... args)
 			throws SQLException, IOException, InstantiationException, IllegalAccessException, IllegalArgumentException,
 			InvocationTargetException, NoSuchMethodException, SecurityException {
 		return this.executeQuery(sql, returnType, returnItemType, masterOrSlave, System.currentTimeMillis(), args);
@@ -197,7 +197,7 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 	}
 
 	@Override
-	public int[] executeUpdate(String sql, MasterOrSlave masterOrSlave, Object[] args) throws SQLException {
+	public int[] executeUpdate(String sql, MasterOrSlave masterOrSlave, Object... args) throws SQLException {
 		return this.executeUpdate(sql, masterOrSlave, System.currentTimeMillis(), args);
 	}
 
