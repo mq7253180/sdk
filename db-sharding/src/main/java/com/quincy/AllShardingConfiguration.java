@@ -104,10 +104,16 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 			InvocationTargetException, NoSuchMethodException, SecurityException {
 		Map<String, Method> map = classMethodMap.get(returnItemType);
 		int shardCount = dataSource.getResolvedDataSources().size()/2;
-		@SuppressWarnings("unchecked")
-		List<Object>[] lists = new ArrayList[shardCount];
+		boolean returnDto = returnType.getName().equals(returnItemType.getName());
+		List<Object>[] lists = null;
+		if(!returnDto) {
+//			@SuppressWarnings("unchecked")
+			lists = new ArrayList[shardCount];
+		}
 		for(int i=0;i<shardCount;i++) {
-			List<Object> list = new ArrayList<>();
+			List<Object> list = null;
+			if(!returnDto)
+				list = new ArrayList<>();
 			String key = masterOrSlave.value()+i;
 			Connection conn = null;
 			PreparedStatement statment = null;
@@ -177,12 +183,13 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 							setterMethod.invoke(item, v);
 						}
 					}
-					if(returnType.getName().equals(returnItemType.getName())) {
+					if(returnDto) {
 						return item;
 					} else
 						list.add(item);
 				}
-				lists[i] = list;
+				if(!returnDto)
+					lists[i] = list;
 			} finally {
 				log.warn("第{}个分片耗时========Duration============{}", i, (System.currentTimeMillis()-start));
 				if(rs!=null)
@@ -193,7 +200,7 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 					conn.close();
 			}
 		}
-		return lists;
+		return returnDto?null:lists;
 	}
 
 	@Override

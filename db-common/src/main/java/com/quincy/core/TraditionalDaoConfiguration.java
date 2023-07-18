@@ -116,8 +116,11 @@ public class TraditionalDaoConfiguration implements BeanDefinitionRegistryPostPr
 	public Object executeQuery(String sql, Class<?> returnType, Class<?> returnItemType, Object... args)
 			throws SQLException, IOException, InstantiationException, IllegalAccessException, IllegalArgumentException,
 			InvocationTargetException, NoSuchMethodException, SecurityException {
+		boolean returnDto = returnType.getName().equals(returnItemType.getName());
+		List<Object> list = null;
+		if(!returnDto)
+			list = new ArrayList<>();
 		Map<String, Method> map = classMethodMap.get(returnItemType);
-		List<Object> list = new ArrayList<>();
 		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
 		Connection conn = connectionHolder==null?dataSource.getConnection():((ConnectionHolder)connectionHolder).getConnection();
 		PreparedStatement statment = null;
@@ -186,12 +189,12 @@ public class TraditionalDaoConfiguration implements BeanDefinitionRegistryPostPr
 						setterMethod.invoke(item, v);
 					}
 				}
-				if(returnType.getName().equals(returnItemType.getName())) {
+				if(returnDto) {
 					return item;
 				} else
 					list.add(item);
 			}
-			return returnType.getName().equals(returnItemType.getName())?null:list;
+			return returnDto?null:list;
 		} finally {
 			if(rs!=null)
 				rs.close();
