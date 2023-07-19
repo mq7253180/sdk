@@ -22,12 +22,12 @@ public class DBCommonPostConstruction {
 	private DataSource dataSource;
 	@Autowired
 	private TraditionalDaoConfiguration traditionalDaoConfiguration;
+	private Map<Class<?>, Map<String, Method>> classMethodMap;
 
 	@PostConstruct
 	public void init() throws NoSuchMethodException, SecurityException {
-		traditionalDaoConfiguration.setDataSource(dataSource);
-		Set<Class<?>> classes = TraditionalDaoConfiguration.getReflections().getTypesAnnotatedWith(DTO.class);
-		Map<Class<?>, Map<String, Method>> map = new HashMap<Class<?>, Map<String, Method>>();
+		Set<Class<?>> classes = ReflectionsHolder.getReflections().getTypesAnnotatedWith(DTO.class);
+		this.classMethodMap = new HashMap<Class<?>, Map<String, Method>>();
 		for(Class<?> clazz:classes) {
 			Map<String, Method> subMap = new HashMap<String, Method>();
 			Field[] fields = clazz.getDeclaredFields();
@@ -38,8 +38,13 @@ public class DBCommonPostConstruction {
 					subMap.put(column.value(), clazz.getMethod(setterName, field.getType()));
 				}
 			}
-			map.put(clazz, subMap);
+			this.classMethodMap.put(clazz, subMap);
 		}
-		traditionalDaoConfiguration.setClassMethodMap(map);
+		traditionalDaoConfiguration.setClassMethodMap(this.classMethodMap);
+		traditionalDaoConfiguration.setDataSource(dataSource);
+	}
+
+	public Map<Class<?>, Map<String, Method>> getClassMethodMap() {
+		return classMethodMap;
 	}
 }

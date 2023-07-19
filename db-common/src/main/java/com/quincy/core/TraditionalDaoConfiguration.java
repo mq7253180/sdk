@@ -25,7 +25,6 @@ import java.util.Set;
 
 import javax.sql.DataSource;
 
-import org.reflections.Reflections;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -47,12 +46,10 @@ import lombok.extern.slf4j.Slf4j;
 public class TraditionalDaoConfiguration implements BeanDefinitionRegistryPostProcessor, DaoSupport {
 	private DataSource dataSource;
 	private Map<Class<?>, Map<String, Method>> classMethodMap;
-	private static Reflections reflections;
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		initReflections();
-		Set<Class<?>> classes = reflections.getTypesAnnotatedWith(JDBCDao.class);
+		Set<Class<?>> classes = ReflectionsHolder.getReflections().getTypesAnnotatedWith(JDBCDao.class);
 		for(Class<?> clazz:classes) {
 			Object o = Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[] {clazz}, new InvocationHandler() {
 				@Override
@@ -97,20 +94,17 @@ public class TraditionalDaoConfiguration implements BeanDefinitionRegistryPostPr
 		this.classMethodMap = classMethodMap;
 	}
 
-	public static Reflections getReflections() {
-		return reflections;
-	}
-
-	private static Object lock = new Object();
-
-	public static void initReflections() {
-		if(reflections==null) {
-			synchronized(lock) {
-				if(reflections==null)
-					reflections = new Reflections("");
-			}
-		}
-	}
+//	private static Object lock = new Object();
+//
+//	public static Reflections getReflections() {
+//		if(reflections==null) {
+//			synchronized(lock) {
+//				if(reflections==null)
+//					reflections = new Reflections("");
+//			}
+//		}
+//		return reflections;
+//	}
 
 	@Override
 	public Object executeQuery(String sql, Class<?> returnType, Class<?> returnItemType, Object... args)

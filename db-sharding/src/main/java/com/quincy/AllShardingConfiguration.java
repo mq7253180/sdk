@@ -25,8 +25,8 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.ThreadPoolExecutor;
 
-import org.reflections.Reflections;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -34,7 +34,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 
-import com.quincy.core.TraditionalDaoConfiguration;
+import com.quincy.core.ReflectionsHolder;
 import com.quincy.core.db.RoutingDataSource;
 import com.quincy.sdk.AllShardsDaoSupport;
 import com.quincy.sdk.MasterOrSlave;
@@ -49,12 +49,11 @@ import lombok.extern.slf4j.Slf4j;
 public class AllShardingConfiguration implements BeanDefinitionRegistryPostProcessor, AllShardsDaoSupport {
 	private RoutingDataSource dataSource;
 	private Map<Class<?>, Map<String, Method>> classMethodMap;
+	private ThreadPoolExecutor threadPoolExecutor;
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		TraditionalDaoConfiguration.initReflections();
-		Reflections reflections = TraditionalDaoConfiguration.getReflections();
-		Set<Class<?>> classes = reflections.getTypesAnnotatedWith(AllShardsJDBCDao.class);
+		Set<Class<?>> classes = ReflectionsHolder.getReflections().getTypesAnnotatedWith(AllShardsJDBCDao.class);
 		for(Class<?> clazz:classes) {
 			Object o = Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[] {clazz}, new InvocationHandler() {
 				@Override
@@ -93,6 +92,10 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 
 	public void setClassMethodMap(Map<Class<?>, Map<String, Method>> classMethodMap) {
 		this.classMethodMap = classMethodMap;
+	}
+
+	public void setThreadPoolExecutor(ThreadPoolExecutor threadPoolExecutor) {
+		this.threadPoolExecutor = threadPoolExecutor;
 	}
 
 	@Override
@@ -207,7 +210,7 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 				}
 	        });
 	        tasks.add(task);
-			new Thread(task).start();
+	        threadPoolExecutor.submit(task);
 		}
 		int completedCount = 0;
 		boolean[] compleatedTasks = new boolean[shardCount];
@@ -279,7 +282,7 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 				}
 	        });
 	        tasks.add(task);
-			new Thread(task).start();
+			threadPoolExecutor.submit(task);
 		}
 		int completedCount = 0;
 		boolean[] compleatedTasks = new boolean[shardCount];
