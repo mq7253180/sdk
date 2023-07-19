@@ -94,18 +94,6 @@ public class TraditionalDaoConfiguration implements BeanDefinitionRegistryPostPr
 		this.classMethodMap = classMethodMap;
 	}
 
-//	private static Object lock = new Object();
-//
-//	public static Reflections getReflections() {
-//		if(reflections==null) {
-//			synchronized(lock) {
-//				if(reflections==null)
-//					reflections = new Reflections("");
-//			}
-//		}
-//		return reflections;
-//	}
-
 	@Override
 	public Object executeQuery(String sql, Class<?> returnType, Class<?> returnItemType, Object... args)
 			throws SQLException, IOException, InstantiationException, IllegalAccessException, IllegalArgumentException,
