@@ -22,6 +22,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 
 import org.reflections.Reflections;
 import org.springframework.beans.BeansException;
@@ -95,112 +98,151 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 	@Override
 	public Object executeQuery(String sql, Class<?> returnType, Class<?> returnItemType, MasterOrSlave masterOrSlave, Object... args)
 			throws SQLException, IOException, InstantiationException, IllegalAccessException, IllegalArgumentException,
-			InvocationTargetException, NoSuchMethodException, SecurityException {
+			InvocationTargetException, NoSuchMethodException, SecurityException, InterruptedException, ExecutionException {
 		return this.executeQuery(sql, returnType, returnItemType, masterOrSlave, System.currentTimeMillis(), args);
 	}
 
 	private Object executeQuery(String sql, Class<?> returnType, Class<?> returnItemType, MasterOrSlave masterOrSlave, long start, Object[] args)
 			throws SQLException, IOException, InstantiationException, IllegalAccessException, IllegalArgumentException,
-			InvocationTargetException, NoSuchMethodException, SecurityException {
+			InvocationTargetException, NoSuchMethodException, SecurityException, InterruptedException, ExecutionException {
 		Map<String, Method> map = classMethodMap.get(returnItemType);
 		int shardCount = dataSource.getResolvedDataSources().size()/2;
 		boolean returnDto = returnType.getName().equals(returnItemType.getName());
-		List<Object>[] lists = null;
-		if(!returnDto) {
-//			@SuppressWarnings("unchecked")
-			lists = new ArrayList[shardCount];
-		}
+		List<FutureTask<List<Object>>> tasks = new ArrayList<>(shardCount);
 		for(int i=0;i<shardCount;i++) {
-			List<Object> list = null;
-			if(!returnDto)
-				list = new ArrayList<>();
-			String key = masterOrSlave.value()+i;
-			Connection conn = null;
-			PreparedStatement statment = null;
-			ResultSet rs = null;
-			try {
-				conn = dataSource.getResolvedDataSources().get(key).getConnection();
-				statment = conn.prepareStatement(sql);
-				if(args!=null&&args.length>0) {
-					for(int j=0;j<args.length;j++)
-						statment.setObject(j+1, args[j]);
-				}
-				rs = statment.executeQuery();
-				while(rs.next()) {
-					Object item = returnItemType.getDeclaredConstructor().newInstance();
-					ResultSetMetaData rsmd = rs.getMetaData();
-					int columnCount = rsmd.getColumnCount();
-					for(int j=1;j<=columnCount;j++) {
-						String columnName = rsmd.getColumnLabel(j);
-						Method setterMethod = map.get(columnName);
-						if(setterMethod!=null) {
-							Object v = rs.getObject(j);
-							Class<?> parameterType = setterMethod.getParameterTypes()[0];
-							if(!parameterType.isInstance(v)) {
-								if(parameterType.getName().equals(String.class.getName())) {
-									v = rs.getString(j);
-								} else if(parameterType.getName().equals(boolean.class.getName())||parameterType.getName().equals(Boolean.class.getName())) {
-									v = rs.getBoolean(j);
-								} else if(parameterType.getName().equals(byte.class.getName())||parameterType.getName().equals(Byte.class.getName())) {
-									v = rs.getByte(j);
-								} else if(parameterType.getName().equals(short.class.getName())||parameterType.getName().equals(Short.class.getName())) {
-									v = rs.getShort(j);
-								} else if(parameterType.getName().equals(int.class.getName())||parameterType.getName().equals(Integer.class.getName())) {
-									v = rs.getInt(j);
-								} else if(parameterType.getName().equals(long.class.getName())||parameterType.getName().equals(Long.class.getName())) {
-									v = rs.getLong(j);
-								} else if(parameterType.getName().equals(float.class.getName())||parameterType.getName().equals(Float.class.getName())) {
-									v = rs.getFloat(j);
-								} else if(parameterType.getName().equals(double.class.getName())||parameterType.getName().equals(Double.class.getName())) {
-									v = rs.getDouble(j);
-								} else if(parameterType.getName().equals(BigDecimal.class.getName())) {
-									v = rs.getBigDecimal(j);
-								} else if(parameterType.getName().equals(Date.class.getName())||parameterType.getName().equals(java.sql.Date.class.getName())) {
-									v = rs.getDate(j);
-								} else if(parameterType.getName().equals(Time.class.getName())) {
-									v = rs.getTime(j);
-								} else if(parameterType.getName().equals(Timestamp.class.getName())) {
-									v = rs.getTimestamp(j);
-								} else if(parameterType.getName().equals(Array.class.getName())) {
-									v = rs.getArray(j);
-								} else if(parameterType.getName().equals(Blob.class.getName())) {
-									v = rs.getBlob(j);
-								} else if(parameterType.getName().equals(Clob.class.getName())) {
-									v = rs.getClob(j);
-								} else if(parameterType.getName().equals(byte[].class.getName())) {
-									InputStream in = null;
-									try {
-										in = rs.getBinaryStream(j);
-										byte[] buf = new byte[in.available()];
-										in.read(buf);
-										v = buf;
-									} finally {
-										if(in!=null)
-											in.close();
+			int ii = i;
+	        FutureTask<List<Object>> task = new FutureTask<>(new Callable<List<Object>>() {
+				@Override
+				public List<Object> call() throws Exception {
+					List<Object> list =  new ArrayList<>(returnDto?1:10);
+					String key = masterOrSlave.value()+ii;
+					Connection conn = null;
+					PreparedStatement statment = null;
+					ResultSet rs = null;
+					try {
+						conn = dataSource.getResolvedDataSources().get(key).getConnection();
+						statment = conn.prepareStatement(sql);
+						if(args!=null&&args.length>0) {
+							for(int j=0;j<args.length;j++)
+								statment.setObject(j+1, args[j]);
+						}
+						rs = statment.executeQuery();
+						while(rs.next()) {
+							Object item = returnItemType.getDeclaredConstructor().newInstance();
+							ResultSetMetaData rsmd = rs.getMetaData();
+							int columnCount = rsmd.getColumnCount();
+							for(int j=1;j<=columnCount;j++) {
+								String columnName = rsmd.getColumnLabel(j);
+								Method setterMethod = map.get(columnName);
+								if(setterMethod!=null) {
+									Object v = rs.getObject(j);
+									Class<?> parameterType = setterMethod.getParameterTypes()[0];
+									if(!parameterType.isInstance(v)) {
+										if(parameterType.getName().equals(String.class.getName())) {
+											v = rs.getString(j);
+										} else if(parameterType.getName().equals(boolean.class.getName())||parameterType.getName().equals(Boolean.class.getName())) {
+											v = rs.getBoolean(j);
+										} else if(parameterType.getName().equals(byte.class.getName())||parameterType.getName().equals(Byte.class.getName())) {
+											v = rs.getByte(j);
+										} else if(parameterType.getName().equals(short.class.getName())||parameterType.getName().equals(Short.class.getName())) {
+											v = rs.getShort(j);
+										} else if(parameterType.getName().equals(int.class.getName())||parameterType.getName().equals(Integer.class.getName())) {
+											v = rs.getInt(j);
+										} else if(parameterType.getName().equals(long.class.getName())||parameterType.getName().equals(Long.class.getName())) {
+											v = rs.getLong(j);
+										} else if(parameterType.getName().equals(float.class.getName())||parameterType.getName().equals(Float.class.getName())) {
+											v = rs.getFloat(j);
+										} else if(parameterType.getName().equals(double.class.getName())||parameterType.getName().equals(Double.class.getName())) {
+											v = rs.getDouble(j);
+										} else if(parameterType.getName().equals(BigDecimal.class.getName())) {
+											v = rs.getBigDecimal(j);
+										} else if(parameterType.getName().equals(Date.class.getName())||parameterType.getName().equals(java.sql.Date.class.getName())) {
+											v = rs.getDate(j);
+										} else if(parameterType.getName().equals(Time.class.getName())) {
+											v = rs.getTime(j);
+										} else if(parameterType.getName().equals(Timestamp.class.getName())) {
+											v = rs.getTimestamp(j);
+										} else if(parameterType.getName().equals(Array.class.getName())) {
+											v = rs.getArray(j);
+										} else if(parameterType.getName().equals(Blob.class.getName())) {
+											v = rs.getBlob(j);
+										} else if(parameterType.getName().equals(Clob.class.getName())) {
+											v = rs.getClob(j);
+										} else if(parameterType.getName().equals(byte[].class.getName())) {
+											InputStream in = null;
+											try {
+												in = rs.getBinaryStream(j);
+												byte[] buf = new byte[in.available()];
+												in.read(buf);
+												v = buf;
+											} finally {
+												if(in!=null)
+													in.close();
+											}
+										}
 									}
+									setterMethod.invoke(item, v);
 								}
 							}
-							setterMethod.invoke(item, v);
+							list.add(item);
+							if(returnDto)
+								return list;
+//							if(returnDto) {
+//								return item;
+//							} else
+//								list.add(item);
 						}
+//						if(!returnDto)
+//							lists[i] = list;
+						return list;
+					} finally {
+						log.warn("第{}个分片耗时========Duration============{}", ii, (System.currentTimeMillis()-start));
+						if(rs!=null)
+							rs.close();
+						if(statment!=null)
+							statment.close();
+						if(conn!=null)
+							conn.close();
 					}
-					if(returnDto) {
-						return item;
-					} else
-						list.add(item);
 				}
-				if(!returnDto)
-					lists[i] = list;
-			} finally {
-				log.warn("第{}个分片耗时========Duration============{}", i, (System.currentTimeMillis()-start));
-				if(rs!=null)
-					rs.close();
-				if(statment!=null)
-					statment.close();
-				if(conn!=null)
-					conn.close();
-			}
+	        });
+	        tasks.add(task);
+			new Thread(task).start();
 		}
-		return returnDto?null:lists;
+		int completedCount = 0;
+		boolean[] compleatedTasks = new boolean[shardCount];
+		while(true) {
+			for(int i=0;i<compleatedTasks.length;i++) {
+				if(!compleatedTasks[i]) {
+					FutureTask<List<Object>> task = tasks.get(i);
+					if(task.isDone()) {
+						compleatedTasks[i] = true;
+						completedCount++;
+					}
+				}
+			}
+			if(completedCount>=shardCount)
+				break;
+			else
+				Thread.sleep(50);
+		}
+//		return returnDto?null:lists;
+		if(returnDto) {
+			for(FutureTask<List<Object>> task:tasks) {
+				List<Object> list = task.get();
+				if(list!=null&&list.size()>0)
+					return list.get(0);
+			}
+			return null;
+		} else {
+			@SuppressWarnings("unchecked")
+			List<Object>[] lists = new ArrayList[shardCount];
+			for(int i=0;i<tasks.size();i++) {
+				FutureTask<List<Object>> task = tasks.get(i);
+				lists[i] = task.get();
+			}
+			return lists;
+		}
 	}
 
 	@Override
