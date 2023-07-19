@@ -224,7 +224,7 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 			if(completedCount>=shardCount)
 				break;
 			else
-				Thread.sleep(50);
+				Thread.sleep(10);
 		}
 //		return returnDto?null:lists;
 		if(returnDto) {
@@ -246,32 +246,62 @@ public class AllShardingConfiguration implements BeanDefinitionRegistryPostProce
 	}
 
 	@Override
-	public int[] executeUpdate(String sql, MasterOrSlave masterOrSlave, Object... args) throws SQLException {
+	public int[] executeUpdate(String sql, MasterOrSlave masterOrSlave, Object... args) throws SQLException, InterruptedException, ExecutionException {
 		return this.executeUpdate(sql, masterOrSlave, System.currentTimeMillis(), args);
 	}
 
-	private int[] executeUpdate(String sql, MasterOrSlave masterOrSlave, long start, Object[] args) throws SQLException {
+	private int[] executeUpdate(String sql, MasterOrSlave masterOrSlave, long start, Object[] args) throws SQLException, InterruptedException, ExecutionException {
 		int shardCount = dataSource.getResolvedDataSources().size()/2;
-		int[] toReturn = new int[shardCount];
+		List<FutureTask<Integer>> tasks = new ArrayList<>(shardCount);
 		for(int i=0;i<shardCount;i++) {
-			String key = masterOrSlave.value()+i;
-			Connection conn = null;
-			PreparedStatement statment = null;
-			try {
-				conn = dataSource.getResolvedDataSources().get(key).getConnection();
-				statment = conn.prepareStatement(sql);
-				if(args!=null&&args.length>0) {
-					for(int j=0;j<args.length;j++)
-						statment.setObject(j+1, args[j]);
+			int ii = i;
+	        FutureTask<Integer> task = new FutureTask<>(new Callable<Integer>() {
+				@Override
+				public Integer call() throws Exception {
+					String key = masterOrSlave.value()+ii;
+					Connection conn = null;
+					PreparedStatement statment = null;
+					try {
+						conn = dataSource.getResolvedDataSources().get(key).getConnection();
+						statment = conn.prepareStatement(sql);
+						if(args!=null&&args.length>0) {
+							for(int j=0;j<args.length;j++)
+								statment.setObject(j+1, args[j]);
+						}
+						return statment.executeUpdate();
+					} finally {
+						log.warn("第{}个分片耗时========Duration============{}", ii, (System.currentTimeMillis()-start));
+						if(statment!=null)
+							statment.close();
+						if(conn!=null)
+							conn.close();
+					}
 				}
-				toReturn[i] = statment.executeUpdate();
-			} finally {
-				log.warn("第{}个分片耗时========Duration============{}", i, (System.currentTimeMillis()-start));
-				if(statment!=null)
-					statment.close();
-				if(conn!=null)
-					conn.close();
+	        });
+	        tasks.add(task);
+			new Thread(task).start();
+		}
+		int completedCount = 0;
+		boolean[] compleatedTasks = new boolean[shardCount];
+		while(true) {
+			for(int i=0;i<compleatedTasks.length;i++) {
+				if(!compleatedTasks[i]) {
+					FutureTask<Integer> task = tasks.get(i);
+					if(task.isDone()) {
+						compleatedTasks[i] = true;
+						completedCount++;
+					}
+				}
 			}
+			if(completedCount>=shardCount)
+				break;
+			else
+				Thread.sleep(10);
+		}
+		int[] toReturn = new int[shardCount];
+		for(int i=0;i<tasks.size();i++) {
+			FutureTask<Integer> task = tasks.get(i);
+			toReturn[i] = task.get();
 		}
 		return toReturn;
 	}
