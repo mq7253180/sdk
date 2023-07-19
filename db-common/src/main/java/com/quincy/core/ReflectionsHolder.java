@@ -10,7 +10,7 @@ public class ReflectionsHolder {
 		if(reflections==null) {
 			synchronized(lock) {
 				if(reflections==null)
-					reflections = new Reflections("");
+					reflections = new Reflections("com");
 			}
 		}
 		return reflections;
