@@ -34,7 +34,7 @@ import org.springframework.jdbc.datasource.ConnectionHolder;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 
-import com.quincy.sdk.DaoSupport;
+import com.quincy.sdk.JdbcDao;
 import com.quincy.sdk.annotation.ExecuteQuery;
 import com.quincy.sdk.annotation.ExecuteUpdate;
 import com.quincy.sdk.annotation.JDBCDao;
@@ -43,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Configuration
-public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor, DaoSupport {
+public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor, JdbcDao {
 	private DataSource dataSource;
 	private Map<Class<?>, Map<String, Method>> classMethodMap;
 
