@@ -1,4 +1,4 @@
-package com.quincy;
+package com.quincy.core;
 
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -14,12 +14,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 
-import com.quincy.core.DBCommonApplicationContext;
 import com.quincy.core.db.RoutingDataSource;
 import com.quincy.sdk.MasterOrSlave;
 
 @Configuration
-public class ShardingDBConfiguration {
+public class ShardingJdbcConfiguration {
 	@Value("${spring.datasource.driver-class-name}")
 	private String driverClassName;
 	@Value("${spring.datasource.sharding.url.prefix}")

@@ -43,13 +43,13 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Configuration
-public class TraditionalDaoConfiguration implements BeanDefinitionRegistryPostProcessor, DaoSupport {
+public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor, DaoSupport {
 	private DataSource dataSource;
 	private Map<Class<?>, Map<String, Method>> classMethodMap;
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		Set<Class<?>> classes = ReflectionsHolder.getReflections().getTypesAnnotatedWith(JDBCDao.class);
+		Set<Class<?>> classes = ReflectionsHolder.get().getTypesAnnotatedWith(JDBCDao.class);
 		for(Class<?> clazz:classes) {
 			Object o = Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[] {clazz}, new InvocationHandler() {
 				@Override

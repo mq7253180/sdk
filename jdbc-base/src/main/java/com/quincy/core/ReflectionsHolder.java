@@ -6,7 +6,7 @@ public class ReflectionsHolder {
 	private static Reflections reflections = null;
 	private static Object lock = new Object();
 
-	public static Reflections getReflections() {
+	public static Reflections get() {
 		if(reflections==null) {
 			synchronized(lock) {
 				if(reflections==null)

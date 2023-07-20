@@ -1,4 +1,4 @@
-package com.quincy;
+package com.quincy.core;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,7 +34,6 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 
-import com.quincy.core.ReflectionsHolder;
 import com.quincy.core.db.RoutingDataSource;
 import com.quincy.sdk.AllShardsDaoSupport;
 import com.quincy.sdk.MasterOrSlave;
@@ -46,14 +45,14 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Configuration
-public class AllShardingConfiguration implements BeanDefinitionRegistryPostProcessor, AllShardsDaoSupport {
+public class GlobalShardingConfiguration implements BeanDefinitionRegistryPostProcessor, AllShardsDaoSupport {
 	private RoutingDataSource dataSource;
 	private Map<Class<?>, Map<String, Method>> classMethodMap;
 	private ThreadPoolExecutor threadPoolExecutor;
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-		Set<Class<?>> classes = ReflectionsHolder.getReflections().getTypesAnnotatedWith(AllShardsJDBCDao.class);
+		Set<Class<?>> classes = ReflectionsHolder.get().getTypesAnnotatedWith(AllShardsJDBCDao.class);
 		for(Class<?> clazz:classes) {
 			Object o = Proxy.newProxyInstance(clazz.getClassLoader(), new Class<?>[] {clazz}, new InvocationHandler() {
 				@Override
