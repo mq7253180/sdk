@@ -45,7 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Configuration
-public class GlobalShardingConfiguration implements BeanDefinitionRegistryPostProcessor, AllShardsDaoSupport {
+public class GlobalShardingDaoConfiguration implements BeanDefinitionRegistryPostProcessor, AllShardsDaoSupport {
 	private RoutingDataSource dataSource;
 	private Map<Class<?>, Map<String, Method>> classMethodMap;
 	private ThreadPoolExecutor threadPoolExecutor;

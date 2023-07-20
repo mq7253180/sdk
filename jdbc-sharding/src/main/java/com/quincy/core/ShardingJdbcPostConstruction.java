@@ -20,18 +20,18 @@ public class ShardingJdbcPostConstruction {
 	@Autowired
 	private DataSource dataSource;
 	@Autowired
-	private GlobalShardingConfiguration globalShardingConfiguration;
+	private GlobalShardingDaoConfiguration globalShardingDaoConfiguration;
 	@Autowired
-	private JdbcPostConstruction dbCommonPostConstruction;
+	private JdbcPostConstruction jdbcPostConstruction;
 
 	@PostConstruct
 	public void init() throws NoSuchMethodException, SecurityException {
 		RoutingDataSource rds = (RoutingDataSource)dataSource;
 		int shardCount = rds.getResolvedDataSources().size()/2;
 		BlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<Runnable>(shardCount);
-		globalShardingConfiguration.setClassMethodMap(dbCommonPostConstruction.getClassMethodMap());
-		globalShardingConfiguration.setDataSource(rds);
-		globalShardingConfiguration.setThreadPoolExecutor(new ThreadPoolExecutor(shardCount, shardCount, 5, TimeUnit.SECONDS, workQueue, new RejectedExecutionHandler() {
+		globalShardingDaoConfiguration.setClassMethodMap(jdbcPostConstruction.getClassMethodMap());
+		globalShardingDaoConfiguration.setDataSource(rds);
+		globalShardingDaoConfiguration.setThreadPoolExecutor(new ThreadPoolExecutor(shardCount, shardCount, 5, TimeUnit.SECONDS, workQueue, new RejectedExecutionHandler() {
 			@Override
 			public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
 				
