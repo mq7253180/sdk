@@ -128,9 +128,9 @@
 	</build>
 	<modules>
 		<module>sdk</module>
-		<module>db-common</module>
-		<module>db</module>
-		<module>db-sharding</module>
+		<module>jdbc-base</module>
+		<module>jdbc</module>
+		<module>jdbc-sharding</module>
 		<module>redis</module>
 		<module>zookeeper</module>
 		<module>sftp</module>

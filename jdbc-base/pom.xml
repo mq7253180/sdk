@@ -2,8 +2,8 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>quincy-db-common</artifactId>
-	<name>DB Common</name>
+	<artifactId>quincy-jdbc-base</artifactId>
+	<name>JDBC Base</name>
 	<url>https://github.com/mq7253180/sdk/tree/master/db</url>
 	<parent>
 		<groupId>com.maqiangcgq</groupId>
