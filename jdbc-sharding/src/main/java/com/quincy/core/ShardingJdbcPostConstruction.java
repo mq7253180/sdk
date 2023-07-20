@@ -34,7 +34,7 @@ public class ShardingJdbcPostConstruction {
 		globalShardingDaoConfiguration.setThreadPoolExecutor(new ThreadPoolExecutor(shardCount, shardCount, 5, TimeUnit.SECONDS, workQueue, new RejectedExecutionHandler() {
 			@Override
 			public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-				
+				throw new RejectedExecutionException("分片执行繁忙，稍后再试！");
 			}
 		}));
 	}
