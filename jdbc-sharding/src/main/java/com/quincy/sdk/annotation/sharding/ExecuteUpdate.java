@@ -14,4 +14,5 @@ import com.quincy.sdk.MasterOrSlave;
 public @interface ExecuteUpdate {
 	public String sql();
 	public MasterOrSlave masterOrSlave();
+	public boolean anyway() default false;
 }

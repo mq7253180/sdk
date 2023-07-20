@@ -65,11 +65,11 @@ public class GlobalShardingDaoConfiguration implements BeanDefinitionRegistryPos
 					if(queryAnnotation!=null) {
 						Class<?> returnItemType = queryAnnotation.returnItemType();
 						Assert.isTrue(returnType.getName().equals(List[].class.getName())||returnType.getName().equals(ArrayList[].class.getName())||returnType.getName().equals(returnItemType.getName()), "Return type must be List[] or ArrayList[] or given returnItemType.");
-						return executeQuery(queryAnnotation.sql(), returnType, returnItemType, queryAnnotation.masterOrSlave(), args);
+						return executeQuery(queryAnnotation.sql(), returnType, returnItemType, queryAnnotation.masterOrSlave(), queryAnnotation.anyway(), args);
 					}
 					if(executeUpdateAnnotation!=null) {
 						Assert.isTrue(returnType.getName().equals(int[].class.getName())||returnType.getName().equals(Integer[].class.getName()), "Return type must be int[] or Integer[].");
-						return executeUpdate(executeUpdateAnnotation.sql(), executeUpdateAnnotation.masterOrSlave(), start, args);
+						return executeUpdate(executeUpdateAnnotation.sql(), executeUpdateAnnotation.masterOrSlave(), executeUpdateAnnotation.anyway(), start, args);
 					}
 					return null;
 				}
@@ -98,13 +98,21 @@ public class GlobalShardingDaoConfiguration implements BeanDefinitionRegistryPos
 	}
 
 	@Override
-	public Object executeQuery(String sql, Class<?> returnType, Class<?> returnItemType, MasterOrSlave masterOrSlave, Object... args)
-			throws SQLException, IOException, InstantiationException, IllegalAccessException, IllegalArgumentException,
-			InvocationTargetException, NoSuchMethodException, SecurityException, InterruptedException, ExecutionException {
-		return this.executeQuery(sql, returnType, returnItemType, masterOrSlave, System.currentTimeMillis(), args);
+	public Object executeQuery(String sql, Class<?> returnType, Class<?> returnItemType, MasterOrSlave masterOrSlave,
+			Object... args) throws SQLException, IOException, InstantiationException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException,
+			InterruptedException, ExecutionException {
+		return this.executeQuery(sql, returnType, returnItemType, masterOrSlave, false, args);
 	}
 
-	private Object executeQuery(String sql, Class<?> returnType, Class<?> returnItemType, MasterOrSlave masterOrSlave, long start, Object[] args)
+	@Override
+	public Object executeQuery(String sql, Class<?> returnType, Class<?> returnItemType, MasterOrSlave masterOrSlave, boolean anyway, Object... args)
+			throws SQLException, IOException, InstantiationException, IllegalAccessException, IllegalArgumentException,
+			InvocationTargetException, NoSuchMethodException, SecurityException, InterruptedException, ExecutionException {
+		return this.executeQuery(sql, returnType, returnItemType, masterOrSlave, anyway, System.currentTimeMillis(), args);
+	}
+
+	private Object executeQuery(String sql, Class<?> returnType, Class<?> returnItemType, MasterOrSlave masterOrSlave, boolean anyway, long start, Object[] args)
 			throws SQLException, IOException, InstantiationException, IllegalAccessException, IllegalArgumentException,
 			InvocationTargetException, NoSuchMethodException, SecurityException, InterruptedException, ExecutionException {
 		Map<String, Method> map = classMethodMap.get(returnItemType);
@@ -209,7 +217,10 @@ public class GlobalShardingDaoConfiguration implements BeanDefinitionRegistryPos
 				}
 	        });
 	        tasks.add(task);
-	        threadPoolExecutor.submit(task);
+	        if(anyway)
+	        	new Thread(task).start();
+	        else
+	        	threadPoolExecutor.submit(task);
 		}
 		int completedCount = 0;
 		boolean[] compleatedTasks = new boolean[shardCount];
@@ -248,11 +259,17 @@ public class GlobalShardingDaoConfiguration implements BeanDefinitionRegistryPos
 	}
 
 	@Override
-	public int[] executeUpdate(String sql, MasterOrSlave masterOrSlave, Object... args) throws SQLException, InterruptedException, ExecutionException {
-		return this.executeUpdate(sql, masterOrSlave, System.currentTimeMillis(), args);
+	public int[] executeUpdate(String sql, MasterOrSlave masterOrSlave, Object... args)
+			throws SQLException, InterruptedException, ExecutionException {
+		return this.executeUpdate(sql, masterOrSlave, false, args);
 	}
 
-	private int[] executeUpdate(String sql, MasterOrSlave masterOrSlave, long start, Object[] args) throws SQLException, InterruptedException, ExecutionException {
+	@Override
+	public int[] executeUpdate(String sql, MasterOrSlave masterOrSlave, boolean anyway, Object... args) throws SQLException, InterruptedException, ExecutionException {
+		return this.executeUpdate(sql, masterOrSlave, anyway, System.currentTimeMillis(), args);
+	}
+
+	private int[] executeUpdate(String sql, MasterOrSlave masterOrSlave, boolean anyway, long start, Object[] args) throws SQLException, InterruptedException, ExecutionException {
 		int shardCount = dataSource.getResolvedDataSources().size()/2;
 		List<FutureTask<Integer>> tasks = new ArrayList<>(shardCount);
 		for(int i=0;i<shardCount;i++) {
@@ -281,7 +298,10 @@ public class GlobalShardingDaoConfiguration implements BeanDefinitionRegistryPos
 				}
 	        });
 	        tasks.add(task);
-			threadPoolExecutor.submit(task);
+	        if(anyway)
+	        	new Thread(task).start();
+	        else
+	        	threadPoolExecutor.submit(task);
 		}
 		int completedCount = 0;
 		boolean[] compleatedTasks = new boolean[shardCount];

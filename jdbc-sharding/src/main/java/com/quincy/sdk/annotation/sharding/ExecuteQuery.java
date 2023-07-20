@@ -15,4 +15,5 @@ public @interface ExecuteQuery {
 	public String sql();
 	public MasterOrSlave masterOrSlave();
 	public Class<?> returnItemType();
+	public boolean anyway() default false;
 }
