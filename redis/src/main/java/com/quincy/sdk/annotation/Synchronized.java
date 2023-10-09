@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(value = {ElementType.METHOD})
-public @interface DeprecatedSynchronized {
+public @interface Synchronized {
 	public String value();
 }

@@ -21,7 +21,6 @@ import javax.mail.internet.MimeMultipart;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import com.quincy.core.InnerConstants;
@@ -41,30 +40,13 @@ public class EmailServiceImpl implements EmailService {
 		this.send(to, subject, content, attachment!=null&&attachment.length()>0?new File(attachment):null, fileName, charset, ccTo, bccTo);
 	}
 
-	@Value("${mail.smtp.auth}")
-	private String smtpAuth;
-	@Value("${mail.smtp.starttls.enable}")
-	private String smtpStarttlsEnable;
-	@Value("${mail.smtp.host}")
-	private String smtpHost;
 	@Value("${mail.username}")
 	private String username;
 	@Value("${mail.password}")
 	private String password;
-	private final static String BEAN_NAME_PROPERTIES = "mailProperties";
-
-	@Bean(BEAN_NAME_PROPERTIES)
-	public Properties properties() {
-		Properties properties = new Properties();
-		properties.setProperty("mail.transport.protocol", "smtp");
-		properties.setProperty("mail.host", smtpHost);
-		properties.setProperty("mail.smtp.auth", smtpAuth);
-		properties.setProperty("mail.smtp.starttls.enable", smtpStarttlsEnable);
-		return properties;
-	}
 
 	@Autowired
-	@Qualifier(BEAN_NAME_PROPERTIES)
+	@Qualifier(InnerConstants.BEAN_NAME_PROPERTIES)
 	private Properties properties;
 
 	public void send(String to, String subject, String content, File attachment, String fileName, String _charset, String ccTo, String bccTo) {

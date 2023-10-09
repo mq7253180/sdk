@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(value = {ElementType.METHOD})
-public @interface Synchronized {
+public @interface ZkSynchronized {
 	public String value();
 	public int retries() default 10;
 	public long timeout() default 5000;

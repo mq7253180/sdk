@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 
 import com.quincy.core.zookeeper.ZooKeeperSource;
 import com.quincy.sdk.ZKContext;
-import com.quincy.sdk.annotation.Synchronized;
+import com.quincy.sdk.annotation.ZkSynchronized;
 import com.quincy.sdk.helper.AopHelper;
 
 import lombok.Data;
@@ -32,12 +32,12 @@ public class SynchronizedAop {
 	private ZKContext context;
 	private final static String KEY = "execution";
 
-	@Pointcut("@annotation(com.quincy.sdk.annotation.Synchronized)")
+	@Pointcut("@annotation(com.quincy.sdk.annotation.ZkSynchronized)")
     public void pointCut() {}
 
 	@Around("pointCut()")
     public Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
-		Synchronized annotation = AopHelper.getAnnotation(joinPoint, Synchronized.class);
+		ZkSynchronized annotation = AopHelper.getAnnotation(joinPoint, ZkSynchronized.class);
 		String key = annotation.value();
 		String path = context.getSynPath()+"/"+key;
 		String lockPath = path+"/"+KEY;

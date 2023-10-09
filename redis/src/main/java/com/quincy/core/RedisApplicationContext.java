@@ -31,9 +31,9 @@ public class RedisApplicationContext {
 	private String applicationName;
 	@Value("#{'${spring.redis.nodes}'.split(',')}")
 	private String[] _clusterNodes;
-	@Value("${spring.redis.password}")
+	@Value("${spring.data.redis.password}")
 	private String redisPwd;
-	@Value("${spring.redis.timeout}")
+	@Value("${spring.data.redis.timeout}")
 	private int connectionTimeout;
 	@Value("${spring.redis.sentinel.master:#{null}}")
 	private String sentinelMaster;

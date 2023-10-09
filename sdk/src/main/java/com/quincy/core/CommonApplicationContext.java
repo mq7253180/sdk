@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -20,7 +21,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.web.servlet.LocaleResolver;
 
+import com.quincy.core.web.GlobalHandlerExceptionResolver;
+import com.quincy.core.web.GlobalLocaleResolver;
 import com.quincy.sdk.helper.CommonHelper;
 
 @Configuration
@@ -88,6 +92,33 @@ public class CommonApplicationContext {//implements TransactionManagementConfigu
 	@PostConstruct
 	public void init() {
 		CommonHelper.SUPPORTED_LOCALES = supportedLocales;
+	}
+
+	@Bean("globalLocaleResolver")
+    public LocaleResolver localeResolver() {
+        return new GlobalLocaleResolver();
+    }
+
+	@Bean
+	public GlobalHandlerExceptionResolver globalHandlerExceptionResolver() {
+		return new GlobalHandlerExceptionResolver();
+	}
+
+	@Value("${mail.smtp.auth}")
+	private String smtpAuth;
+	@Value("${mail.smtp.starttls.enable}")
+	private String smtpStarttlsEnable;
+	@Value("${mail.smtp.host}")
+	private String smtpHost;
+
+	@Bean(InnerConstants.BEAN_NAME_PROPERTIES)
+	public Properties mailProperties() {
+		Properties properties = new Properties();
+		properties.setProperty("mail.transport.protocol", "smtp");
+		properties.setProperty("mail.host", smtpHost);
+		properties.setProperty("mail.smtp.auth", smtpAuth);
+		properties.setProperty("mail.smtp.starttls.enable", smtpStarttlsEnable);
+		return properties;
 	}
 
 	@Value("${threadPool.corePoolSize}")
