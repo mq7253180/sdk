@@ -94,8 +94,8 @@ public class SynchronizedAop extends JedisNeededBaseAop {
 	private void block(Jedis jedis, String key) {
 		JedisPubSub listener = new JedisPubSub() {
 			public void onMessage(String channel, String message) {
-				LISTENERS.remove(this);
 				this.unsubscribe();
+				LISTENERS.remove(this);
 			}
 		};
 		LISTENERS.put(listener, new MyListener(listener));
