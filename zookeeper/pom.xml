@@ -7,7 +7,7 @@
 	<url>https://github.com/mq7253180/sdk/tree/master/zookeeper</url>
 	<parent>
 		<groupId>com.maqiangcgq</groupId>
-		<artifactId>all</artifactId>
+		<artifactId>sdk</artifactId>
 		<version>1.1.2</version>
 	</parent>
 	<dependencies>
