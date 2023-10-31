@@ -67,7 +67,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 						return result;
 					}
 					if(executeUpdateAnnotation!=null) {
-						Assert.isTrue(returnType.getName().equals(int[].class.getName())||returnType.getName().equals(Integer[].class.getName()), "Return type must be int[] or Integer[].");
+						Assert.isTrue(returnType.getName().equals(int.class.getName())||returnType.getName().equals(Integer.class.getName()), "Return type must be int[] or Integer[].");
 						int rowCount = executeUpdate(executeUpdateAnnotation.sql(), args);
 						log.warn("Duration======{}======{}", executeUpdateAnnotation.sql(), (System.currentTimeMillis()-start));
 						return rowCount;
