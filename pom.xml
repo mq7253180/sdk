@@ -58,6 +58,11 @@
 					<!-- <compilerArguments>
 						<extdirs>${pom.basedir}/src/main/lib</extdirs>
 					</compilerArguments> -->
+					<compilerArgs>
+						<compilerArg>
+							-parameters
+						</compilerArg>
+                    </compilerArgs>
 				</configuration>
 				<dependencies>
 					<dependency>
