@@ -96,6 +96,17 @@ public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> {
 
 	private abstract class BaseThread extends Thread {
 		protected boolean loop = true;
+		protected abstract void beforeLoop();
+		protected abstract boolean doLoop();
+		
+		@Override
+		public void run() {
+			this.beforeLoop();
+			while(loop) {
+				if(this.doLoop())
+					break;
+			}
+		}
 
 		public void cancel() {
 			this.loop = false;
@@ -106,6 +117,7 @@ public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> {
 		private Jedis jedis;
 		private String lockKey;
 		private Long currentThreadId;
+		private int test = 0;
 
 		public WatchDog(Jedis jedis, String lockKey, long currentThreadId) {
 			this.jedis = jedis;
@@ -114,17 +126,20 @@ public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> {
 		}
 
 		@Override
-		public void run() {
+		protected void beforeLoop() {
 			sleep();
-			int test = 0;
-			while(loop) {
-				if(jedis.exists(lockKey)) {
-					log.warn("SET_EXPIRE======{}========{}", currentThreadId, ++test);
-					jedis.expire(lockKey, 4);
-					sleep();
-				} else
-					break;
+		}
+
+		@Override
+		protected boolean doLoop() {
+			boolean end = true;
+			if(jedis.exists(lockKey)) {
+				log.warn("SET_EXPIRE======{}========{}", currentThreadId, ++test);
+				jedis.expire(lockKey, 4);
+				sleep();
+				end = false;
 			}
+			return end;
 		}
 
 		private void sleep() {
@@ -158,27 +173,32 @@ public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> {
 		private final static long INTERVAL = 3000;
 		private JedisPubSub listener;
 		private Long subStart;
+		private long millis = INTERVAL;
 
-		public void run() {
-			long millis = INTERVAL;
-			while(loop) {
-				try {
-					log.info("{}**********SLEEP******************{}", Thread.currentThread().getId(), millis);
-					sleep(millis);
-				} catch (InterruptedException e) {
-					log.error("GLOBAL_SYNC_ERROR", e);
-				}
-				if(this.listener.isSubscribed()) {
-					long fromStart = System.currentTimeMillis()-subStart;
-					millis = INTERVAL-fromStart;
-					log.info("{}==========NEED_SLEEP================={}", Thread.currentThread().getId(), millis);
-					if(millis<=0) {
-						log.info("{}-----------------UNSUB", Thread.currentThread().getId());
-						this.listener.unsubscribe();
-						millis = INTERVAL;
-					}
+		@Override
+		protected void beforeLoop() {
+			
+		}
+
+		@Override
+		protected boolean doLoop() {
+			try {
+				log.info("{}**********SLEEP******************{}", Thread.currentThread().getId(), millis);
+				sleep(millis);
+			} catch (InterruptedException e) {
+				log.error("GLOBAL_SYNC_ERROR", e);
+			}
+			if(this.listener.isSubscribed()) {
+				long fromStart = System.currentTimeMillis()-subStart;
+				millis = INTERVAL-fromStart;
+				log.info("{}==========NEED_SLEEP================={}", Thread.currentThread().getId(), millis);
+				if(millis<=0) {
+					log.info("{}-----------------UNSUB", Thread.currentThread().getId());
+					this.listener.unsubscribe();
+					millis = INTERVAL;
 				}
 			}
+			return false;
 		}
 
 		public Monitor(JedisPubSub listener) {
