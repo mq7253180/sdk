@@ -94,7 +94,7 @@ public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> {
 		}
 	}
 
-	private class BaseThread extends Thread {
+	private abstract class BaseThread extends Thread {
 		protected boolean loop = true;
 
 		public void cancel() {
