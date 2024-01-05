@@ -10,6 +10,7 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.stereotype.Component;
 import org.springframework.core.annotation.Order;
 
+import com.quincy.sdk.DistributedLock;
 import com.quincy.sdk.annotation.Synchronized;
 
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,7 @@ import redis.clients.jedis.JedisPubSub;
 @Aspect
 @Order(2)
 @Component
-public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> {
+public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> implements DistributedLock {
 	private final static String KEY_PREFIX = "SYNCHRONIZATION:";
 	private final static String LOCK_KEY_PREFIX = KEY_PREFIX+"LOCK:";
 	private final static String TOPIC_KEY_PREFIX = KEY_PREFIX+"TOPIC:";
@@ -39,26 +40,26 @@ public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> {
 
 	@Override
 	protected Object before(Jedis jedis, Synchronized annotation) throws NoSuchMethodException, SecurityException, InterruptedException, UnknownHostException {
-		String key = annotation.value();
-		String lockKey = LOCK_KEY_PREFIX+key;
-		String topicKey = TOPIC_KEY_PREFIX+key;
+		return this.lock(jedis, annotation.value());
+	}
+
+	@Override
+	public Map<String, ?> lock(Jedis jedis, String name) throws UnknownHostException {
+		String lockKey = LOCK_KEY_PREFIX+name;
+		String topicKey = TOPIC_KEY_PREFIX+name;
 		String value = InetAddress.getLocalHost().getHostAddress()+"-"+Thread.currentThread().getId();
 		String cachedValue = jedis.get(lockKey);
-		Map<String, ?> passToAfter = null;
+		Map<String, ?> passToUnlock = null;
 		if(cachedValue==null||cachedValue.equals("nil")) {//The lock is free to hold.
-			passToAfter = this.lock(jedis, lockKey, value, topicKey, null);
+			passToUnlock = this.tryLock(jedis, lockKey, value, topicKey, null);
 		} else if(!cachedValue.equals(value)) {//The lock has been occupied.
 			Monitor monitor = this.wait(jedis, topicKey);
-			passToAfter = this.lock(jedis, lockKey, value, topicKey, monitor);
+			passToUnlock = this.tryLock(jedis, lockKey, value, topicKey, monitor);
 		}
-		return passToAfter;
+		return passToUnlock;
 	}
 
-	public void lock(Jedis jedis, String lockKey, String value, String topicKey) {
-		this.lock(jedis, lockKey, value, topicKey, null);
-	}
-
-	private Map<String, ?> lock(Jedis jedis, String lockKey, String value, String topicKey, Monitor _monitor) {
+	private Map<String, ?> tryLock(Jedis jedis, String lockKey, String value, String topicKey, Monitor _monitor) {
 		Monitor monitor = _monitor;
 		for(;;) {
 			if(jedis.setnx(lockKey, value)==0) {//Failed then block.
@@ -73,24 +74,29 @@ public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> {
 				Thread watchDog = new WatchDog(jedis, lockKey, Thread.currentThread().getId());
 				watchDog.setDaemon(true);
 				watchDog.start();
-				Map<String, Object> passToAfter = new HashMap<>(4);
-				passToAfter.put(LOCK_MAP_KEY, lockKey);
-				passToAfter.put(TOPIC_MAP_KEY, topicKey);
-				passToAfter.put(WATCH_DOG_KEY, watchDog);
-				return passToAfter;
+				Map<String, Object> passToUnlock = new HashMap<>(4);
+				passToUnlock.put(LOCK_MAP_KEY, lockKey);
+				passToUnlock.put(TOPIC_MAP_KEY, topicKey);
+				passToUnlock.put(WATCH_DOG_KEY, watchDog);
+				return passToUnlock;
 			}
 		}
 	}
 
 	@Override
 	protected void after(Jedis jedis, Object passFromBefore) {
-		if(passFromBefore!=null) {
-			@SuppressWarnings("unchecked")
-			Map<String, ?> keys = (Map<String, ?>)passFromBefore;
-			WatchDog watchDog = (WatchDog)keys.get(WATCH_DOG_KEY);
+		@SuppressWarnings("unchecked")
+		Map<String, ?> passFromLock = (Map<String, ?>)passFromBefore;
+		this.unlock(jedis, passFromLock);
+	}
+
+	@Override
+	public void unlock(Jedis jedis, Map<String, ?> passFromLock) {
+		if(passFromLock!=null) {
+			WatchDog watchDog = (WatchDog)passFromLock.get(WATCH_DOG_KEY);
 			watchDog.cancel();
-			jedis.del(keys.get(LOCK_MAP_KEY).toString());
-			jedis.publish(keys.get(TOPIC_MAP_KEY).toString(), "Finished");
+			jedis.del(passFromLock.get(LOCK_MAP_KEY).toString());
+			jedis.publish(passFromLock.get(TOPIC_MAP_KEY).toString(), "Finished");
 		}
 	}
 
