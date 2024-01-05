@@ -60,7 +60,7 @@ public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> {
 
 	private Map<String, ?> lock(Jedis jedis, String lockKey, String value, String topicKey, Monitor _monitor) {
 		Monitor monitor = _monitor;
-		for (;;) {
+		for(;;) {
 			if(jedis.setnx(lockKey, value)==0) {//Failed then block.
 				if(monitor==null) {
 					monitor = this.wait(jedis, topicKey);
@@ -117,7 +117,7 @@ public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> {
 		public void run() {
 			sleep();
 			int test = 0;
-			for (;loop;) {
+			while(loop) {
 				if(jedis.exists(lockKey)) {
 					log.warn("SET_EXPIRE======{}========{}", currentThreadId, ++test);
 					jedis.expire(lockKey, 4);
@@ -161,7 +161,7 @@ public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> {
 
 		public void run() {
 			long millis = INTERVAL;
-			for (;loop;) {
+			while(loop) {
 				try {
 					log.info("{}**********SLEEP******************{}", Thread.currentThread().getId(), millis);
 					sleep(millis);
