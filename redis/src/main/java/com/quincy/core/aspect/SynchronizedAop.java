@@ -10,7 +10,7 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.stereotype.Component;
 import org.springframework.core.annotation.Order;
 
-import com.quincy.sdk.DistributedLock;
+import com.quincy.sdk.AbstractAliveThread;
 import com.quincy.sdk.annotation.Synchronized;
 
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ import redis.clients.jedis.JedisPubSub;
 @Aspect
 @Order(2)
 @Component
-public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> implements DistributedLock {
+public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> {
 	private final static String KEY_PREFIX = "SYNCHRONIZATION:";
 	private final static String LOCK_KEY_PREFIX = KEY_PREFIX+"LOCK:";
 	private final static String TOPIC_KEY_PREFIX = KEY_PREFIX+"TOPIC:";
@@ -40,26 +40,25 @@ public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> implements
 
 	@Override
 	protected Object before(Jedis jedis, Synchronized annotation) throws NoSuchMethodException, SecurityException, InterruptedException, UnknownHostException {
-		return this.lock(jedis, annotation.value());
+		return this.tryLock(annotation.value(), jedis);
 	}
 
-	@Override
-	public Map<String, ?> lock(Jedis jedis, String name) throws UnknownHostException {
+	protected Map<String, ?> tryLock(String name, Jedis jedis) throws UnknownHostException {
 		String lockKey = LOCK_KEY_PREFIX+name;
 		String topicKey = TOPIC_KEY_PREFIX+name;
 		String value = InetAddress.getLocalHost().getHostAddress()+"-"+Thread.currentThread().getId();
 		String cachedValue = jedis.get(lockKey);
 		Map<String, ?> passToUnlock = null;
 		if(cachedValue==null||cachedValue.equals("nil")) {//The lock is free to hold.
-			passToUnlock = this.tryLock(jedis, lockKey, value, topicKey, null);
+			passToUnlock = this.acquire(jedis, lockKey, value, topicKey, null);
 		} else if(!cachedValue.equals(value)) {//The lock has been occupied.
 			Monitor monitor = this.wait(jedis, topicKey);
-			passToUnlock = this.tryLock(jedis, lockKey, value, topicKey, monitor);
+			passToUnlock = this.acquire(jedis, lockKey, value, topicKey, monitor);
 		}
 		return passToUnlock;
 	}
 
-	private Map<String, ?> tryLock(Jedis jedis, String lockKey, String value, String topicKey, Monitor _monitor) {
+	private Map<String, ?> acquire(Jedis jedis, String lockKey, String value, String topicKey, Monitor _monitor) {
 		Monitor monitor = _monitor;
 		for(;;) {
 			if(jedis.setnx(lockKey, value)==0) {//Failed then block.
@@ -87,11 +86,10 @@ public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> implements
 	protected void after(Jedis jedis, Object passFromBefore) {
 		@SuppressWarnings("unchecked")
 		Map<String, ?> passFromLock = (Map<String, ?>)passFromBefore;
-		this.unlock(jedis, passFromLock);
+		this.unlock(passFromLock, jedis);
 	}
 
-	@Override
-	public void unlock(Jedis jedis, Map<String, ?> passFromLock) {
+	protected void unlock(Map<String, ?> passFromLock, Jedis jedis) {
 		if(passFromLock!=null) {
 			WatchDog watchDog = (WatchDog)passFromLock.get(WATCH_DOG_KEY);
 			watchDog.cancel();
@@ -100,26 +98,7 @@ public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> implements
 		}
 	}
 
-	private abstract class BaseThread extends Thread {
-		protected boolean loop = true;
-		protected abstract void beforeLoop();
-		protected abstract boolean doLoop();
-		
-		@Override
-		public void run() {
-			this.beforeLoop();
-			while(loop) {
-				if(this.doLoop())
-					break;
-			}
-		}
-
-		public void cancel() {
-			this.loop = false;
-		}
-	}
-
-	private class WatchDog extends BaseThread {
+	private class WatchDog extends AbstractAliveThread {
 		private Jedis jedis;
 		private String lockKey;
 		private Long currentThreadId;
@@ -175,7 +154,7 @@ public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> implements
 		jedis.subscribe(monitor.getListener(), topicKey);
 	}
 
-	private class Monitor extends BaseThread {
+	private class Monitor extends AbstractAliveThread {
 		private final static long INTERVAL = 3000;
 		private JedisPubSub listener;
 		private Long subStart;

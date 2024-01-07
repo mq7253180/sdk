@@ -1,11 +1,11 @@
 package com.quincy.sdk;
 
 import java.net.UnknownHostException;
-import java.util.Map;
 
 import redis.clients.jedis.Jedis;
 
 public interface DistributedLock {
-	public Map<String, ?> lock(Jedis jedis, String name) throws UnknownHostException;
-	public void unlock(Jedis jedis, Map<String, ?> passFromLock);
+	public void lock(String name, Jedis jedis) throws UnknownHostException;
+	public void lock(String name) throws UnknownHostException;
+	public void unlock();
 }
