@@ -50,7 +50,7 @@ public class GeneralProcessorImpl implements RedisProcessor {
 		do {
 			SetParams params = new SetParams();
 			params.ex(expireSeconds);
-			if(jedis.exists(keyInString)) {
+			if((TYPE_FLAG_STRING.equalsIgnoreCase(typeFlag)&&jedis.exists(keyInString))||(TYPE_FLAG_BYTES.equalsIgnoreCase(typeFlag)&&jedis.exists(keyInBytes))) {
 				params.xx();
 			} else 
 				params.nx();

@@ -47,13 +47,13 @@ public class CacheAop {
     	String keyStr = annotation.key().trim();
     	String _key = cacheKeyPrefix+(keyStr.length()>0?keyStr:CommonHelper.fullMethodPath(clazz, methodSignature, method, joinPoint.getArgs(), ".", "_", "#"));
     	log.info("CACHE_KEY============================={}", _key);
-    	byte[] key = _key.getBytes();
+    	byte[] key = (_key+":VALUE").getBytes();
     	Jedis jedis = null;
     	try {
     		jedis = jedisSource.get();
     		byte[] cache = jedis.get(key);
     		if(cache==null||cache.length==0) {
-    			byte[] nxKey = (_key+"_nx").getBytes();
+    			byte[] nxKey = (_key+":NX").getBytes();
     			long setNx = jedis.setnx(nxKey, nxKey);
     			if(setNx>0) {
     				jedis.expire(nxKey, annotation.setnxDelaySecs());

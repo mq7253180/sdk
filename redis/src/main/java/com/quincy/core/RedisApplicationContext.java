@@ -86,7 +86,7 @@ public class RedisApplicationContext {
 
 	@Bean("cacheKeyPrefix")
 	public String cacheKeyPrefix() {
-		return applicationName+".cache.";
+		return "CACHE:"+applicationName+":";
 	}
 
 	@PreDestroy
