@@ -1,6 +1,7 @@
 package com.quincy.core.aspect;
 
 import java.lang.reflect.Method;
+import java.net.InetAddress;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -53,8 +54,8 @@ public class CacheAop {
     		jedis = jedisSource.get();
     		byte[] cache = jedis.get(key);
     		if(cache==null||cache.length==0) {
-    			byte[] nxKey = (_key+":NX").getBytes();
-    			long setNx = jedis.setnx(nxKey, nxKey);
+    			String nxKey = _key+":NX";
+    			long setNx = jedis.setnx(nxKey, InetAddress.getLocalHost().getHostAddress()+"-"+Thread.currentThread().getId());
     			if(setNx>0) {
     				jedis.expire(nxKey, annotation.setnxExpire());
     				Object retVal = this.invokeAndCache(jedis, joinPoint, annotation, key);
