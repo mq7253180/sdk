@@ -15,5 +15,5 @@ public @interface Cache {
 	public int setnxExpire() default 3;
 	public int notExistRetries() default 3;
 	public long notExistSleepMillis() default 500;
-	public boolean returnNull() default true;
+	public boolean returnNull() default false;
 }
