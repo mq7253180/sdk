@@ -56,12 +56,13 @@ public class CacheAop {
     			byte[] nxKey = (_key+":NX").getBytes();
     			long setNx = jedis.setnx(nxKey, nxKey);
     			if(setNx>0) {
-    				jedis.expire(nxKey, annotation.setnxDelaySecs());
+    				jedis.expire(nxKey, annotation.setnxExpire());
     				Object retVal = this.invokeAndCache(jedis, joinPoint, annotation, key);
+    				jedis.del(nxKey);
     				return retVal;
     			} else {
-    				for(int i=0;i<annotation.setnxFailRetries();i++) {
-    					Thread.sleep(annotation.intervalMillis());
+    				for(int i=0;i<annotation.notExistRetries();i++) {
+    					Thread.sleep(annotation.notExistSleepMillis());
     					cache = jedis.get(key);
     					if(cache!=null&&cache.length>0)
     						break;
