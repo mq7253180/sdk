@@ -163,9 +163,11 @@ public class SnowFlakeUtil {
     }
  
     public static void main(String[] args) {
+    	int shards = 64;
         SnowFlakeUtil snowFlakeUtil = new SnowFlakeUtil();
         long id = snowFlakeUtil.nextId();
         System.out.println("id: "+id);
+        System.out.println("id%"+shards+": "+id%shards);
         Date date = SnowFlakeUtil.getTimeBySnowFlakeId(id);
         System.out.println("date: "+date);
         long time = date.getTime();
