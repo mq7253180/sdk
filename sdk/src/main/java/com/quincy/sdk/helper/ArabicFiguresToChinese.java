@@ -37,16 +37,21 @@ public class ArabicFiguresToChinese {
 				}
 				deductor += divisor*r;
 			}
+			int last0IndexOf = sb.lastIndexOf("零");
+			if(last0IndexOf==sb.length()-1)
+				sb.replace(last0IndexOf, sb.length(), "");
 			sb.append(BIG_UNITS[i]);
 		}
 		return sb.toString();
 	}
 
 	public static void main(String[] args) {
-		System.out.println(transfer(40));
-		System.out.println(transfer(50040));
+		System.out.println(transfer(500));
+		System.out.println(transfer(50400));
+		System.out.println(transfer(3000));
 		System.out.println(transfer(1005));
-		System.out.println(transfer(20008));
+		System.out.println(transfer(2000008));
+		System.out.println(transfer(20000800));
 		System.out.println(transfer(30078));
 		System.out.println(transfer(20808));
 		System.out.println(transfer(50031565));
