@@ -10,12 +10,12 @@ public class ArabicFiguresToChinese {
 
 	public static String transfer(int from) {
 		StringBuilder sb = new StringBuilder(20);
-		boolean previousIsNot0 = true;
 		int p = from;
 		for(int i=0;i<BIG_DIVISORS.length;i++) {
 			int bigDivisor = BIG_DIVISORS[i];
 			if(p<bigDivisor)
 				continue;
+			boolean previousIsNot0 = true;
 			int deductor = 0;
 			int x = p/bigDivisor;//取高位
 			p = p%bigDivisor;//取低位
