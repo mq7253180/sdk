@@ -14,7 +14,6 @@ import com.quincy.core.InnerHelper;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 
 public abstract class AuthorizationInterceptorSupport extends HandlerInterceptorAdapter {
 	@Autowired

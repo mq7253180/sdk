@@ -30,7 +30,7 @@ public class GlobalHandlerMethodReturnValueHandler implements HandlerMethodRetur
 	@Override
 	public void handleReturnValue(Object returnValue, MethodParameter returnType, ModelAndViewContainer mavContainer,
 			NativeWebRequest webRequest) throws Exception {
-		DoNotWrap doNotWrap = returnType.getMethod().getAnnotation(DoNotWrap.class);
+		DoNotWrap doNotWrap = returnType.getMethod().getDeclaredAnnotation(DoNotWrap.class);
 		if(doNotWrap==null) {
 			Result result = Result.newSuccess();
 			result.setAccsessToken(ThreadLocalHolder.getAccsessToken());

@@ -175,7 +175,7 @@ public class CommonHelper {
 
 	public static String clientType(HttpServletRequest request, Object handler) {
 		String clientType = null;
-		Object _clientType = request.getAttribute("cliengType");
+		Object _clientType = request.getAttribute("clientType");
 		if(_clientType!=null) {
 			clientType = _clientType.toString();
 		} else {
