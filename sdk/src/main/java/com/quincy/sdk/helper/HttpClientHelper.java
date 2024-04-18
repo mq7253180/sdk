@@ -240,8 +240,10 @@ public class HttpClientHelper {
 		}
 	}
 
+	private final static String APPLICATION_JSON_UTF8_VALUE = MediaType.APPLICATION_JSON_VALUE+";charset=UTF-8";
+
 	public static void outputJson(HttpServletResponse response, String json) throws IOException {
-		output(response, MediaType.APPLICATION_JSON_UTF8_VALUE, json);
+		output(response, APPLICATION_JSON_UTF8_VALUE, json);
 	}
 
 	public static void main(String[] args) throws IOException {
