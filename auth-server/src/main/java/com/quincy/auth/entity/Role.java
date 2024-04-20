@@ -20,7 +20,7 @@ public class Role {
 	@Column(name="id")
 	private Long id;
 //	@ManyToMany(cascade = CascadeType.ALL)
-//	@JoinTable(name = "s_role_permission_rel", joinColumns = {@JoinColumn(name = "role_id")}, inverseJoinColumns = {@JoinColumn(name = "permission_id")})
+//	@JoinTable(name = "s_permission_role_rel", joinColumns = {@JoinColumn(name = "role_id")}, inverseJoinColumns = {@JoinColumn(name = "permission_id")})
 //	private Set<Permission> permissions;
 	@Column(name="name")
 	private String name;
