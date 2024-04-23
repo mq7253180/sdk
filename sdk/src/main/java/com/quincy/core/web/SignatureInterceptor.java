@@ -22,9 +22,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class SignatureInterceptor extends HandlerInterceptorAdapter {
-	private SignaturePubKeyExchanger exchanger;
+	private PublicKeyGetter exchanger;
 
-	public SignatureInterceptor(SignaturePubKeyExchanger exchanger) {
+	public SignatureInterceptor(PublicKeyGetter exchanger) {
 		this.exchanger = exchanger;
 	}
 
@@ -44,7 +44,7 @@ public class SignatureInterceptor extends HandlerInterceptorAdapter {
 					status = -2;
 					msgI18NKey = "signature.null";
 				} else {
-					String publicKey = CommonHelper.trim(exchanger.getPublicKeyById(id));
+					String publicKey = CommonHelper.trim(exchanger.getById(id));
 					if(publicKey==null) {
 						throw new RuntimeException("Public key is null.");
 					} else {
