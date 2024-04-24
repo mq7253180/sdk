@@ -39,16 +39,14 @@ public class AuthServerInitialization {//implements BeanDefinitionRegistryPostPr
 	@PostConstruct
 	public void init() throws NoSuchMethodException, SecurityException {
 		this.loadPermissions();
-		if(loginRequiredForRoot) {
-			RequestMappingInfo.BuilderConfiguration config = new RequestMappingInfo.BuilderConfiguration();
-	        config.setPatternParser(requestMappingHandlerMapping.getPatternParser());
-			RequestMappingInfo requestMappingInfo = RequestMappingInfo
-					.paths("/")
-	                .methods(RequestMethod.GET)
-	                .options(config)
-	                .build();
-			requestMappingHandlerMapping.registerMapping(requestMappingInfo, rootController, RootController.class.getMethod("root", HttpServletRequest.class, HttpServletResponse.class));
-		}
+		RequestMappingInfo.BuilderConfiguration config = new RequestMappingInfo.BuilderConfiguration();
+        config.setPatternParser(requestMappingHandlerMapping.getPatternParser());
+		RequestMappingInfo requestMappingInfo = RequestMappingInfo
+				.paths("/")
+                .methods(RequestMethod.GET)
+                .options(config)
+                .build();
+		requestMappingHandlerMapping.registerMapping(requestMappingInfo, rootController, RootController.class.getMethod(loginRequiredForRoot?"rootWithLogin":"root", HttpServletRequest.class, HttpServletResponse.class));
 	}
 
 	@PreDestroy
