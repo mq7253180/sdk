@@ -35,7 +35,7 @@ public class RedisApplicationContext {
 	private String redisPwd;
 	@Value("${spring.data.redis.timeout}")
 	private int connectionTimeout;
-	@Value("${spring.redis.sentinel.master:#{null}}")
+	@Value("${spring.data.redis.sentinel.master:#{null}}")
 	private String sentinelMaster;
 	@Value("${spring.redis.cluster.soTimeout}")
 	private int soTimeout;
