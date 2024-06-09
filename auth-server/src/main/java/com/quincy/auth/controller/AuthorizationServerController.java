@@ -19,7 +19,6 @@ import com.quincy.auth.AuthConstants;
 import com.quincy.auth.annotation.VCodeRequired;
 import com.quincy.auth.o.XSession;
 import com.quincy.auth.o.User;
-import com.quincy.auth.service.AuthCallback;
 import com.quincy.auth.service.AuthorizationServerService;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.Client;
@@ -93,17 +92,8 @@ public class AuthorizationServerController {
 			result.setMsg(requestContext.getMessage("auth.account.pwd_incorrect"));
 			return result;
 		}
-		XSession session = authorizationServerService.setSession(request, new AuthCallback() {
-			@Override
-			public void updateLastLogined(String jsessionid) {
-				authActions.updateLastLogin(user.getId(), client, jsessionid);
-			}
-
-			@Override
-			public User getUser() {
-				return user;
-			}
-		});
+		XSession session = authorizationServerService.setSession(request, user);
+		authActions.updateLastLogin(user.getId(), request.getSession().getId());
 		result.setStatus(1);
 		result.setMsg(requestContext.getMessage("auth.success"));
 		result.setData(session);

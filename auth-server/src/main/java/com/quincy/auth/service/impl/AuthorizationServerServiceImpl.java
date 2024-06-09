@@ -20,7 +20,6 @@ import com.quincy.auth.mapper.AuthMapper;
 import com.quincy.auth.o.XSession;
 import com.quincy.auth.o.Menu;
 import com.quincy.auth.o.User;
-import com.quincy.auth.service.AuthCallback;
 import com.quincy.auth.service.AuthorizationServerService;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.helper.CommonHelper;
@@ -99,23 +98,19 @@ public class AuthorizationServerServiceImpl implements AuthorizationServerServic
 		}
 	}
 
-	private void excludeSession(String originalJsessionid) {
-		HttpSession httpSession = AuthSessionHolder.SESSIONS.remove(originalJsessionid);
-		if(httpSession!=null)
-			httpSession.invalidate();
-	}
-
 	@Value("${server.servlet.session.timeout:#{null}}")
 	private String sessionTimeout;
 	@Value("${server.servlet.session.timeout.app:#{null}}")
 	private String sessionTimeoutApp;
 
 	@Override
-	public XSession setSession(HttpServletRequest request, AuthCallback callback) {
-		User user = callback.getUser();
+	public XSession setSession(HttpServletRequest request, User user) {
 		String originalJsessionid = CommonHelper.trim(user.getJsessionid());
-		if(originalJsessionid!=null)//同一user不同客户端登录互踢
-			this.excludeSession(originalJsessionid);
+		if(originalJsessionid!=null) {//同一user不同客户端登录互踢
+			HttpSession httpSession = AuthSessionHolder.SESSIONS.remove(originalJsessionid);
+			if(httpSession!=null)
+				httpSession.invalidate();
+		}
 		int maxInactiveInterval = -1;
 		if(CommonHelper.isApp(request)) {
 			maxInactiveInterval = sessionTimeoutApp==null?86400:Integer.parseInt(String.valueOf(Duration.parse(sessionTimeoutApp).getSeconds()));
@@ -127,7 +122,6 @@ public class AuthorizationServerServiceImpl implements AuthorizationServerServic
 		user.setJsessionid(jsessionid);
 		XSession xsession = this.createSession(user);
 		session.setAttribute(InnerConstants.ATTR_SESSION, xsession);
-		callback.updateLastLogined(jsessionid);
 		return xsession;
 	}
 
