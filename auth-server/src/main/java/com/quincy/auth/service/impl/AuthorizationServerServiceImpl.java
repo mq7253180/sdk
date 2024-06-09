@@ -1,6 +1,5 @@
 package com.quincy.auth.service.impl;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.quincy.auth.AuthSessionHolder;
 import com.quincy.auth.entity.Permission;
 import com.quincy.auth.entity.Role;
 import com.quincy.auth.mapper.AuthMapper;
@@ -105,12 +103,6 @@ public class AuthorizationServerServiceImpl implements AuthorizationServerServic
 
 	@Override
 	public XSession setSession(HttpServletRequest request, User user) {
-		String originalJsessionid = CommonHelper.trim(user.getJsessionid());
-		if(originalJsessionid!=null) {//同一user不同客户端登录互踢
-			HttpSession httpSession = AuthSessionHolder.SESSIONS.remove(originalJsessionid);
-			if(httpSession!=null)
-				httpSession.invalidate();
-		}
 		int maxInactiveInterval = -1;
 		if(CommonHelper.isApp(request)) {
 			maxInactiveInterval = sessionTimeoutApp==null?86400:Integer.parseInt(String.valueOf(Duration.parse(sessionTimeoutApp).getSeconds()));
@@ -124,7 +116,7 @@ public class AuthorizationServerServiceImpl implements AuthorizationServerServic
 		session.setAttribute(InnerConstants.ATTR_SESSION, xsession);
 		return xsession;
 	}
-
+	/*
 	@Override
 	public void updateSession(User user) {
 		String jsessionid = CommonHelper.trim(user.getJsessionid());
@@ -140,4 +132,5 @@ public class AuthorizationServerServiceImpl implements AuthorizationServerServic
 		for(User user:users)
 			this.updateSession(user);
 	}
+	*/
 }

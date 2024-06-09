@@ -93,7 +93,13 @@ public class AuthorizationServerController {
 			return result;
 		}
 		XSession session = authorizationServerService.setSession(request, user);
-		authActions.updateLastLogin(user.getId(), request.getSession().getId());
+		String originalJsessionid = CommonHelper.trim(user.getJsessionid());
+		if(originalJsessionid!=null) {//同一user不同客户端登录互踢，清除session
+//			HttpSession httpSession = AuthSessionHolder.SESSIONS.remove(originalJsessionid);
+//			if(httpSession!=null)
+//				httpSession.invalidate();
+		}
+		authActions.updateLastLogin(user.getId(), request.getSession().getId());//互踢还需要应用层配合更新数据库里的jsessionid
 		result.setStatus(1);
 		result.setMsg(requestContext.getMessage("auth.success"));
 		result.setData(session);

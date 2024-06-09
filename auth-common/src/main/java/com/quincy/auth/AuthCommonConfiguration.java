@@ -51,12 +51,12 @@ public class AuthCommonConfiguration {
 		return new HttpSessionListener() {
 			@Override
 			public void sessionCreated(HttpSessionEvent hse) {
-				AuthSessionHolder.SESSIONS.put(hse.getSession().getId(), hse.getSession());
+//				AuthSessionHolder.SESSIONS.put(hse.getSession().getId(), hse.getSession());
 			}
 
 			@Override
 			public void sessionDestroyed(HttpSessionEvent hse) {
-				AuthSessionHolder.SESSIONS.remove(hse.getSession().getId());
+//				AuthSessionHolder.SESSIONS.remove(hse.getSession().getId());
 			}
 		};
 	}
