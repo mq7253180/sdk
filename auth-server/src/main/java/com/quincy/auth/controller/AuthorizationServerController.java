@@ -21,6 +21,7 @@ import com.quincy.auth.o.XSession;
 import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthorizationServerService;
 import com.quincy.core.InnerConstants;
+import com.quincy.core.SessionInvalidation;
 import com.quincy.sdk.Client;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.helper.CommonHelper;
@@ -35,6 +36,8 @@ public class AuthorizationServerController {
 	private AuthorizationServerService authorizationServerService;
 	@Autowired(required = false)
 	private AuthActions authActions;
+	@Autowired(required = false)
+	private SessionInvalidation sessionInvalidation;
 	private final static String AUTH_ACTIONS_NULL_MSG = "没有设置回调动作";
 	/**
 	 * 进登录页
@@ -92,13 +95,10 @@ public class AuthorizationServerController {
 			result.setMsg(requestContext.getMessage("auth.account.pwd_incorrect"));
 			return result;
 		}
-		XSession session = authorizationServerService.setSession(request, user);
 		String originalJsessionid = CommonHelper.trim(user.getJsessionid());
-		if(originalJsessionid!=null) {//同一user不同客户端登录互踢，清除session
-//			HttpSession httpSession = AuthSessionHolder.SESSIONS.remove(originalJsessionid);
-//			if(httpSession!=null)
-//				httpSession.invalidate();
-		}
+		XSession session = authorizationServerService.setSession(request, user);
+		if(sessionInvalidation!=null&&originalJsessionid!=null)//同一user不同客户端登录互踢，清除session
+			sessionInvalidation.invalidate(originalJsessionid);
 		authActions.updateLastLogin(user.getId(), request.getSession().getId());//互踢还需要应用层配合更新数据库里的jsessionid
 		result.setStatus(1);
 		result.setMsg(requestContext.getMessage("auth.success"));

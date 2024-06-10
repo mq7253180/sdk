@@ -13,14 +13,18 @@
 	<dependencies>
 		<dependency>
 		    <groupId>com.maqiangcgq</groupId>
-		    <artifactId>quincy-auth-common</artifactId>
+		    <artifactId>quincy-sdk</artifactId>
 		    <version>1.1.2</version>
 		</dependency>
 		<dependency>
 		    <groupId>redis.clients</groupId>
 		    <artifactId>jedis</artifactId>
-		    <!--<version>4.3.2</version>-->
 		    <version>5.1.2</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.springframework.session</groupId>
+		    <artifactId>spring-session-data-redis</artifactId>
+		    <version>3.0.1</version>
 		</dependency>
     </dependencies>
 </project>
