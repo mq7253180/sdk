@@ -95,10 +95,13 @@ public class AuthorizationServerController {
 			result.setMsg(requestContext.getMessage("auth.account.pwd_incorrect"));
 			return result;
 		}
-		String originalJsessionid = CommonHelper.trim(user.getJsessionid());
+		String originalJsessionid = user.getJsessionid();
 		XSession session = authorizationServerService.setSession(request, user);
-		if(sessionInvalidation!=null&&originalJsessionid!=null)//同一user不同客户端登录互踢，清除session
-			sessionInvalidation.invalidate(originalJsessionid);
+		if(sessionInvalidation!=null) {//同一user不同客户端登录互踢，清除session
+			originalJsessionid = CommonHelper.trim(user.getJsessionid());
+			if(originalJsessionid!=null)
+				sessionInvalidation.invalidate(originalJsessionid);
+		}
 		authActions.updateLastLogin(user.getId(), request.getSession().getId());//互踢还需要应用层配合更新数据库里的jsessionid
 		result.setStatus(1);
 		result.setMsg(requestContext.getMessage("auth.success"));
