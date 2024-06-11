@@ -98,7 +98,7 @@ public class AuthorizationServerController {
 		String originalJsessionid = user.getJsessionid();
 		XSession session = authorizationServerService.setSession(request, user);
 		if(sessionInvalidation!=null) {//同一user不同客户端登录互踢，清除session
-			originalJsessionid = CommonHelper.trim(user.getJsessionid());
+			originalJsessionid = CommonHelper.trim(originalJsessionid);
 			if(originalJsessionid!=null)
 				sessionInvalidation.invalidate(originalJsessionid);
 		}

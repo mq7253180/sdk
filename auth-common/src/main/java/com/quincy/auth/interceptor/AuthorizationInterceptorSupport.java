@@ -11,11 +11,12 @@ import com.quincy.auth.AuthCommonConstants;
 import com.quincy.auth.AuthHelper;
 import com.quincy.auth.o.XSession;
 import com.quincy.core.InnerHelper;
+import com.quincy.core.QuincyAuthInterceptor;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-public abstract class AuthorizationInterceptorSupport extends HandlerInterceptorAdapter {
+public abstract class AuthorizationInterceptorSupport extends HandlerInterceptorAdapter implements QuincyAuthInterceptor {
 	@Autowired
 	@Qualifier("signinUrl")
 	private String signinUrl;

@@ -2,7 +2,6 @@ package com.quincy.auth.interceptor;
 
 import java.lang.reflect.Method;
 
-import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 
 import com.quincy.auth.annotation.LoginRequired;
@@ -11,7 +10,6 @@ import com.quincy.auth.annotation.PermissionNeeded;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-@Component("authorizationAnnotationInterceptor")
 public class AuthorizationAnnotationInterceptor extends AuthorizationInterceptorSupport {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {

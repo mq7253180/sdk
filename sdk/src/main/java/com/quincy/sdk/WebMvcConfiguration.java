@@ -10,6 +10,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
+import com.quincy.core.QuincyAuthInterceptor;
 import com.quincy.core.web.GeneralInterceptor;
 import com.quincy.core.web.PublicKeyGetter;
 import com.quincy.core.web.SignatureInterceptor;
@@ -25,8 +26,8 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
 	private ApplicationContext applicationContext;
 	@Value("${env}")
 	private String env;
-	@Value("${impl.auth.interceptor:#{null}}")
-	private String authTnterceptorImpl;
+	@Autowired(required = false)
+	private QuincyAuthInterceptor quincyAuthInterceptor;
 	@Autowired
 	private PublicKeyGetter publicKeyGetter;
 
@@ -35,8 +36,8 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
 		if(Constants.ENV_DEV.equals(env))
 			registry.addInterceptor(new StaticInterceptor()).addPathPatterns("/static/**");
 		registry.addInterceptor(new GeneralInterceptor()).addPathPatterns("/**");
-		if(authTnterceptorImpl!=null) {
-			HandlerInterceptorAdapter handlerInterceptorAdapter = applicationContext.getBean(authTnterceptorImpl, HandlerInterceptorAdapter.class);
+		if(quincyAuthInterceptor!=null) {
+			HandlerInterceptorAdapter handlerInterceptorAdapter = (HandlerInterceptorAdapter)quincyAuthInterceptor;
 			registry.addInterceptor(handlerInterceptorAdapter).addPathPatterns("/**");
 		}
 		registry.addInterceptor(new SignatureInterceptor(publicKeyGetter)).addPathPatterns("/**");
