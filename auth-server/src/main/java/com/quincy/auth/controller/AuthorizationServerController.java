@@ -182,7 +182,7 @@ public class AuthorizationServerController {
 		return _failures==null?0:Integer.parseInt(_failures.toString());
 	}
 
-	@Value("${vcode.loginFailures}")
+	@Value("${auth.vcode.loginFailures}")
 	private int failuresThresholdForVCode;
 	private final static String LOGIN_FAILURES_HOLDER_KEY = "login_failures";
 	/**

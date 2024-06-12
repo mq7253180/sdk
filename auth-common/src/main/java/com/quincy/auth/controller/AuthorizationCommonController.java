@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.quincy.auth.AuthCommonConstants;
+import com.quincy.auth.AuthorizationCommonMetaData;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.EmailService;
 
@@ -28,7 +29,7 @@ import jakarta.servlet.http.HttpSession;
 
 @Controller
 @RequestMapping("/auth")
-public class AuthorizationCommonController {
+public class AuthorizationCommonController implements AuthorizationCommonMetaData {
 	/**
 	 * 登出
 	 */
@@ -49,10 +50,12 @@ public class AuthorizationCommonController {
 	}
 
 	private final double VCODE_RADIANS = Math.PI/180;
-	@Value("${vcode.length}")
+	@Value("${auth.vcode.length}")
 	private int vcodeLength;
-	@Value("${vcode.lines}")
+	@Value("${auth.vcode.lines}")
 	private int vcodeLines;
+	@Value("${auth.vcode.timeout:120}")
+	private int vcodeTimeoutSeconds;
 	/**
 	 * Example: 25/10/25/110/35
 	 */
@@ -101,9 +104,6 @@ public class AuthorizationCommonController {
 		});
 	}
 
-	@Value("${auth.vcode.timeout:120}")
-	private int vcodeTimeoutSeconds;
-
 	public String vcode(HttpServletRequest request, VCodeCharsFrom _charsFrom, int length, String clientTokenName, VCodeSender sender) throws Exception {
 		String charsFrom = (_charsFrom==null?VCodeCharsFrom.MIXED:_charsFrom).getValue();
 		Random random = new Random();
@@ -135,5 +135,9 @@ public class AuthorizationCommonController {
 				emailService.send(emailTo, subject, content, "", null, null, null, null);
 			}
 		});
+	}
+
+	public int getVcodeTimeoutSeconds() {
+		return vcodeTimeoutSeconds;
 	}
 }

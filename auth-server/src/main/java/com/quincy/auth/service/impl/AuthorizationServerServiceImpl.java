@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.quincy.auth.AuthorizationCommonMetaData;
 import com.quincy.auth.entity.Permission;
 import com.quincy.auth.entity.Role;
 import com.quincy.auth.mapper.AuthMapper;
@@ -100,16 +101,21 @@ public class AuthorizationServerServiceImpl implements AuthorizationServerServic
 	private String sessionTimeout;
 	@Value("${server.servlet.session.timeout.app:#{null}}")
 	private String sessionTimeoutApp;
+	@Autowired
+	private AuthorizationCommonMetaData authorizationCommonMetaData;
 
 	@Override
 	public XSession setSession(HttpServletRequest request, User user) {
-		int maxInactiveInterval = -1;
-		if(CommonHelper.isApp(request)) {
-			maxInactiveInterval = sessionTimeoutApp==null?86400:Integer.parseInt(String.valueOf(Duration.parse(sessionTimeoutApp).getSeconds()));
-		} else
-			maxInactiveInterval = sessionTimeout==null?18000:Integer.parseInt(String.valueOf(Duration.parse(sessionTimeout).getSeconds()));
 		HttpSession session = request.getSession();
-		session.setMaxInactiveInterval(maxInactiveInterval);//验证码接口会设置一个较短的超时时间，登录成功后在这里给恢复回来，如果没有设置取默认半小时
+		if(session.getMaxInactiveInterval()==authorizationCommonMetaData.getVcodeTimeoutSeconds()) {
+			int maxInactiveInterval = -1;
+			if(CommonHelper.isApp(request)) {
+				maxInactiveInterval = sessionTimeoutApp==null?86400:Integer.parseInt(String.valueOf(Duration.parse(sessionTimeoutApp).getSeconds()));
+			} else
+				maxInactiveInterval = sessionTimeout==null?18000:Integer.parseInt(String.valueOf(Duration.parse(sessionTimeout).getSeconds()));
+			System.out.println("MaxInactiveInterval==="+session.getMaxInactiveInterval()+"---"+maxInactiveInterval);
+			session.setMaxInactiveInterval(maxInactiveInterval);//验证码接口会设置一个较短的超时时间，登录成功后在这里给恢复回来，如果没有设置取默认半小时
+		}
 		String jsessionid = session.getId();
 		user.setJsessionid(jsessionid);
 		XSession xsession = this.createSession(user);
