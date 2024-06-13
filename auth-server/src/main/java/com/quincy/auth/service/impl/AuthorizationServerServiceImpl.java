@@ -1,6 +1,5 @@
 package com.quincy.auth.service.impl;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,19 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.quincy.auth.AuthorizationCommonMetaData;
 import com.quincy.auth.entity.Permission;
 import com.quincy.auth.entity.Role;
 import com.quincy.auth.mapper.AuthMapper;
 import com.quincy.auth.o.XSession;
 import com.quincy.auth.o.Menu;
-import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthorizationServerService;
-import com.quincy.core.InnerConstants;
-import com.quincy.sdk.helper.CommonHelper;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 
 @Service
 public class AuthorizationServerServiceImpl implements AuthorizationServerService {
@@ -33,7 +25,7 @@ public class AuthorizationServerServiceImpl implements AuthorizationServerServic
 	@Value("${auth.enterprise}")
 	private boolean isEnterprise;
 
-	protected XSession createSession(Long userId) {
+	public XSession createXSession(Long userId) {
 		XSession session = new XSession();
 		if(isEnterprise) {
 			//角色
@@ -56,12 +48,6 @@ public class AuthorizationServerServiceImpl implements AuthorizationServerServic
 			List<Menu> rootMenus = this.findMenusByUserId(userId);
 			session.setMenus(rootMenus);
 		}
-		return session;
-	}
-
-	protected XSession createSession(User user) {
-		XSession session = this.createSession(user.getId());
-		session.setUser(user);
 		return session;
 	}
 
@@ -101,27 +87,6 @@ public class AuthorizationServerServiceImpl implements AuthorizationServerServic
 	private String sessionTimeout;
 	@Value("${server.servlet.session.timeout.app:#{null}}")
 	private String sessionTimeoutApp;
-	@Autowired
-	private AuthorizationCommonMetaData authorizationCommonMetaData;
-
-	@Override
-	public XSession setSession(HttpServletRequest request, User user) {
-		HttpSession session = request.getSession();
-		if(session.getMaxInactiveInterval()==authorizationCommonMetaData.getVcodeTimeoutSeconds()) {
-			int maxInactiveInterval = -1;
-			if(CommonHelper.isApp(request)) {
-				maxInactiveInterval = sessionTimeoutApp==null?86400:Integer.parseInt(String.valueOf(Duration.parse(sessionTimeoutApp).getSeconds()));
-			} else
-				maxInactiveInterval = sessionTimeout==null?18000:Integer.parseInt(String.valueOf(Duration.parse(sessionTimeout).getSeconds()));
-			System.out.println("MaxInactiveInterval==="+session.getMaxInactiveInterval()+"---"+maxInactiveInterval);
-			session.setMaxInactiveInterval(maxInactiveInterval);//验证码接口会设置一个较短的超时时间，登录成功后在这里给恢复回来，如果没有设置取默认半小时
-		}
-		String jsessionid = session.getId();
-		user.setJsessionid(jsessionid);
-		XSession xsession = this.createSession(user);
-		session.setAttribute(InnerConstants.ATTR_SESSION, xsession);
-		return xsession;
-	}
 	/*
 	@Override
 	public void updateSession(User user) {

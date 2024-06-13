@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.quincy.auth.AuthCommonConstants;
-import com.quincy.auth.AuthorizationCommonMetaData;
 import com.quincy.core.InnerConstants;
 import com.quincy.sdk.EmailService;
 
@@ -29,7 +28,7 @@ import jakarta.servlet.http.HttpSession;
 
 @Controller
 @RequestMapping("/auth")
-public class AuthorizationCommonController implements AuthorizationCommonMetaData {
+public class AuthorizationCommonController {
 	/**
 	 * 登出
 	 */
@@ -116,8 +115,9 @@ public class AuthorizationCommonController implements AuthorizationCommonMetaDat
 		}
 		String vcode = sb.toString();
 		HttpSession session = request.getSession();
-		session.setMaxInactiveInterval(vcodeTimeoutSeconds);
 		session.setAttribute(AuthCommonConstants.VCODE_ATTR_KEY, vcode);
+		session.setAttribute(AuthCommonConstants.VCODE_ORIGINAL_MXA_INACTIVE_INTERVAL_ATTR_KEY, session.getMaxInactiveInterval());
+		session.setMaxInactiveInterval(vcodeTimeoutSeconds);
 		sender.send(_vcode);
 		return session.getId();
 	}
@@ -135,9 +135,5 @@ public class AuthorizationCommonController implements AuthorizationCommonMetaDat
 				emailService.send(emailTo, subject, content, "", null, null, null, null);
 			}
 		});
-	}
-
-	public int getVcodeTimeoutSeconds() {
-		return vcodeTimeoutSeconds;
 	}
 }

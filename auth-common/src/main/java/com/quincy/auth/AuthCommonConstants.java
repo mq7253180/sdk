@@ -9,4 +9,5 @@ public class AuthCommonConstants {
 	public final static String PARA_NAME_USERNAME = "username";
 	public final static String PARA_NAME_PASSWORD = "password";
 	public final static String VCODE_ATTR_KEY = "vcode";
+	public final static String VCODE_ORIGINAL_MXA_INACTIVE_INTERVAL_ATTR_KEY = "vcode";
 }

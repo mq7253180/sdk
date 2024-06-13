@@ -95,17 +95,28 @@ public class AuthorizationServerController {
 			result.setMsg(requestContext.getMessage("auth.account.pwd_incorrect"));
 			return result;
 		}
+		HttpSession session = request.getSession();//所有身份认证通过，创建session
+		/*
+		 * 验证码登录临时保存验证码时会给session设置一个较短的超时时间，登录成功后在这里给恢复回来
+		 */
+		//Integer.parseInt(String.valueOf(Duration.parse(sessionTimeoutApp).getSeconds()))
+		Object maxInactiveInterval = session.getAttribute(AuthCommonConstants.VCODE_ORIGINAL_MXA_INACTIVE_INTERVAL_ATTR_KEY);
+		if(maxInactiveInterval!=null)
+			session.setMaxInactiveInterval(Integer.parseInt(maxInactiveInterval.toString()));
 		String originalJsessionid = user.getJsessionid();
-		XSession session = authorizationServerService.setSession(request, user);
+		user.setJsessionid(session.getId());
+		XSession xsession = authorizationServerService.createXSession(user.getId());
+		xsession.setUser(user);
+		session.setAttribute(InnerConstants.ATTR_SESSION, xsession);
 		if(sessionInvalidation!=null) {//同一user不同客户端登录互踢，清除session
 			originalJsessionid = CommonHelper.trim(originalJsessionid);
 			if(originalJsessionid!=null)
 				sessionInvalidation.invalidate(originalJsessionid);
 		}
-		authActions.updateLastLogin(user.getId(), request.getSession().getId());//互踢还需要应用层配合更新数据库里的jsessionid
+		authActions.updateLastLogin(user.getId(), session.getId());//互踢还需要应用层配合更新数据库里的jsessionid
 		result.setStatus(1);
 		result.setMsg(requestContext.getMessage("auth.success"));
-		result.setData(session);
+		result.setData(xsession);
 		return result;
 	}
 
