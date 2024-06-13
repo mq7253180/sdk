@@ -2,10 +2,6 @@ package com.quincy.auth.service;
 
 import com.quincy.auth.o.XSession;
 
-import jakarta.servlet.http.HttpServletRequest;
-
-import com.quincy.auth.o.User;
-
 public interface AuthorizationServerService {
 //	public XSession setSession(String jsessionid, String originalJsessionid, Long userId, AuthCallback callback) throws IOException, ClassNotFoundException;
 	public XSession createXSession(Long userId);

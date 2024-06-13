@@ -7,9 +7,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.support.RequestContext;
 
-import com.quincy.auth.AuthCommonConstants;
 import com.quincy.auth.AuthHelper;
 import com.quincy.auth.o.XSession;
+import com.quincy.core.AuthCommonConstants;
 import com.quincy.core.InnerHelper;
 import com.quincy.core.QuincyAuthInterceptor;
 

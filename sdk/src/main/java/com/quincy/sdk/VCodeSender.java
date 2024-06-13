@@ -1,4 +1,4 @@
-package com.quincy.auth.controller;
+package com.quincy.sdk;
 
 public interface VCodeSender {
 	public void send(char[] vcode) throws Exception;
