@@ -142,49 +142,6 @@ public class AuthorizationServerController {
 				.addObject("data", new ObjectMapper().writeValueAsString(result.getData()));
 	}
 
-
-	@Autowired(required = false)
-	private PwdRestEmailInfo pwdRestEmailInfo;
-	@Autowired
-	private AuthorizationCommonController authorizationCommonController;
-	private final static String PWDSET_CLIENT_TOKEN_NAME = "email";
-
-	@RequestMapping("/vcode/pwdset")
-	public ModelAndView vcode(HttpServletRequest request, @RequestParam(required = true, name = "email")String _email) throws Exception {
-		Assert.notNull(pwdRestEmailInfo, "没有设置邮件标题和内容模板");
-		Integer status = null;
-		String msgI18N = null;
-		String email = CommonHelper.trim(_email);
-		if(email==null) {
-			status = 0;
-			msgI18N = "email.null";
-		} else {
-			if(!CommonHelper.isEmail(email)) {
-				status = -1;
-				msgI18N = "email.illegal";
-			} else {
-				status = 1;
-				msgI18N = Result.I18N_KEY_SUCCESS;
-				String uri = new StringBuilder(100)
-						.append("/auth")
-						.append(AuthConstants.URI_VCODE_PWDSET_SIGNIN)
-						.append("?")
-						.append(PWDSET_CLIENT_TOKEN_NAME)
-						.append("=")
-						.append(URLEncoder.encode(email, "UTF-8"))
-						.append("&vcode={0}&")
-						.append(InnerConstants.PARAM_REDIRECT_TO)
-						.append("=")
-						.append(URLEncoder.encode(AuthConstants.URI_PWD_SET, "UTF-8"))
-						.toString();
-				authorizationCommonController.vcode(request, VCodeCharsFrom.MIXED, 32, "email", email, pwdRestEmailInfo.getSubject(), pwdRestEmailInfo.getContent(uri));
-			}
-		}
-		return new ModelAndView(InnerConstants.VIEW_PATH_RESULT)
-				.addObject("status", status)
-				.addObject("msg", new RequestContext(request).getMessage(msgI18N));
-	}
-
 	private int getFailures(HttpServletRequest request) {
 		HttpSession session = request.getSession(false);
 		if(session==null)
@@ -207,13 +164,13 @@ public class AuthorizationServerController {
 			@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo
 			) throws Exception {
 		Result result = null;
-		if(failuresThresholdForVCode>=Integer.MAX_VALUE) {
+		if(failuresThresholdForVCode>=Integer.MAX_VALUE) {//设置为最大值时不验证失败次数
 			result = loginWithFailureLimit(request, username, password);
 		} else {
 			int failures = this.getFailures(request);
-			if(failures<failuresThresholdForVCode) {
+			if(failures<failuresThresholdForVCode) {//小于失败次数
 				result = loginWithFailureLimit(request, username, password);
-			} else {
+			} else {//失败次数满，需要验证码
 				result = this.validateVCode(request, true);
 				if(result.getStatus()==1)
 					result = loginWithFailureLimit(request, username, password);
@@ -225,7 +182,7 @@ public class AuthorizationServerController {
 
 	private Result loginWithFailureLimit(HttpServletRequest request, String username, String password) throws Exception {
 		Result result = doPwdLogin(request, username, password);
-		HttpSession session = request.getSession();//如果doPwdLogin没登录成功，session是空的，需要创建session用来保存失败次数
+		HttpSession session = request.getSession();//如果doPwdLogin没登录成功，session是空的，需要创建session用来保存失败次数，但是session失效后失败次数也随之消失，还是可以继续重试
 		if(result.getStatus()==AuthCommonConstants.LOGIN_STATUS_PWD_INCORRECT) {
 			int failuresPp = this.getFailures(request)+1;
 			session.setAttribute(LOGIN_FAILURES_HOLDER_KEY, failuresPp);
@@ -234,51 +191,6 @@ public class AuthorizationServerController {
 		} else if(result.getStatus()==1)
 			session.removeAttribute(LOGIN_FAILURES_HOLDER_KEY);
 		return result;
-	}
-	/**
-	 * 验证码登录
-	 * 需要改，生成和验证时key需要和防暴破解有区别，否则调生成验证码接口看图获取验证码之后再调这个接口，可以直接登录
-	 */
-	@VCodeRequired
-	@RequestMapping("/signin/vcode")
-	public ModelAndView doLogin(HttpServletRequest request, 
-			@RequestParam(required = false, value = AuthCommonConstants.PARA_NAME_USERNAME)String username, 
-			@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
-		Result result = login(request, username, null);
-		return createModelAndView(request, result, redirectTo);
-	}
-
-	@VCodeRequired(clientTokenName = AuthCommonConstants.PARA_NAME_USERNAME)
-	@RequestMapping("/signin/vcode/x")
-	public ModelAndView vcodeLogin(HttpServletRequest request, 
-			@RequestParam(required = false, value = AuthCommonConstants.PARA_NAME_USERNAME)String username, 
-			@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
-		return this.doLogin(request, username, redirectTo);
-	}
-	/**
-	 * 也需要改
-	 * @param request
-	 * @param email
-	 * @param redirectTo
-	 * @return
-	 * @throws Exception
-	 */
-	@VCodeRequired(clientTokenName = PWDSET_CLIENT_TOKEN_NAME, timeoutForwardTo = "/auth"+AuthConstants.URI_VCODE_PWDSET_TIMEOUT)
-	@RequestMapping(AuthConstants.URI_VCODE_PWDSET_SIGNIN)
-	public ModelAndView doLoginAsPwdReset(HttpServletRequest request, 
-			@RequestParam(required = false, value = PWDSET_CLIENT_TOKEN_NAME)String email, 
-			@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
-		return this.doLogin(request, email, redirectTo);
-	}
-
-	@RequestMapping(AuthConstants.URI_VCODE_PWDSET_TIMEOUT)
-	public String pwdResetTimeout() {
-		return "/pwdset_timeout";
-	}
-
-	@RequestMapping(AuthConstants.URI_VCODE_FAILURE)
-	public String vcodeFailure(HttpServletRequest request) {
-		return InnerConstants.VIEW_PATH_RESULT;
 	}
 
 	public Result validateVCode(HttpServletRequest request, boolean ignoreCase) throws Exception {
@@ -314,5 +226,95 @@ public class AuthorizationServerController {
 			msg = requestContext.getMessage(msgI18NKey);
 		}
 		return new Result(status, msg);
+	}
+	/**
+	 * 验证码登录
+	 * 需要改，生成和验证时key需要和防暴破解有区别，否则调生成验证码接口看图获取验证码之后再调这个接口，可以直接登录
+	 */
+	@RequestMapping("/signin/vcode")
+	public ModelAndView doLogin(HttpServletRequest request, 
+			@RequestParam(required = false, value = AuthCommonConstants.PARA_NAME_USERNAME)String username, 
+			@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
+		HttpSession session = request.getSession(false);
+		if(session==null) {
+			
+		}
+		Result result = login(request, username, null);
+		return createModelAndView(request, result, redirectTo);
+	}
+
+	@Autowired(required = false)
+	private PwdRestEmailInfo pwdRestEmailInfo;
+	@Autowired
+	private AuthorizationCommonController authorizationCommonController;
+	private final static String PWDSET_CLIENT_TOKEN_NAME = "email";
+
+	@RequestMapping("/vcode/pwdset")
+	public ModelAndView vcode(HttpServletRequest request, @RequestParam(required = true, name = "email")String _email) throws Exception {
+		Assert.notNull(pwdRestEmailInfo, "没有设置邮件标题和内容模板");
+		Integer status = null;
+		String msgI18N = null;
+		String email = CommonHelper.trim(_email);
+		if(email==null) {
+			status = 0;
+			msgI18N = "email.null";
+		} else {
+			if(!CommonHelper.isEmail(email)) {
+				status = -1;
+				msgI18N = "email.illegal";
+			} else {
+				status = 1;
+				msgI18N = Result.I18N_KEY_SUCCESS;
+				String uri = new StringBuilder(100)
+						.append("/auth")
+						.append(AuthConstants.URI_VCODE_PWDSET_SIGNIN)
+						.append("?")
+						.append(PWDSET_CLIENT_TOKEN_NAME)
+						.append("=")
+						.append(URLEncoder.encode(email, "UTF-8"))
+						.append("&vcode={0}&")
+						.append(InnerConstants.PARAM_REDIRECT_TO)
+						.append("=")
+						.append(URLEncoder.encode(AuthConstants.URI_PWD_SET, "UTF-8"))
+						.toString();
+				authorizationCommonController.vcode(request, VCodeCharsFrom.MIXED, 32, email, pwdRestEmailInfo.getSubject(), pwdRestEmailInfo.getContent(uri));
+			}
+		}
+		return new ModelAndView(InnerConstants.VIEW_PATH_RESULT)
+				.addObject("status", status)
+				.addObject("msg", new RequestContext(request).getMessage(msgI18N));
+	}
+
+	@VCodeRequired(clientTokenName = AuthCommonConstants.PARA_NAME_USERNAME)
+	@RequestMapping("/signin/vcode/x")
+	public ModelAndView vcodeLogin(HttpServletRequest request, 
+			@RequestParam(required = false, value = AuthCommonConstants.PARA_NAME_USERNAME)String username, 
+			@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
+		return this.doLogin(request, username, redirectTo);
+	}
+	/**
+	 * 也需要改
+	 * @param request
+	 * @param email
+	 * @param redirectTo
+	 * @return
+	 * @throws Exception
+	 */
+	@VCodeRequired(clientTokenName = PWDSET_CLIENT_TOKEN_NAME, timeoutForwardTo = "/auth"+AuthConstants.URI_VCODE_PWDSET_TIMEOUT)
+	@RequestMapping(AuthConstants.URI_VCODE_PWDSET_SIGNIN)
+	public ModelAndView doLoginAsPwdReset(HttpServletRequest request, 
+			@RequestParam(required = false, value = PWDSET_CLIENT_TOKEN_NAME)String email, 
+			@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
+		return this.doLogin(request, email, redirectTo);
+	}
+
+	@RequestMapping(AuthConstants.URI_VCODE_PWDSET_TIMEOUT)
+	public String pwdResetTimeout() {
+		return "/pwdset_timeout";
+	}
+
+	@RequestMapping(AuthConstants.URI_VCODE_FAILURE)
+	public String vcodeFailure(HttpServletRequest request) {
+		return InnerConstants.VIEW_PATH_RESULT;
 	}
 }
