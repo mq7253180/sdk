@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -15,12 +16,15 @@ import org.springframework.web.servlet.support.RequestContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quincy.auth.AuthConstants;
+import com.quincy.auth.PwdRestEmailInfo;
+import com.quincy.auth.TempPwdLoginEmailInfo;
 import com.quincy.auth.o.XSession;
 import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthorizationServerService;
 import com.quincy.core.AuthCommonConstants;
 import com.quincy.core.InnerConstants;
 import com.quincy.core.SessionInvalidation;
+import com.quincy.core.VCodeStore;
 import com.quincy.sdk.Client;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.VCodeCharsFrom;
@@ -28,6 +32,7 @@ import com.quincy.sdk.VCodeService;
 import com.quincy.sdk.helper.CommonHelper;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
@@ -39,6 +44,8 @@ public class AuthorizationServerController {
 	private AuthActions authActions;
 	@Autowired(required = false)
 	private SessionInvalidation sessionInvalidation;
+	@Autowired
+	private VCodeService vCodeService;
 	private final static String AUTH_ACTIONS_NULL_MSG = "没有设置回调动作";
 	/**
 	 * 进登录页
@@ -189,7 +196,7 @@ public class AuthorizationServerController {
 		return result;
 	}
 
-	public Result validateVCode(HttpServletRequest request, boolean ignoreCase, String attrKey) throws Exception {
+	private Result validateVCode(HttpServletRequest request, boolean ignoreCase, String attrKey) throws Exception {
 		HttpSession session = request.getSession(false);
 		String inputedVCode = CommonHelper.trim(request.getParameter(AuthCommonConstants.PARA_NAME_VCODE));
 		Integer status = null;
@@ -235,12 +242,12 @@ public class AuthorizationServerController {
 		}
 		return createModelAndView(request, result, redirectTo);
 	}
-
-	@Autowired
-	private VCodeService vCodeService;
-
+	/**
+	 * 生成临时密码并发送至邮箱
+	 */
 	@RequestMapping("/vcode/email")
 	public ModelAndView vcodeToEmail(HttpServletRequest request, @RequestParam(required = true, name = AuthCommonConstants.PARA_NAME_USERNAME)String _email) throws Exception {
+		Assert.notNull(tempPwdLoginEmailInfo, "没有设置邮件标题和内容模板");
 		Integer status = null;
 		String msgI18N = null;
 		String email = CommonHelper.trim(_email);
@@ -254,14 +261,34 @@ public class AuthorizationServerController {
 			} else {
 				status = 1;
 				msgI18N = Result.I18N_KEY_SUCCESS;
-				vCodeService.vcode(request, VCodeCharsFrom.MIXED, 32, email, "", "");
+				vCodeService.vcode(request, VCodeCharsFrom.MIXED, 32, email, tempPwdLoginEmailInfo.getSubject(), tempPwdLoginEmailInfo.getContent());
 			}
 		}
 		return new ModelAndView(InnerConstants.VIEW_PATH_RESULT)
 				.addObject("status", status)
 				.addObject("msg", new RequestContext(request).getMessage(msgI18N));
 	}
+	/**
+	 * Example: 25/10/25/110/35
+	 * 用于密码登录时输错超过一定次数
+	 */
+	@RequestMapping("/vcode/{size}/{start}/{space}/{width}/{height}")
+	public void genVCode(HttpServletRequest request, HttpServletResponse response, 
+			@PathVariable(required = true, name = "size")int size,
+			@PathVariable(required = true, name = "start")int start,
+			@PathVariable(required = true, name = "space")int space,
+			@PathVariable(required = true, name = "width")int width, 
+			@PathVariable(required = true, name = "height")int height) throws Exception {
+		vCodeService.outputVcode(new VCodeStore() {
+			@Override
+			public void save(char[] vcode) {
+				vCodeService.saveVcode(request.getSession(), vcode, AuthCommonConstants.ATTR_KEY_VCODE_PWD_LOGIN);
+			}
+		}, response, size, start, space, width, height);
+	}
 
+	@Autowired(required = false)
+	private TempPwdLoginEmailInfo tempPwdLoginEmailInfo;
 	@Autowired(required = false)
 	private PwdRestEmailInfo pwdRestEmailInfo;
 	private final static String PWDSET_CLIENT_TOKEN_NAME = "email";

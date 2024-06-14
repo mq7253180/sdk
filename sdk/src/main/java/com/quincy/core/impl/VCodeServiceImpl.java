@@ -54,7 +54,7 @@ public class VCodeServiceImpl implements VCodeService {
 		HttpSession session = request.getSession();
 		session.setAttribute(AuthCommonConstants.ATTR_KEY_USERNAME, request.getParameter(AuthCommonConstants.PARA_NAME_USERNAME));
 		this.saveVcode(session, _vcode, AuthCommonConstants.ATTR_KEY_VCODE_LOGIN);
-		sender.send(_vcode);
+		sender.send(_vcode, vcodeTimeoutSeconds/60);
 		return session.getId();
 	}
 
@@ -72,9 +72,9 @@ public class VCodeServiceImpl implements VCodeService {
 	public String vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, String emailTo, String subject, String _content) throws Exception {
 		return this.vcode(request, charsFrom, length, new VCodeSender() {
 			@Override
-			public void send(char[] _vcode) {
+			public void send(char[] _vcode, int expireMinuts) {
 				String vcode = new String(_vcode);
-				String content = MessageFormat.format(_content, vcode);
+				String content = MessageFormat.format(_content, vcode, expireMinuts);
 				emailService.send(emailTo, subject, content, "", null, null, null, null);
 			}
 		});

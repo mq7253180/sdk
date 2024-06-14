@@ -1,4 +1,4 @@
-package com.quincy.auth.controller;
+package com.quincy.auth;
 
 public interface PwdRestEmailInfo {
 	public String getSubject();
