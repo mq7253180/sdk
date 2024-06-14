@@ -29,8 +29,6 @@ import jakarta.servlet.http.HttpSession;
 @Service
 public class VCodeServiceImpl implements VCodeService {
 	private final double VCODE_RADIANS = Math.PI/180;
-	@Value("${auth.vcode.length}")
-	private int vcodeLength;
 	@Value("${auth.vcode.lines}")
 	private int vcodeLines;
 	@Value("${auth.vcode.timeout:120}")
