@@ -165,30 +165,6 @@ public class CommonHelper {
 		return ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getResponse();
 	}
 
-//	public static String clientType(HttpServletRequest request) {
-//		return clientType(request, null);
-//	}
-
-//	public static String clientType(HttpServletRequest request, Object handler) {
-//		String clientType = null;
-//		Object _clientType = request.getAttribute("clientType");
-//		if(_clientType!=null) {
-//			clientType = _clientType.toString();
-//		} else {
-//			ResponseBody annotation = null;
-//			if(handler!=null) {
-//				HandlerMethod method = (HandlerMethod)handler;
-//				annotation = method.getMethod().getDeclaredAnnotation(ResponseBody.class);
-//			}
-//			if("XMLHttpRequest".equals(request.getHeader("x-requested-with"))||isApp(request)||annotation!=null) {
-//				clientType =  InnerConstants.CLIENT_TYPE_J;
-//			} else
-//				clientType = isMobile(request)?InnerConstants.CLIENT_TYPE_M:InnerConstants.CLIENT_TYPE_P;
-//			request.setAttribute("cliengType", clientType);
-//		}
-//		return clientType;
-//	}
-
 	public static String getValueFromCookie(HttpServletRequest request, String key) {
 		Cookie[] cookies = request.getCookies();
 		if(cookies!=null&&cookies.length>0) {
