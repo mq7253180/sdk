@@ -7,9 +7,8 @@ import java.util.Date;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContext;
 
-import com.quincy.core.InnerConstants;
+import com.quincy.sdk.Client;
 import com.quincy.sdk.Result;
-import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.helper.HttpClientHelper;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,16 +20,16 @@ public class GlobalHandlerExceptionResolver {//implements HandlerExceptionResolv
 //	@Override
 	public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object handler, Exception e) {
 		log.error(HttpClientHelper.getRequestURIOrURL(request, HttpClientHelper.FLAG_URL), e);
-		String clientType = CommonHelper.clientType(request, handler);
+		Client client = Client.get(request, handler);
 		String exception = null;
-		if(!InnerConstants.CLIENT_TYPE_J.equals(clientType)) {
+		if(!client.isJson()) {
 			exception = this.getExceptionStackTrace(e, "<br/>", "&nbsp;");
 		} else {
 			exception = e.toString().replaceAll("\n", "").replaceAll("\r", "").replaceAll("\\\\", "/").replaceAll("\"", "'");
-			response.setHeader("Content-Type", "application/json;charset=UTF-8");
+			response.setHeader("Content-Type", client.getContentType());
 		}
 		RequestContext requestContext = new RequestContext(request);
-		return new ModelAndView("/error_"+clientType)
+		return new ModelAndView("/error_"+client.getSuffix())
 				.addObject("msg", requestContext.getMessage(Result.I18N_KEY_EXCEPTION))
 				.addObject("exception", exception);
 	}

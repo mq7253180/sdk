@@ -28,13 +28,10 @@ import org.apache.tools.zip.ZipOutputStream;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import org.springframework.web.method.HandlerMethod;
 
 import com.quincy.core.InnerConstants;
-import com.quincy.sdk.Client;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,7 +40,6 @@ import jakarta.servlet.http.HttpServletResponse;
 public class CommonHelper {
 	private static ParamSupport paramSupportHead;
 	private static I18NSupport i18nSupportHead;
-	private final static String[] WAP_USER_AGENT_FLAGS = {"iPhone", "iPad", "Android", "Symbian"};
 	public static String[] SUPPORTED_LOCALES;
 	private final static String I18N_KEY = "_"+InnerConstants.KEY_LOCALE;
 
@@ -169,29 +165,29 @@ public class CommonHelper {
 		return ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getResponse();
 	}
 
-	public static String clientType(HttpServletRequest request) {
-		return clientType(request, null);
-	}
+//	public static String clientType(HttpServletRequest request) {
+//		return clientType(request, null);
+//	}
 
-	public static String clientType(HttpServletRequest request, Object handler) {
-		String clientType = null;
-		Object _clientType = request.getAttribute("clientType");
-		if(_clientType!=null) {
-			clientType = _clientType.toString();
-		} else {
-			ResponseBody annotation = null;
-			if(handler!=null) {
-				HandlerMethod method = (HandlerMethod)handler;
-				annotation = method.getMethod().getDeclaredAnnotation(ResponseBody.class);
-			}
-			if("XMLHttpRequest".equals(request.getHeader("x-requested-with"))||isApp(request)||annotation!=null) {
-				clientType =  InnerConstants.CLIENT_TYPE_J;
-			} else
-				clientType = isWap(request)?InnerConstants.CLIENT_TYPE_M:InnerConstants.CLIENT_TYPE_P;
-			request.setAttribute("cliengType", clientType);
-		}
-		return clientType;
-	}
+//	public static String clientType(HttpServletRequest request, Object handler) {
+//		String clientType = null;
+//		Object _clientType = request.getAttribute("clientType");
+//		if(_clientType!=null) {
+//			clientType = _clientType.toString();
+//		} else {
+//			ResponseBody annotation = null;
+//			if(handler!=null) {
+//				HandlerMethod method = (HandlerMethod)handler;
+//				annotation = method.getMethod().getDeclaredAnnotation(ResponseBody.class);
+//			}
+//			if("XMLHttpRequest".equals(request.getHeader("x-requested-with"))||isApp(request)||annotation!=null) {
+//				clientType =  InnerConstants.CLIENT_TYPE_J;
+//			} else
+//				clientType = isMobile(request)?InnerConstants.CLIENT_TYPE_M:InnerConstants.CLIENT_TYPE_P;
+//			request.setAttribute("cliengType", clientType);
+//		}
+//		return clientType;
+//	}
 
 	public static String getValueFromCookie(HttpServletRequest request, String key) {
 		Cookie[] cookies = request.getCookies();
@@ -223,60 +219,6 @@ public class CommonHelper {
 			map.put(key, value);
 		}
 		return value.length()==0?null:value;
-	}
-
-	public static String getApp(HttpServletRequest request) {
-		String app = null;
-		Object _app = request.getAttribute("app");
-		if(_app!=null) {
-			app = _app.toString();
-		} else {
-			app = getValue(request, InnerConstants.CLIENT_APP);
-			if(app==null)
-				app = "";
-			request.setAttribute("app", app);
-		}
-		return app.length()==0?null:app;
-	}
-
-	public static boolean isApp(HttpServletRequest request) {
-		Boolean isApp = null;
-		Object _isApp = request.getAttribute("isApp");
-		if(_isApp!=null) {
-			isApp = Boolean.valueOf(_isApp.toString());
-		} else {
-			String app = getApp(request);
-			isApp = app!=null;
-			request.setAttribute("isApp", isApp);
-		}
-		return isApp;
-	}
-
-	public static boolean isWap(HttpServletRequest request) {
-		Boolean isWap = null;
-		Object _isWap = request.getAttribute("isWap");
-		if(_isWap!=null) {
-			isWap = Boolean.valueOf(_isWap.toString());
-		} else {
-			String userAgent = request.getHeader("user-agent");
-			if(userAgent!=null) {
-				for(String flag:WAP_USER_AGENT_FLAGS) {
-					if(userAgent.contains(flag)) {
-						isWap =  true;
-						break;
-					}
-				}
-			}
-			if(isWap==null)
-				isWap = false;
-			request.setAttribute("isWap", isWap);
-		}
-		return isWap;
-	}
-
-	public static Client getClient(HttpServletRequest request) {
-		Client client = CommonHelper.isWap(request)?Client.WAP:(CommonHelper.isApp(request)?Client.APP:Client.PC);
-		return client;
 	}
 
 	public static String getFirstAsUri(HttpServletRequest request) {

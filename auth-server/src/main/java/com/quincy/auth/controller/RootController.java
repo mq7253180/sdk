@@ -4,7 +4,6 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -37,8 +36,6 @@ public class RootController {
 		return this.root(request, response);
 	}
 
-	@GetMapping("/static/**")
-	public void handleStatic() {}
 	/**
 	 * 进入密码设置页
 	 */

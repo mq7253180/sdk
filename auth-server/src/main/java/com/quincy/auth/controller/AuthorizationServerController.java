@@ -85,8 +85,7 @@ public class AuthorizationServerController {
 			result.setMsg(requestContext.getMessage("auth.null.username"));
 			return result;
 		}
-		Client client = CommonHelper.getClient(request);
-		User user = authActions.findUser(username, client);
+		User user = authActions.findUser(username, Client.get(request));
 		if(user==null) {
 			result.setStatus(-2);
 			result.setMsg(requestContext.getMessage("auth.account.no"));
@@ -123,9 +122,9 @@ public class AuthorizationServerController {
 	}
 
 	protected ModelAndView createModelAndView(HttpServletRequest request, Result result, String _redirectTo) throws JsonProcessingException {
-		String clientType = CommonHelper.clientType(request);
+		Client client = Client.get(request);
 		ModelAndView mv = null;
-		if(InnerConstants.CLIENT_TYPE_J.equals(clientType)) {
+		if(client.isJson()) {
 			mv = createModelAndView(result);
 		} else {
 			if(result.getStatus()==1) {

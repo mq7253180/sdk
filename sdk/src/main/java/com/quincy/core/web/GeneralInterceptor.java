@@ -3,7 +3,7 @@ package com.quincy.core.web;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
-import com.quincy.core.InnerConstants;
+import com.quincy.sdk.Client;
 import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.helper.HttpClientHelper;
 
@@ -42,10 +42,10 @@ public class GeneralInterceptor extends HandlerInterceptorAdapter {
 		if(modelAndView!=null) {
 			String viewName = CommonHelper.trim(modelAndView.getViewName());
 			if(viewName!=null&&!viewName.startsWith("redirect")&&!viewName.startsWith("forward")) {
-				String clientType = CommonHelper.clientType(request, handler);
-				modelAndView.setViewName(modelAndView.getViewName()+"_"+clientType);
-				if(InnerConstants.CLIENT_TYPE_J.equals(clientType))
-					response.setHeader("Content-Type", "application/json;charset=UTF-8");
+				Client client = Client.get(request, handler);
+				modelAndView.setViewName(modelAndView.getViewName()+"_"+client.getSuffix());
+				if(client.getContentType()!=null)
+					response.setHeader("Content-Type", client.getContentType());
 			}
 		}
 	}
