@@ -13,9 +13,6 @@ import com.quincy.auth.freemarker.DivTemplateDirectiveModelBean;
 import com.quincy.auth.freemarker.HyperlinkTemplateDirectiveModelBean;
 import com.quincy.auth.freemarker.InputTemplateDirectiveModelBean;
 
-import jakarta.servlet.http.HttpSessionEvent;
-import jakarta.servlet.http.HttpSessionListener;
-
 @Configuration
 public class AuthCommonConfiguration {
 	@Autowired
