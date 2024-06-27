@@ -82,11 +82,6 @@ public class AuthorizationServerServiceImpl implements AuthorizationServerServic
 				this.loadChildrenMenus(child, entrySet);
 		}
 	}
-
-	@Value("${server.servlet.session.timeout:#{null}}")
-	private String sessionTimeout;
-	@Value("${server.servlet.session.timeout.app:#{null}}")
-	private String sessionTimeoutApp;
 	/*
 	@Override
 	public void updateSession(User user) {

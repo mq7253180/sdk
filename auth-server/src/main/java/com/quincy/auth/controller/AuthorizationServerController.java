@@ -1,6 +1,7 @@
 package com.quincy.auth.controller;
 
 import java.net.URLEncoder;
+import java.time.Duration;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,6 +47,10 @@ public class AuthorizationServerController {
 	private SessionInvalidation sessionInvalidation;
 	@Autowired
 	private VCodeService vCodeService;
+	@Value("${server.servlet.session.timeout.mobile:#{null}}")
+	private String mobileSessionTimeout;
+	@Value("${server.servlet.session.timeout.app:#{null}}")
+	private String appSessionTimeout;
 	private final static String AUTH_ACTIONS_NULL_MSG = "没有设置回调动作";
 	/**
 	 * 进登录页
@@ -98,13 +103,15 @@ public class AuthorizationServerController {
 			return result;
 		}
 		HttpSession session = request.getSession();//所有身份认证通过，创建session
-		/*
-		 * 验证码登录临时保存验证码时会给session设置一个较短的超时时间，登录成功后在这里给恢复回来
-		 */
-		//Integer.parseInt(String.valueOf(Duration.parse(sessionTimeoutApp).getSeconds()))
-		Object maxInactiveInterval = session.getAttribute(AuthCommonConstants.ATTR_KEY_VCODE_ORIGINAL_MXA_INACTIVE_INTERVAL);
-		if(maxInactiveInterval!=null)
-			session.setMaxInactiveInterval(Integer.parseInt(maxInactiveInterval.toString()));
+		if(client.isApp()) {//APP设置超时时间
+			session.setMaxInactiveInterval(Integer.parseInt(String.valueOf(Duration.parse(appSessionTimeout).getSeconds())));
+		} else if(client.isMobile()) {//移动设置网页设置超时时间
+			session.setMaxInactiveInterval(Integer.parseInt(String.valueOf(Duration.parse(mobileSessionTimeout).getSeconds())));
+		} else {//网页端，验证码登录临时保存验证码时会给session设置一个较短的超时时间，登录成功后在这里给恢复回来
+			Object maxInactiveInterval = session.getAttribute(AuthCommonConstants.ATTR_KEY_VCODE_ORIGINAL_MXA_INACTIVE_INTERVAL);
+			if(maxInactiveInterval!=null)
+				session.setMaxInactiveInterval(Integer.parseInt(maxInactiveInterval.toString()));
+		}
 		String originalJsessionid = user.getJsessionid();
 		user.setJsessionid(session.getId());
 		XSession xsession = authorizationServerService.createXSession(user.getId());
