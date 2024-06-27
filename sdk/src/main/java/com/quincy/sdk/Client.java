@@ -7,9 +7,11 @@ import org.springframework.web.method.HandlerMethod;
 import jakarta.servlet.http.HttpServletRequest;
 
 public enum Client {
-	PC("pc", "p", null), Mobile("mobile", "m", null), 
-	Ajax("ajax", "j", ContentType.APPLICATION_JSON.toString()), 
-	Browser_Json("browser_json", "j", ContentType.APPLICATION_JSON.toString()), 
+	PC_Page("pc_page", "p", null),
+	PC_Ajax("pc_ajax", "j", ContentType.APPLICATION_JSON.toString()), 
+	Mobile_Page("mobile_page", "m", null), 
+	Mobile_Ajax("mobile_ajax", "j", ContentType.APPLICATION_JSON.toString()), 
+	Simple_Json("simple_json", "j", ContentType.APPLICATION_JSON.toString()), 
 	Android("android", "j", ContentType.APPLICATION_JSON.toString()), 
 	iOS("ios", "j", ContentType.APPLICATION_JSON.toString());
 	
@@ -19,6 +21,8 @@ public enum Client {
 	private String suffix;
 	private String contentType;
 	private boolean json;
+	private boolean pc;
+	private boolean mobile;
 	private boolean app;
 
 	private Client(String flag, String suffix, String contentType) {
@@ -26,6 +30,8 @@ public enum Client {
 		this.suffix = suffix;
 		this.contentType = contentType;
 		this.json = "j".equals(suffix);
+		this.pc = flag.startsWith("pc");
+		this.mobile = flag.startsWith("mobile");
 		this.app = "android".equals(flag)||"ios".equals(flag);
 	}
 
@@ -40,6 +46,12 @@ public enum Client {
 	}
 	public boolean isJson() {
 		return json;
+	}
+	public boolean isPc() {
+		return pc;
+	}
+	public boolean isMobile() {
+		return mobile;
 	}
 	public boolean isApp() {
 		return app;
@@ -62,30 +74,38 @@ public enum Client {
 	}
 
 	private static Client yes(HttpServletRequest request, Object handler) {
-		if("XMLHttpRequest".equals(request.getHeader("x-requested-with")))
-			return Ajax;
-		String userAgent = request.getHeader("user-agent");
-		if(userAgent!=null) {
-			for(String flag:MOBILE_USER_AGENT_FLAGS) {
-				if(userAgent.contains(flag)) {
-					return Mobile;
-				}
-			}
-		}
 //		if(true)
 //			return iOS;
 //		if(true)
 //			return Android;
-		if(handler!=null) {
-			HandlerMethod method = (HandlerMethod)handler;
-			ResponseBody annotation = method.getMethod().getDeclaredAnnotation(ResponseBody.class);
-			if(annotation!=null)
-				return Browser_Json;
+		String a = null;
+		String userAgent = request.getHeader("user-agent");
+		if(userAgent!=null) {
+			for(String flag:MOBILE_USER_AGENT_FLAGS) {
+				if(userAgent.contains(flag)) {
+					a = "mobile";
+					break;
+				}
+			}
 		}
-		return PC;
+		if(a==null)
+			a = "pc";
+		String b = null;
+		if("XMLHttpRequest".equals(request.getHeader("x-requested-with"))) {
+			b = "ajax";
+		} else {
+			b = "page";
+			if(handler!=null) {
+				HandlerMethod method = (HandlerMethod)handler;
+				ResponseBody annotation = method.getMethod().getDeclaredAnnotation(ResponseBody.class);
+				if(annotation!=null)
+					return Simple_Json;
+			}
+		}
+		return get(a+"_"+b);
 	}
 
-	public static Client get(String flag) {
+	private static Client get(String flag) {
 		for (Client c : Client.values()) { 
 			if(c.getFlag().equals(flag))
 				return c;

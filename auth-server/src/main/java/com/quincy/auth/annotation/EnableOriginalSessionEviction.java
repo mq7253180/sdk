@@ -14,5 +14,7 @@ import com.quincy.auth.SessionDestroyedOriginalConfiguration;
 @Target(ElementType.TYPE)
 @Documented
 @Import(SessionDestroyedOriginalConfiguration.class)
-public @interface EnableOriginalSessionEviction {	
+public @interface EnableOriginalSessionEviction {
+	boolean browser() default false;
+	boolean app() default false;
 }

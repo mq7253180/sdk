@@ -85,7 +85,8 @@ public class AuthorizationServerController {
 			result.setMsg(requestContext.getMessage("auth.null.username"));
 			return result;
 		}
-		User user = authActions.findUser(username, Client.get(request));
+		Client client = Client.get(request);
+		User user = authActions.findUser(username, client);
 		if(user==null) {
 			result.setStatus(-2);
 			result.setMsg(requestContext.getMessage("auth.account.no"));
@@ -109,12 +110,17 @@ public class AuthorizationServerController {
 		XSession xsession = authorizationServerService.createXSession(user.getId());
 		xsession.setUser(user);
 		session.setAttribute(InnerConstants.ATTR_SESSION, xsession);
-		if(sessionInvalidation!=null) {//同一user不同客户端登录互踢，清除session
+		if(sessionInvalidation!=null) {//同一user同一类端之间互踢，清除session
 			originalJsessionid = CommonHelper.trim(originalJsessionid);
-			if(originalJsessionid!=null)
-				sessionInvalidation.invalidate(originalJsessionid);
+			if(originalJsessionid!=null) {
+				if((client.isPc()&&sessionInvalidation.pcBrowserEvict())//PC浏览器互踢
+						||(client.isMobile()&&sessionInvalidation.mobileBrowserEvict())//移动设备浏览器互踢
+						||(client.isApp()&&sessionInvalidation.appEvict())//APP互踢
+					)
+					sessionInvalidation.invalidate(originalJsessionid);
+			}
 		}
-		authActions.updateLastLogin(user.getId(), session.getId());//互踢还需要应用层配合更新数据库里的jsessionid
+		authActions.updateLastLogin(user.getId(), session.getId(), client);//互踢还需要应用层配合更新数据库里的jsessionid
 		result.setStatus(1);
 		result.setMsg(requestContext.getMessage("auth.success"));
 		result.setData(xsession);

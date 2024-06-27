@@ -14,5 +14,8 @@ import com.quincy.core.redis.SessionDestroyedRedisConfiguration;
 @Target(ElementType.TYPE)
 @Documented
 @Import(SessionDestroyedRedisConfiguration.class)
-public @interface EnableRedisSessionEviction {	
+public @interface EnableRedisSessionEviction {
+	boolean pcBrowser() default false;
+	boolean mobileBrowser() default false;
+	boolean app() default false;
 }

@@ -5,13 +5,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.context.annotation.Bean;
 
+import com.quincy.auth.annotation.EnableOriginalSessionEviction;
+import com.quincy.core.BaseSessionDestroyedConfiguration;
 import com.quincy.core.SessionInvalidation;
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpSessionEvent;
 import jakarta.servlet.http.HttpSessionListener;
 
-public class SessionDestroyedOriginalConfiguration implements SessionInvalidation {
+public class SessionDestroyedOriginalConfiguration extends BaseSessionDestroyedConfiguration implements SessionInvalidation {
 	public final static Map<String, HttpSession> SESSIONS = new ConcurrentHashMap<String, HttpSession>(1024);
 
 	@Bean
@@ -34,5 +36,10 @@ public class SessionDestroyedOriginalConfiguration implements SessionInvalidatio
 		HttpSession httpSession = SESSIONS.remove(jsessionid);
 		if(httpSession!=null)
 			httpSession.invalidate();
+	}
+
+	@Override
+	protected Class<?> annotationClass() {
+		return EnableOriginalSessionEviction.class;
 	}
 }
