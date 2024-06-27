@@ -103,9 +103,9 @@ public class AuthorizationServerController {
 			return result;
 		}
 		HttpSession session = request.getSession();//所有身份认证通过，创建session
-		if(client.isApp()) {//APP设置超时时间
+		if(appSessionTimeout!=null&&client.isApp()) {//APP设置超时时间
 			session.setMaxInactiveInterval(Integer.parseInt(String.valueOf(Duration.parse(appSessionTimeout).getSeconds())));
-		} else if(client.isMobile()) {//移动设置网页设置超时时间
+		} else if(mobileSessionTimeout!=null&&client.isMobile()) {//移动设置网页设置超时时间
 			session.setMaxInactiveInterval(Integer.parseInt(String.valueOf(Duration.parse(mobileSessionTimeout).getSeconds())));
 		} else {//网页端，验证码登录临时保存验证码时会给session设置一个较短的超时时间，登录成功后在这里给恢复回来
 			Object maxInactiveInterval = session.getAttribute(AuthCommonConstants.ATTR_KEY_VCODE_ORIGINAL_MXA_INACTIVE_INTERVAL);
