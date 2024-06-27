@@ -102,10 +102,7 @@ public enum Client {
 					return Simple_Json;
 			}
 		}
-		return get(a+"_"+b);
-	}
-
-	private static Client get(String flag) {
+		String flag = a+"_"+b;
 		for (Client c : Client.values()) { 
 			if(c.getFlag().equals(flag))
 				return c;
