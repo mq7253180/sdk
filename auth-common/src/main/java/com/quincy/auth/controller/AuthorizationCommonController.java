@@ -1,14 +1,9 @@
 package com.quincy.auth.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.quincy.core.AuthCommonConstants;
 import com.quincy.core.InnerConstants;
-import com.quincy.core.VCodeStore;
-import com.quincy.sdk.VCodeService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
