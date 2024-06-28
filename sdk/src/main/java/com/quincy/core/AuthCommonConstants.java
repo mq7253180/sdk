@@ -9,7 +9,7 @@ public class AuthCommonConstants {
 	public final static String PARA_NAME_USERNAME = "username";
 	public final static String PARA_NAME_PASSWORD = "password";
 	public final static String PARA_NAME_VCODE = "vcode";
-	public final static String ATTR_KEY_VCODE_PWD_LOGIN = "vcode_pwd_login";
+	public final static String ATTR_KEY_VCODE_ROBOT_FORBIDDEN = "vcode_robot_forbidden";
 	public final static String ATTR_KEY_VCODE_LOGIN = "vcode_login";
 	public final static String ATTR_KEY_USERNAME = PARA_NAME_USERNAME;
 	public final static String ATTR_KEY_VCODE_ORIGINAL_MXA_INACTIVE_INTERVAL = "vcode";

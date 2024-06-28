@@ -14,13 +14,15 @@ import javax.imageio.ImageIO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.support.RequestContext;
 
 import com.quincy.core.AuthCommonConstants;
-import com.quincy.core.VCodeStore;
 import com.quincy.sdk.EmailService;
+import com.quincy.sdk.Result;
 import com.quincy.sdk.VCodeCharsFrom;
 import com.quincy.sdk.VCodeSender;
 import com.quincy.sdk.VCodeService;
+import com.quincy.sdk.helper.CommonHelper;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -46,22 +48,53 @@ public class VCodeServiceImpl implements VCodeService {
 		}
 		return _vcode;
 	}
+
+	public Result validateVCode(HttpServletRequest request, boolean ignoreCase, String attrKey) throws Exception {
+		HttpSession session = request.getSession(false);
+		String inputedVCode = CommonHelper.trim(request.getParameter(AuthCommonConstants.PARA_NAME_VCODE));
+		Integer status = null;
+		String msgI18NKey = null;
+		String msg = null;
+		if(inputedVCode==null) {
+			status = -5;
+			msgI18NKey = "vcode.null";
+		} else {
+			if(session==null) {
+				status = -6;
+				msgI18NKey = "vcode.expire";
+			} else {
+				Object _cachedVCode = session.getAttribute(attrKey);
+				String cachedVCode = _cachedVCode==null?null:CommonHelper.trim(_cachedVCode.toString());
+				if(cachedVCode==null) {
+					status = -6;
+					msgI18NKey = "vcode.expire";
+				} else if(!(ignoreCase?cachedVCode.equalsIgnoreCase(inputedVCode):cachedVCode.equals(inputedVCode))) {
+					status = -7;
+					msgI18NKey = "vcode.not_matched";
+				}
+			}
+		}
+		if(status==null) {
+			session.removeAttribute(attrKey);
+			status = 1;
+		} else {
+			RequestContext requestContext = new RequestContext(request);
+			msg = requestContext.getMessage(msgI18NKey);
+		}
+		return new Result(status, msg);
+	}
 	/**
 	 * 用于临时密码登录，临时密码发送方式可以通过VCodeSender定制，通常是发邮件、短信、IM软件推送
 	 */
 	public String vcode(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, VCodeSender sender) throws Exception {
-		char[] _vcode = this.genVcode(charsFrom, length);
+		char[] vcode = this.genVcode(charsFrom, length);
 		HttpSession session = request.getSession();
 		session.setAttribute(AuthCommonConstants.ATTR_KEY_USERNAME, request.getParameter(AuthCommonConstants.PARA_NAME_USERNAME));
-		this.saveVcode(session, _vcode, AuthCommonConstants.ATTR_KEY_VCODE_LOGIN);
-		sender.send(_vcode, vcodeTimeoutSeconds/60);
-		return session.getId();
-	}
-
-	public void saveVcode(HttpSession session, char[] vcode, String attrKey) {
-		session.setAttribute(attrKey, new String(vcode));
+		session.setAttribute(AuthCommonConstants.ATTR_KEY_VCODE_LOGIN, new String(vcode));
 		session.setAttribute(AuthCommonConstants.ATTR_KEY_VCODE_ORIGINAL_MXA_INACTIVE_INTERVAL, session.getMaxInactiveInterval());
 		session.setMaxInactiveInterval(vcodeTimeoutSeconds);
+		sender.send(vcode, vcodeTimeoutSeconds/60);
+		return session.getId();
 	}
 
 	@Autowired
@@ -80,10 +113,10 @@ public class VCodeServiceImpl implements VCodeService {
 		});
 	}
 
-	public void outputVcode(VCodeStore vCodeStore, HttpServletResponse response, 
+	public void outputVcode(HttpServletRequest request, HttpServletResponse response, 
 			int size, int start, int space, int width, int height) throws Exception {
 		char[] vcode = this.genVcode(VCodeCharsFrom.MIXED, height);
-		vCodeStore.save(vcode);//未登录前防暴力破解密码存session，已登录后防刷存redis
+		request.getSession().setAttribute(AuthCommonConstants.ATTR_KEY_VCODE_ROBOT_FORBIDDEN, new String(vcode));
 		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
 		Graphics g = image.getGraphics();
 		Graphics2D gg = (Graphics2D)g;

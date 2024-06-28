@@ -25,7 +25,6 @@ import com.quincy.auth.service.AuthorizationServerService;
 import com.quincy.core.AuthCommonConstants;
 import com.quincy.core.InnerConstants;
 import com.quincy.core.SessionInvalidation;
-import com.quincy.core.VCodeStore;
 import com.quincy.sdk.Client;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.VCodeCharsFrom;
@@ -185,7 +184,7 @@ public class AuthorizationServerController {
 			if(failures<failuresThresholdForVCode) {//小于失败次数
 				result = pwdLogin(request, username, password);
 			} else {//失败次数满，需要验证码
-				result = this.validateVCode(request, true, AuthCommonConstants.ATTR_KEY_VCODE_PWD_LOGIN);
+				result = vCodeService.validateVCode(request, true, AuthCommonConstants.ATTR_KEY_VCODE_ROBOT_FORBIDDEN);
 				if(result.getStatus()==1)
 					result = pwdLogin(request, username, password);
 			}
@@ -207,47 +206,12 @@ public class AuthorizationServerController {
 			session.removeAttribute(LOGIN_FAILURES_HOLDER_KEY);
 		return result;
 	}
-
-	private Result validateVCode(HttpServletRequest request, boolean ignoreCase, String attrKey) throws Exception {
-		HttpSession session = request.getSession(false);
-		String inputedVCode = CommonHelper.trim(request.getParameter(AuthCommonConstants.PARA_NAME_VCODE));
-		Integer status = null;
-		String msgI18NKey = null;
-		String msg = null;
-		if(inputedVCode==null) {
-			status = -5;
-			msgI18NKey = "vcode.null";
-		} else {
-			if(session==null) {
-				status = -6;
-				msgI18NKey = "vcode.expire";
-			} else {
-				Object _cachedVCode = session.getAttribute(attrKey);
-				String cachedVCode = _cachedVCode==null?null:CommonHelper.trim(_cachedVCode.toString());
-				if(cachedVCode==null) {
-					status = -6;
-					msgI18NKey = "vcode.expire";
-				} else if(!(ignoreCase?cachedVCode.equalsIgnoreCase(inputedVCode):cachedVCode.equals(inputedVCode))) {
-					status = -7;
-					msgI18NKey = "vcode.not_matched";
-				}
-			}
-		}
-		if(status==null) {
-			session.removeAttribute(attrKey);
-			status = 1;
-		} else {
-			RequestContext requestContext = new RequestContext(request);
-			msg = requestContext.getMessage(msgI18NKey);
-		}
-		return new Result(status, msg);
-	}
 	/**
 	 * 临时密码登录
 	 */
 	@RequestMapping("/signin/vcode")
 	public ModelAndView vcodeLogin(HttpServletRequest request, @RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
-		Result result = this.validateVCode(request, true,AuthCommonConstants.ATTR_KEY_VCODE_LOGIN);
+		Result result = vCodeService.validateVCode(request, true,AuthCommonConstants.ATTR_KEY_VCODE_LOGIN);
 		if(result.getStatus()==1) {
 			HttpSession session = request.getSession(false);
 			result = login(request, session.getAttribute(AuthCommonConstants.ATTR_KEY_USERNAME).toString(), null);
@@ -291,12 +255,7 @@ public class AuthorizationServerController {
 			@PathVariable(required = true, name = "space")int space,
 			@PathVariable(required = true, name = "width")int width, 
 			@PathVariable(required = true, name = "height")int height) throws Exception {
-		vCodeService.outputVcode(new VCodeStore() {
-			@Override
-			public void save(char[] vcode) {
-				vCodeService.saveVcode(request.getSession(), vcode, AuthCommonConstants.ATTR_KEY_VCODE_PWD_LOGIN);
-			}
-		}, response, size, start, space, width, height);
+		vCodeService.outputVcode(request, response, size, start, space, width, height);
 	}
 
 	@Autowired(required = false)
