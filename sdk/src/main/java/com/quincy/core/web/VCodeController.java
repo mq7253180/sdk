@@ -34,9 +34,9 @@ import jakarta.servlet.http.HttpServletResponse;
 @RequestMapping("/vcode")
 public class VCodeController extends HandlerInterceptorAdapter {
 	private final double VCODE_RADIANS = Math.PI/180;
-	@Value("${auth.vcode.length}")
+	@Value("${vcode.length}")
 	private int vcodeLength;
-	@Value("${auth.vcode.lines}")
+	@Value("${vcode.lines}")
 	private int vcodeLines;
 	@Autowired
 	private VCodeOpsRgistry vCodeOpsRgistry;
