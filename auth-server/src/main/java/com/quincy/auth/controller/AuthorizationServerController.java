@@ -305,7 +305,7 @@ public class AuthorizationServerController {
 		return "/pwdset_timeout";
 	}
 
-	@RequestMapping(AuthConstants.URI_VCODE_FAILURE)
+	@RequestMapping("/vcode/failure")
 	public String vcodeFailure(HttpServletRequest request) {
 		return InnerConstants.VIEW_PATH_RESULT;
 	}

@@ -31,6 +31,8 @@ import jakarta.servlet.http.HttpSession;
 @Service
 public class VCodeServiceImpl implements VCodeService {
 	private final double VCODE_RADIANS = Math.PI/180;
+	@Value("${auth.vcode.length}")
+	private int vcodeLength;
 	@Value("${auth.vcode.lines}")
 	private int vcodeLines;
 	@Value("${auth.vcode.timeout:120}")
@@ -115,7 +117,7 @@ public class VCodeServiceImpl implements VCodeService {
 
 	public void outputVcode(HttpServletRequest request, HttpServletResponse response, 
 			int size, int start, int space, int width, int height) throws Exception {
-		char[] vcode = this.genVcode(VCodeCharsFrom.MIXED, height);
+		char[] vcode = this.genVcode(VCodeCharsFrom.MIXED, vcodeLength);
 		request.getSession().setAttribute(AuthCommonConstants.ATTR_KEY_VCODE_ROBOT_FORBIDDEN, new String(vcode));
 		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
 		Graphics g = image.getGraphics();
