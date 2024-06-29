@@ -15,6 +15,7 @@ import com.quincy.core.web.GeneralInterceptor;
 import com.quincy.core.web.PublicKeyGetter;
 import com.quincy.core.web.SignatureInterceptor;
 import com.quincy.core.web.StaticInterceptor;
+import com.quincy.core.web.VCodeController;
 import com.quincy.core.web.freemarker.AttributeTemplateDirectiveModelBean;
 import com.quincy.core.web.freemarker.I18NTemplateDirectiveModelBean;
 import com.quincy.core.web.freemarker.LocaleTemplateDirectiveModelBean;
@@ -30,6 +31,8 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
 	private QuincyAuthInterceptor quincyAuthInterceptor;
 	@Autowired
 	private PublicKeyGetter publicKeyGetter;
+	@Autowired
+	private VCodeController vCodeInterceptor;
 
 	@Override
 	protected void addInterceptors(InterceptorRegistry registry) {
@@ -41,6 +44,7 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
 			registry.addInterceptor(handlerInterceptorAdapter).addPathPatterns("/**");
 		}
 		registry.addInterceptor(new SignatureInterceptor(publicKeyGetter)).addPathPatterns("/**");
+		registry.addInterceptor(vCodeInterceptor).addPathPatterns("/**");
 	}
 
     @Autowired

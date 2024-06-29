@@ -3,7 +3,6 @@ package com.quincy.core.web;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.ModelAndView;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,7 +14,7 @@ public class GlobalControllerAdvice {
 	private GlobalHandlerExceptionResolver handlerExceptionResolver;
 
     @ExceptionHandler
-	public ModelAndView handleExeption(HttpServletRequest request, HttpServletResponse response, HandlerMethod hanlder, Exception e) {
-		return handlerExceptionResolver.resolveException(request, response, hanlder, e);
+	public ModelAndView handleExeption(HttpServletRequest request, HttpServletResponse response, Exception e) {
+		return handlerExceptionResolver.resolveException(request, response, null, e);
 	}
 }

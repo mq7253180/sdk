@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -32,7 +31,6 @@ import com.quincy.sdk.VCodeService;
 import com.quincy.sdk.helper.CommonHelper;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
@@ -211,7 +209,7 @@ public class AuthorizationServerController {
 	 */
 	@RequestMapping("/signin/vcode")
 	public ModelAndView vcodeLogin(HttpServletRequest request, @RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
-		Result result = vCodeService.validateVCode(request, true,AuthCommonConstants.ATTR_KEY_VCODE_LOGIN);
+		Result result = vCodeService.validateVCode(request, true, AuthCommonConstants.ATTR_KEY_VCODE_LOGIN);
 		if(result.getStatus()==1) {
 			HttpSession session = request.getSession(false);
 			result = login(request, session.getAttribute(AuthCommonConstants.ATTR_KEY_USERNAME).toString(), null);
@@ -243,19 +241,6 @@ public class AuthorizationServerController {
 		return new ModelAndView(InnerConstants.VIEW_PATH_RESULT)
 				.addObject("status", status)
 				.addObject("msg", new RequestContext(request).getMessage(msgI18N));
-	}
-	/**
-	 * Example: 25/10/25/110/35
-	 * 用于密码登录时输错超过一定次数
-	 */
-	@RequestMapping("/vcode/{size}/{start}/{space}/{width}/{height}")
-	public void genVCode(HttpServletRequest request, HttpServletResponse response, 
-			@PathVariable(required = true, name = "size")int size,
-			@PathVariable(required = true, name = "start")int start,
-			@PathVariable(required = true, name = "space")int space,
-			@PathVariable(required = true, name = "width")int width, 
-			@PathVariable(required = true, name = "height")int height) throws Exception {
-		vCodeService.outputVcode(request, response, size, start, space, width, height);
 	}
 
 	@Autowired(required = false)
@@ -303,10 +288,5 @@ public class AuthorizationServerController {
 	@RequestMapping(AuthConstants.URI_VCODE_PWDSET_TIMEOUT)
 	public String pwdResetTimeout() {
 		return "/pwdset_timeout";
-	}
-
-	@RequestMapping("/vcode/failure")
-	public String vcodeFailure(HttpServletRequest request) {
-		return InnerConstants.VIEW_PATH_RESULT;
 	}
 }

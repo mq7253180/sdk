@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 
 import com.quincy.sdk.Client;
+import com.quincy.sdk.Result;
 import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.helper.HttpClientHelper;
 
@@ -14,6 +15,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class InnerHelper {
+	public static void outputOrForward(HttpServletRequest request, HttpServletResponse response, Object handler, Result result, String redirectTo, boolean appendBackTo) throws IOException, ServletException {
+		outputOrForward(request, response, handler, result.getStatus(), result.getMsg(), redirectTo, appendBackTo);
+	}
+
 	public static void outputOrForward(HttpServletRequest request, HttpServletResponse response, Object handler, int status, String msg, String redirectTo, boolean appendBackTo) throws IOException, ServletException {
 		Client client = Client.get(request, handler);
 		boolean clientSys = redirectTo.startsWith("http");

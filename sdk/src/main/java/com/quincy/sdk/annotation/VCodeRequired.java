@@ -10,7 +10,5 @@ import java.lang.annotation.Target;
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(value = {ElementType.METHOD})
 public @interface VCodeRequired {
-	public String clientTokenName() default "";
 	public boolean ignoreCase() default true;
-	public String timeoutForwardTo() default "/auth/vcode/failure";
 }
