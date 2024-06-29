@@ -27,7 +27,7 @@ import com.quincy.core.SessionInvalidation;
 import com.quincy.sdk.Client;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.VCodeCharsFrom;
-import com.quincy.sdk.VCodeService;
+import com.quincy.sdk.VCodeOpsRgistry;
 import com.quincy.sdk.helper.CommonHelper;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -43,7 +43,7 @@ public class AuthorizationServerController {
 	@Autowired(required = false)
 	private SessionInvalidation sessionInvalidation;
 	@Autowired
-	private VCodeService vCodeService;
+	private VCodeOpsRgistry vCodeOpsRgistry;
 	@Value("${server.servlet.session.timeout.mobile:#{null}}")
 	private String mobileSessionTimeout;
 	@Value("${server.servlet.session.timeout.app:#{null}}")
@@ -182,7 +182,7 @@ public class AuthorizationServerController {
 			if(failures<failuresThresholdForVCode) {//小于失败次数
 				result = pwdLogin(request, username, password);
 			} else {//失败次数满，需要验证码
-				result = vCodeService.validateVCode(request, true, AuthCommonConstants.ATTR_KEY_VCODE_ROBOT_FORBIDDEN);
+				result = vCodeOpsRgistry.validate(request, true, AuthCommonConstants.ATTR_KEY_VCODE_ROBOT_FORBIDDEN);
 				if(result.getStatus()==1)
 					result = pwdLogin(request, username, password);
 			}
@@ -209,7 +209,7 @@ public class AuthorizationServerController {
 	 */
 	@RequestMapping("/signin/vcode")
 	public ModelAndView vcodeLogin(HttpServletRequest request, @RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
-		Result result = vCodeService.validateVCode(request, true, AuthCommonConstants.ATTR_KEY_VCODE_LOGIN);
+		Result result = vCodeOpsRgistry.validate(request, true, AuthCommonConstants.ATTR_KEY_VCODE_LOGIN);
 		if(result.getStatus()==1) {
 			HttpSession session = request.getSession(false);
 			result = login(request, session.getAttribute(AuthCommonConstants.ATTR_KEY_USERNAME).toString(), null);
@@ -235,7 +235,7 @@ public class AuthorizationServerController {
 			} else {
 				status = 1;
 				msgI18N = Result.I18N_KEY_SUCCESS;
-				vCodeService.vcode(request, VCodeCharsFrom.MIXED, 32, email, tempPwdLoginEmailInfo.getSubject(), tempPwdLoginEmailInfo.getContent());
+				vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.MIXED, 32, email, tempPwdLoginEmailInfo.getSubject(), tempPwdLoginEmailInfo.getContent());
 			}
 		}
 		return new ModelAndView(InnerConstants.VIEW_PATH_RESULT)
@@ -277,7 +277,7 @@ public class AuthorizationServerController {
 						.append("=")
 						.append(URLEncoder.encode(AuthConstants.URI_PWD_SET, "UTF-8"))
 						.toString();
-				vCodeService.vcode(request, VCodeCharsFrom.MIXED, 32, email, pwdRestEmailInfo.getSubject(), pwdRestEmailInfo.getContent(uri));
+				vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.MIXED, 32, email, pwdRestEmailInfo.getSubject(), pwdRestEmailInfo.getContent(uri));
 			}
 		}
 		return new ModelAndView(InnerConstants.VIEW_PATH_RESULT)
