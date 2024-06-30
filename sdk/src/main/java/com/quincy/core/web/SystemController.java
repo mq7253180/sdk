@@ -18,9 +18,16 @@ public class SystemController {
 
 	@RequestMapping("/result")
 	public ModelAndView vcodeFailure(HttpServletRequest request) {
+		ModelAndView mv = new ModelAndView(InnerConstants.VIEW_PATH_RESULT);
 		Result result = (Result)request.getSession().getAttribute("result");
-		return new ModelAndView(InnerConstants.VIEW_PATH_RESULT)
-				.addObject("status", result.getStatus())
-				.addObject("msg", result.getMsg());
+		if(result!=null) {
+			Object _status = request.getAttribute("status");
+			if(_status==null)
+				mv.addObject("status", result.getStatus());
+			Object _msg = request.getAttribute("msg");
+			if(_msg==null)
+				mv.addObject("msg", result.getStatus());
+		}
+		return mv;
 	}
 }
