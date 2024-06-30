@@ -16,11 +16,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.method.HandlerMethod;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import com.quincy.core.AuthCommonConstants;
-import com.quincy.core.InnerConstants;
 import com.quincy.core.InnerHelper;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.VCodeCharsFrom;
@@ -85,14 +83,6 @@ public class VCodeController extends HandlerInterceptorAdapter {
 		}
 	}
 
-	@RequestMapping("/failure")
-	public ModelAndView vcodeFailure(HttpServletRequest request) {
-		Result result = (Result)request.getSession().getAttribute("result");
-		return new ModelAndView(InnerConstants.VIEW_PATH_RESULT)
-				.addObject("status", result.getStatus())
-				.addObject("msg", result.getMsg());
-	}
-
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 		if(handler instanceof HandlerMethod) {
@@ -102,7 +92,7 @@ public class VCodeController extends HandlerInterceptorAdapter {
 				Result result = vCodeOpsRgistry.validate(request, annotation.ignoreCase(), AuthCommonConstants.ATTR_KEY_VCODE_ROBOT_FORBIDDEN);
 				if(result.getStatus()<1) {
 					request.getSession().setAttribute("result", result);
-					InnerHelper.outputOrForward(request, response, handler, result, "/vcode/failure", false);
+					InnerHelper.outputOrForward(request, response, handler, result, "/result", false);
 					return false;
 				}
 			}
