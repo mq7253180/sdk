@@ -29,7 +29,7 @@ public class SystemController {
 				mv.addObject("msg", result.getStatus());
 			Object data = request.getAttribute("data");
 			if(data==null)
-				mv.addObject("data", data);
+				mv.addObject("data", result.getData());
 		}
 		return mv;
 	}
