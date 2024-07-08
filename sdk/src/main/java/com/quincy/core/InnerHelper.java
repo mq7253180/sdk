@@ -5,6 +5,9 @@ import java.net.URLEncoder;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.support.RequestContext;
+
 import com.quincy.sdk.Client;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.helper.CommonHelper;
@@ -79,5 +82,21 @@ public class InnerHelper {
 
 	private static char getSeparater(String uri) {
 		return uri.indexOf("?")>=0?'&':'?';
+	}
+
+	public static ModelAndView modelAndViewMsg(HttpServletRequest request, int status, String msg) {
+		HttpSession session = request.getSession(false);
+		if(session!=null) {
+			session.removeAttribute("status");
+			session.removeAttribute("msg");
+			session.removeAttribute("data");
+		}
+		return new ModelAndView(status==1?InnerConstants.VIEW_PATH_SUCCESS:InnerConstants.VIEW_PATH_FAILURE)
+				.addObject("status", status)
+				.addObject("msg", msg);
+	}
+
+	public static ModelAndView modelAndViewI18N(HttpServletRequest request, int status, String i18NKey) {
+		return modelAndViewMsg(request, status, new RequestContext(request).getMessage(i18NKey));
 	}
 }

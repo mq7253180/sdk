@@ -23,6 +23,7 @@ import com.quincy.auth.o.User;
 import com.quincy.auth.service.AuthorizationServerService;
 import com.quincy.core.AuthCommonConstants;
 import com.quincy.core.InnerConstants;
+import com.quincy.core.InnerHelper;
 import com.quincy.core.SessionInvalidation;
 import com.quincy.sdk.Client;
 import com.quincy.sdk.Result;
@@ -238,9 +239,7 @@ public class AuthorizationServerController {
 				vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.MIXED, 32, email, tempPwdLoginEmailInfo.getSubject(), tempPwdLoginEmailInfo.getContent());
 			}
 		}
-		return new ModelAndView(status==1?InnerConstants.VIEW_PATH_SUCCESS:InnerConstants.VIEW_PATH_FAILURE)
-				.addObject("status", status)
-				.addObject("msg", new RequestContext(request).getMessage(msgI18N));
+		return InnerHelper.modelAndViewI18N(request, status, msgI18N);
 	}
 
 	@Autowired(required = false)
@@ -280,9 +279,7 @@ public class AuthorizationServerController {
 				vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.MIXED, 32, email, pwdRestEmailInfo.getSubject(), pwdRestEmailInfo.getContent(uri));
 			}
 		}
-		return new ModelAndView(status==1?InnerConstants.VIEW_PATH_SUCCESS:InnerConstants.VIEW_PATH_FAILURE)
-				.addObject("status", status)
-				.addObject("msg", new RequestContext(request).getMessage(msgI18N));
+		return InnerHelper.modelAndViewI18N(request, status, msgI18N);
 	}
 
 	@RequestMapping(AuthConstants.URI_VCODE_PWDSET_TIMEOUT)
