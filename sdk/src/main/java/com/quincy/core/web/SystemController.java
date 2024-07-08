@@ -17,8 +17,17 @@ public class SystemController {
 	public void handleStatic() {}
 
 	@RequestMapping("/success")
-	public ModelAndView vcodeFailure(HttpServletRequest request) {
-		ModelAndView mv = new ModelAndView(InnerConstants.VIEW_PATH_SUCCESS);
+	public ModelAndView success(HttpServletRequest request) {
+		return this.createModelAndView(request, InnerConstants.VIEW_PATH_SUCCESS);
+	}
+
+	@RequestMapping("/failure")
+	public ModelAndView error(HttpServletRequest request) {
+		return this.createModelAndView(request, InnerConstants.VIEW_PATH_FAILURE);
+	}
+
+	private ModelAndView createModelAndView(HttpServletRequest request, String viewName) {
+		ModelAndView mv = new ModelAndView(viewName);
 		Result result = (Result)request.getSession().getAttribute("result");
 		if(result!=null) {
 			if(request.getAttribute("status")==null)

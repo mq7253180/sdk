@@ -238,7 +238,7 @@ public class AuthorizationServerController {
 				vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.MIXED, 32, email, tempPwdLoginEmailInfo.getSubject(), tempPwdLoginEmailInfo.getContent());
 			}
 		}
-		return new ModelAndView(status==1?InnerConstants.VIEW_PATH_SUCCESS:InnerConstants.VIEW_PATH_ERROR)
+		return new ModelAndView(status==1?InnerConstants.VIEW_PATH_SUCCESS:InnerConstants.VIEW_PATH_FAILURE)
 				.addObject("status", status)
 				.addObject("msg", new RequestContext(request).getMessage(msgI18N));
 	}
@@ -280,7 +280,7 @@ public class AuthorizationServerController {
 				vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.MIXED, 32, email, pwdRestEmailInfo.getSubject(), pwdRestEmailInfo.getContent(uri));
 			}
 		}
-		return new ModelAndView(status==1?InnerConstants.VIEW_PATH_SUCCESS:InnerConstants.VIEW_PATH_ERROR)
+		return new ModelAndView(status==1?InnerConstants.VIEW_PATH_SUCCESS:InnerConstants.VIEW_PATH_FAILURE)
 				.addObject("status", status)
 				.addObject("msg", new RequestContext(request).getMessage(msgI18N));
 	}

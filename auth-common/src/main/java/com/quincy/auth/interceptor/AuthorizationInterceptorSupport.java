@@ -27,7 +27,7 @@ public abstract class AuthorizationInterceptorSupport extends HandlerInterceptor
 	protected boolean doAuth(HttpServletRequest request, HttpServletResponse response, Object handler, String permissionNeeded) throws Exception {
 		XSession xsession = AuthHelper.getSession(request);//authorizationService.getSession(request);
 		if(xsession==null) {
-			InnerHelper.outputOrForward(request, response, handler, 0, new RequestContext(request).getMessage("auth.timeout.ajax"), signinUrl, true);
+			InnerHelper.outputOrRedirect(request, response, handler, 0, new RequestContext(request).getMessage("auth.timeout.ajax"), signinUrl, true);
 			return false;
 		} else {
 			if(permissionNeeded!=null) {
@@ -44,7 +44,7 @@ public abstract class AuthorizationInterceptorSupport extends HandlerInterceptor
 					if(deniedPermissionName==null)
 						deniedPermissionName = permissionNeeded;
 					request.setAttribute(AuthCommonConstants.ATTR_DENIED_PERMISSION, deniedPermissionName);
-					InnerHelper.outputOrForward(request, response, handler, -1, new RequestContext(request).getMessage("status.error.403")+"["+deniedPermissionName+"]", denyUrl, true);
+					InnerHelper.outputOrRedirect(request, response, handler, -1, new RequestContext(request).getMessage("status.error.403")+"["+deniedPermissionName+"]", denyUrl, true);
 					return false;
 				}
 			}

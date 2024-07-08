@@ -13,13 +13,14 @@ import com.quincy.sdk.helper.HttpClientHelper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 public class InnerHelper {
 	public static void outputOrForward(HttpServletRequest request, HttpServletResponse response, Object handler, Result result, String redirectTo, boolean appendBackTo) throws IOException, ServletException {
-		outputOrForward(request, response, handler, result.getStatus(), result.getMsg(), redirectTo, appendBackTo);
+		outputOrRedirect(request, response, handler, result.getStatus(), result.getMsg(), redirectTo, appendBackTo);
 	}
 
-	public static void outputOrForward(HttpServletRequest request, HttpServletResponse response, Object handler, int status, String msg, String redirectTo, boolean appendBackTo) throws IOException, ServletException {
+	public static void outputOrRedirect(HttpServletRequest request, HttpServletResponse response, Object handler, int status, String msg, String redirectTo, boolean appendBackTo) throws IOException, ServletException {
 		Client client = Client.get(request, handler);
 		boolean clientSys = redirectTo.startsWith("http");
 		if(client.isJson()) {
@@ -61,15 +62,17 @@ public class InnerHelper {
 					.append(locale);
 				response.sendRedirect(location.toString());
 			} else {
-				request.setAttribute("status", status);
-				request.setAttribute("msg", msg);
+				HttpSession session = request.getSession();
+				session.setAttribute("status", status);
+				session.setAttribute("msg", msg);
 				Iterator<Entry<String, String[]>> it = request.getParameterMap().entrySet().iterator();
 				while(it.hasNext()) {
 					Entry<String, String[]> e = it.next();
 					if(e.getValue()!=null&&e.getValue().length>0&&!e.getKey().equals(InnerConstants.KEY_LOCALE))
-						request.setAttribute(e.getKey(), e.getValue()[0]);
+						session.setAttribute(e.getKey(), e.getValue()[0]);
 				}
-				request.getRequestDispatcher(location.toString()).forward(request, response);
+//				request.getRequestDispatcher(location.toString()).forward(request, response);
+				response.sendRedirect(location.toString());
 			}
 		}
 	}
