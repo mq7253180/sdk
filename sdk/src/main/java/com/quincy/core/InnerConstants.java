@@ -16,6 +16,7 @@ public class InnerConstants {
 //	public final static String BEAN_NAME_PROPERTIES = "quincyPropertiesFactory";
 	public final static String PARAM_REDIRECT_TO = "redirectTo";
 	public final static String VIEW_PATH_SUCCESS = "/success";
+	public final static String VIEW_PATH_ERROR = "/error";
 //	public final static KeyFingerPrintCalculator KEY_FINGER_PRINT_CALCULATOR = new JcaKeyFingerprintCalculator();
 	public final static KeyFingerPrintCalculator KEY_FINGER_PRINT_CALCULATOR = new BcKeyFingerprintCalculator();
 	public final static String BEAN_NAME_PROPERTIES = "mailProperties";
