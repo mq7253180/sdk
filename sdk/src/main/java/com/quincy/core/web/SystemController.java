@@ -21,14 +21,11 @@ public class SystemController {
 		ModelAndView mv = new ModelAndView(InnerConstants.VIEW_PATH_RESULT);
 		Result result = (Result)request.getSession().getAttribute("result");
 		if(result!=null) {
-			Object status = request.getAttribute("status");
-			if(status==null)
+			if(request.getAttribute("status")==null)
 				mv.addObject("status", result.getStatus());
-			Object msg = request.getAttribute("msg");
-			if(msg==null)
+			if(request.getAttribute("msg")==null)
 				mv.addObject("msg", result.getStatus());
-			Object data = request.getAttribute("data");
-			if(data==null)
+			if(request.getAttribute("data")==null)
 				mv.addObject("data", result.getData());
 		}
 		return mv;
