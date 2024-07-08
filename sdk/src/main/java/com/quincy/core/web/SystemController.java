@@ -16,9 +16,9 @@ public class SystemController {
 	@GetMapping("/static/**")
 	public void handleStatic() {}
 
-	@RequestMapping("/result")
+	@RequestMapping("/success")
 	public ModelAndView vcodeFailure(HttpServletRequest request) {
-		ModelAndView mv = new ModelAndView(InnerConstants.VIEW_PATH_RESULT);
+		ModelAndView mv = new ModelAndView(InnerConstants.VIEW_PATH_SUCCESS);
 		Result result = (Result)request.getSession().getAttribute("result");
 		if(result!=null) {
 			if(request.getAttribute("status")==null)

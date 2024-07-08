@@ -21,7 +21,7 @@ public class AuthorizationCommonController {
 		if(session!=null) {
 			session.invalidate();
 		}
-		return InnerConstants.VIEW_PATH_RESULT;
+		return InnerConstants.VIEW_PATH_SUCCESS;
 	}
 	/**
 	 * 点超链接没权限要进入的页面
