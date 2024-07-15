@@ -46,7 +46,7 @@ public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> {
 	protected Map<String, ?> tryLock(String name, Jedis jedis) throws UnknownHostException {
 		String lockKey = LOCK_KEY_PREFIX+name;
 		String topicKey = TOPIC_KEY_PREFIX+name;
-		String value = InetAddress.getLocalHost().getHostAddress()+"-"+Thread.currentThread().getId();
+		String value = InetAddress.getLocalHost().getHostAddress()+"-"+Thread.currentThread().threadId();
 		String cachedValue = jedis.get(lockKey);
 		Map<String, ?> passToUnlock = null;
 		if(cachedValue==null||cachedValue.equals("nil")) {//The lock is free to hold.
@@ -70,7 +70,7 @@ public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> {
 				if(monitor!=null)
 					monitor.cancel();
 				jedis.expire(lockKey, 4);
-				Thread watchDog = new WatchDog(jedis, lockKey, Thread.currentThread().getId());
+				Thread watchDog = new WatchDog(jedis, lockKey, Thread.currentThread().threadId());
 				watchDog.setDaemon(true);
 				watchDog.start();
 				Map<String, Object> passToUnlock = new HashMap<>(4);
@@ -168,7 +168,7 @@ public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> {
 		@Override
 		protected boolean doLoop() {
 			try {
-				log.info("{}**********SLEEP******************{}", Thread.currentThread().getId(), millis);
+				log.info("{}**********SLEEP******************{}", Thread.currentThread().threadId(), millis);
 				sleep(millis);
 			} catch (InterruptedException e) {
 				log.error("GLOBAL_SYNC_ERROR", e);
@@ -176,9 +176,9 @@ public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> {
 			if(this.listener.isSubscribed()) {
 				long fromStart = System.currentTimeMillis()-subStart;
 				millis = INTERVAL-fromStart;
-				log.info("{}==========NEED_SLEEP================={}", Thread.currentThread().getId(), millis);
+				log.info("{}==========NEED_SLEEP================={}", Thread.currentThread().threadId(), millis);
 				if(millis<=0) {
-					log.info("{}-----------------UNSUB", Thread.currentThread().getId());
+					log.info("{}-----------------UNSUB", Thread.currentThread().threadId());
 					this.listener.unsubscribe();
 					millis = INTERVAL;
 				}
