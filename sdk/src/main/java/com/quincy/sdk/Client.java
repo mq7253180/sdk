@@ -15,7 +15,7 @@ public enum Client {
 	Android("android", "j", ContentType.APPLICATION_JSON.toString()), 
 	iOS("ios", "j", ContentType.APPLICATION_JSON.toString());
 	
-	private final static String[] MOBILE_USER_AGENT_FLAGS = {"iPhone", "iPad", "Android", "Symbian"};
+	private final static String[] MOBILE_USER_AGENT_FLAGS = {"iPhone", "Android"};
 
 	private String flag;
 	private String suffix;
