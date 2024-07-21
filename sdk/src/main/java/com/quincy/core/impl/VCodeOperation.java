@@ -1,6 +1,8 @@
 package com.quincy.core.impl;
 
 import java.text.MessageFormat;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,11 @@ import jakarta.servlet.http.HttpSession;
 public class VCodeOperation implements VCodeOpsRgistry {
 	@Value("${auth.vcode.timeout:120}")
 	private int vcodeTimeoutSeconds;
+	private static final Map<String, String> I18N_KEYS_HOLDER = new HashMap<String, String>(2);
+	static {
+		I18N_KEYS_HOLDER.put(AuthCommonConstants.ATTR_KEY_VCODE_ROBOT_FORBIDDEN, "vcode.name.vcode");
+		I18N_KEYS_HOLDER.put(AuthCommonConstants.ATTR_KEY_VCODE_LOGIN, "vcode.name.password");
+	}
 
 	public char[] generate(VCodeCharsFrom _charsFrom, int length) {
 		String charsFrom = (_charsFrom==null?VCodeCharsFrom.MIXED:_charsFrom).getValue();
@@ -37,7 +44,7 @@ public class VCodeOperation implements VCodeOpsRgistry {
 		return _vcode;
 	}
 
-	public Result validate(HttpServletRequest request, boolean ignoreCase, String attrKey, String nameI18NKey) throws Exception {
+	public Result validate(HttpServletRequest request, boolean ignoreCase, String attrKey) throws Exception {
 		HttpSession session = request.getSession(false);
 		String inputedVCode = CommonHelper.trim(request.getParameter(AuthCommonConstants.PARA_NAME_VCODE));
 		Integer status = null;
@@ -67,7 +74,7 @@ public class VCodeOperation implements VCodeOpsRgistry {
 			status = 1;
 		} else {
 			RequestContext requestContext = new RequestContext(request);
-			msg = requestContext.getMessage(msgI18NKey, new Object[] {requestContext.getMessage(nameI18NKey)});
+			msg = requestContext.getMessage(msgI18NKey, new Object[] {requestContext.getMessage(I18N_KEYS_HOLDER.get(attrKey))});
 		}
 		return new Result(status, msg);
 	}
