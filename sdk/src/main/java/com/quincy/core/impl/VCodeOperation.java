@@ -37,7 +37,7 @@ public class VCodeOperation implements VCodeOpsRgistry {
 		return _vcode;
 	}
 
-	public Result validate(HttpServletRequest request, boolean ignoreCase, String attrKey) throws Exception {
+	public Result validate(HttpServletRequest request, boolean ignoreCase, String attrKey, String nameI18NKey) throws Exception {
 		HttpSession session = request.getSession(false);
 		String inputedVCode = CommonHelper.trim(request.getParameter(AuthCommonConstants.PARA_NAME_VCODE));
 		Integer status = null;
@@ -67,7 +67,7 @@ public class VCodeOperation implements VCodeOpsRgistry {
 			status = 1;
 		} else {
 			RequestContext requestContext = new RequestContext(request);
-			msg = requestContext.getMessage(msgI18NKey);
+			msg = requestContext.getMessage(msgI18NKey, new Object[] {requestContext.getMessage(nameI18NKey)});
 		}
 		return new Result(status, msg);
 	}

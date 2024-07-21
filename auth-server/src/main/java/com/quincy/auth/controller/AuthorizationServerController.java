@@ -183,7 +183,7 @@ public class AuthorizationServerController {
 			if(failures<failuresThresholdForVCode) {//小于失败次数
 				result = pwdLogin(request, username, password);
 			} else {//失败次数满，需要验证码
-				result = vCodeOpsRgistry.validate(request, true, AuthCommonConstants.ATTR_KEY_VCODE_ROBOT_FORBIDDEN);
+				result = vCodeOpsRgistry.validate(request, true, AuthCommonConstants.ATTR_KEY_VCODE_ROBOT_FORBIDDEN, "vcode.name.vcode");
 				if(result.getStatus()==1)
 					result = pwdLogin(request, username, password);
 			}
@@ -210,7 +210,7 @@ public class AuthorizationServerController {
 	 */
 	@RequestMapping("/signin/vcode")
 	public ModelAndView vcodeLogin(HttpServletRequest request, @RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
-		Result result = vCodeOpsRgistry.validate(request, true, AuthCommonConstants.ATTR_KEY_VCODE_LOGIN);
+		Result result = vCodeOpsRgistry.validate(request, true, AuthCommonConstants.ATTR_KEY_VCODE_LOGIN, "vcode.name.password");
 		if(result.getStatus()==1) {
 			HttpSession session = request.getSession(false);
 			result = login(request, session.getAttribute(AuthCommonConstants.ATTR_KEY_USERNAME).toString(), null);

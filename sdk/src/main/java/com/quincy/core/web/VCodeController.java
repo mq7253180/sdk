@@ -89,7 +89,7 @@ public class VCodeController extends HandlerInterceptorAdapter {
 			HandlerMethod method = (HandlerMethod)handler;
 			VCodeRequired annotation = method.getMethod().getDeclaredAnnotation(VCodeRequired.class);
 			if(annotation!=null) {
-				Result result = vCodeOpsRgistry.validate(request, annotation.ignoreCase(), AuthCommonConstants.ATTR_KEY_VCODE_ROBOT_FORBIDDEN);
+				Result result = vCodeOpsRgistry.validate(request, annotation.ignoreCase(), AuthCommonConstants.ATTR_KEY_VCODE_ROBOT_FORBIDDEN, "vcode.name.vcode");
 				if(result.getStatus()<1) {
 					InnerHelper.outputOrForward(request, response, handler, result, "/failure", false);
 					return false;
