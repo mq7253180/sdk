@@ -71,8 +71,10 @@ public class InnerHelper {
 				Iterator<Entry<String, String[]>> it = request.getParameterMap().entrySet().iterator();
 				while(it.hasNext()) {
 					Entry<String, String[]> e = it.next();
-					if(e.getValue()!=null&&e.getValue().length>0&&!e.getKey().equals(InnerConstants.KEY_LOCALE))
-						session.setAttribute(e.getKey(), e.getValue()[0]);
+					if(e.getValue()!=null&&e.getValue().length>0&&!e.getKey().equals(InnerConstants.KEY_LOCALE)) {
+						if(!"status".equals(e.getKey())&&!"msg".equals(e.getKey()))
+							session.setAttribute(e.getKey(), e.getValue()[0]);
+					}
 				}
 //				request.getRequestDispatcher(location.toString()).forward(request, response);
 				response.sendRedirect(location.toString());
