@@ -110,55 +110,55 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		try {
 			statment = conn.prepareStatement(sql);
 			if(args!=null&&args.length>0) {
-				for(int j=0;j<args.length;j++)
-					statment.setObject(j+1, args[j]);
+				for(int i=0;i<args.length;i++)
+					statment.setObject(i+1, args[i]);
 			}
 			rs = statment.executeQuery();
 			while(rs.next()) {
 				Object item = returnItemType.getDeclaredConstructor().newInstance();
 				ResultSetMetaData rsmd = rs.getMetaData();
 				int columnCount = rsmd.getColumnCount();
-				for(int j=1;j<=columnCount;j++) {
-					String columnName = rsmd.getColumnLabel(j);
+				for(int i=1;i<=columnCount;i++) {
+					String columnName = rsmd.getColumnLabel(i);
 					Method setterMethod = map.get(columnName);
 					if(setterMethod!=null) {
-						Object v = rs.getObject(j);
+						Object v = rs.getObject(i);
 						Class<?> parameterType = setterMethod.getParameterTypes()[0];
 						if(!parameterType.isInstance(v)) {
 							if(parameterType.getName().equals(String.class.getName())) {
-								v = rs.getString(j);
+								v = rs.getString(i);
 							} else if(parameterType.getName().equals(boolean.class.getName())||parameterType.getName().equals(Boolean.class.getName())) {
-								v = rs.getBoolean(j);
+								v = rs.getBoolean(i);
 							} else if(parameterType.getName().equals(byte.class.getName())||parameterType.getName().equals(Byte.class.getName())) {
-								v = rs.getByte(j);
+								v = rs.getByte(i);
 							} else if(parameterType.getName().equals(short.class.getName())||parameterType.getName().equals(Short.class.getName())) {
-								v = rs.getShort(j);
+								v = rs.getShort(i);
 							} else if(parameterType.getName().equals(int.class.getName())||parameterType.getName().equals(Integer.class.getName())) {
-								v = rs.getInt(j);
+								v = rs.getInt(i);
 							} else if(parameterType.getName().equals(long.class.getName())||parameterType.getName().equals(Long.class.getName())) {
-								v = rs.getLong(j);
+								v = rs.getLong(i);
 							} else if(parameterType.getName().equals(float.class.getName())||parameterType.getName().equals(Float.class.getName())) {
-								v = rs.getFloat(j);
+								v = rs.getFloat(i);
 							} else if(parameterType.getName().equals(double.class.getName())||parameterType.getName().equals(Double.class.getName())) {
-								v = rs.getDouble(j);
+								v = rs.getDouble(i);
 							} else if(parameterType.getName().equals(BigDecimal.class.getName())) {
-								v = rs.getBigDecimal(j);
+								v = rs.getBigDecimal(i);
 							} else if(parameterType.getName().equals(Date.class.getName())||parameterType.getName().equals(java.sql.Date.class.getName())) {
-								v = rs.getDate(j);
+								v = rs.getDate(i);
 							} else if(parameterType.getName().equals(Time.class.getName())) {
-								v = rs.getTime(j);
+								v = rs.getTime(i);
 							} else if(parameterType.getName().equals(Timestamp.class.getName())) {
-								v = rs.getTimestamp(j);
+								v = rs.getTimestamp(i);
 							} else if(parameterType.getName().equals(Array.class.getName())) {
-								v = rs.getArray(j);
+								v = rs.getArray(i);
 							} else if(parameterType.getName().equals(Blob.class.getName())) {
-								v = rs.getBlob(j);
+								v = rs.getBlob(i);
 							} else if(parameterType.getName().equals(Clob.class.getName())) {
-								v = rs.getClob(j);
+								v = rs.getClob(i);
 							} else if(parameterType.getName().equals(byte[].class.getName())) {
 								InputStream in = null;
 								try {
-									in = rs.getBinaryStream(j);
+									in = rs.getBinaryStream(i);
 									byte[] buf = new byte[in.available()];
 									in.read(buf);
 									v = buf;
@@ -195,8 +195,8 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		try {
 			statment = conn.prepareStatement(sql);
 			if(args!=null&&args.length>0) {
-				for(int j=0;j<args.length;j++)
-					statment.setObject(j+1, args[j]);
+				for(int i=0;i<args.length;i++)
+					statment.setObject(i+1, args[i]);
 			}
 			return statment.executeUpdate();
 		} finally {
