@@ -17,8 +17,10 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,6 +39,8 @@ import org.springframework.util.Assert;
 import com.quincy.sdk.JdbcDao;
 import com.quincy.sdk.annotation.ExecuteQuery;
 import com.quincy.sdk.annotation.ExecuteUpdate;
+import com.quincy.sdk.annotation.ExecuteUpdateWithRecording;
+import com.quincy.sdk.annotation.ExecuteUpdateWithRecording2;
 import com.quincy.sdk.annotation.JDBCDao;
 
 import lombok.extern.slf4j.Slf4j;
@@ -57,7 +61,9 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					long start = System.currentTimeMillis();
 					ExecuteQuery queryAnnotation = method.getAnnotation(ExecuteQuery.class);
 					ExecuteUpdate executeUpdateAnnotation = method.getAnnotation(ExecuteUpdate.class);
-					Assert.isTrue(queryAnnotation!=null||executeUpdateAnnotation!=null, "What do you want to do?");
+					ExecuteUpdateWithRecording executeUpdateWithRecordingAnnotation = method.getAnnotation(ExecuteUpdateWithRecording.class);
+					ExecuteUpdateWithRecording2 executeUpdateWithRecording2Annotation = method.getAnnotation(ExecuteUpdateWithRecording2.class);
+					Assert.isTrue(queryAnnotation!=null||executeUpdateAnnotation!=null||executeUpdateWithRecordingAnnotation!=null||executeUpdateWithRecording2Annotation!=null, "What do you want to do?");
 					Class<?> returnType = method.getReturnType();
 					if(queryAnnotation!=null) {
 						Class<?> returnItemType = queryAnnotation.returnItemType();
@@ -66,10 +72,20 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 						log.warn("Duration======{}======{}", queryAnnotation.sql(), (System.currentTimeMillis()-start));
 						return result;
 					}
+					Assert.isTrue(returnType.getName().equals(int.class.getName())||returnType.getName().equals(Integer.class.getName()), "Return type must be int[] or Integer[].");
 					if(executeUpdateAnnotation!=null) {
-						Assert.isTrue(returnType.getName().equals(int.class.getName())||returnType.getName().equals(Integer.class.getName()), "Return type must be int[] or Integer[].");
 						int rowCount = executeUpdate(executeUpdateAnnotation.sql(), args);
 						log.warn("Duration======{}======{}", executeUpdateAnnotation.sql(), (System.currentTimeMillis()-start));
+						return rowCount;
+					}
+					if(executeUpdateWithRecordingAnnotation!=null) {
+						int rowCount = executeUpdateWithRecording(executeUpdateWithRecordingAnnotation.sql(), args);
+						log.warn("Duration======{}======{}", executeUpdateWithRecordingAnnotation.sql(), (System.currentTimeMillis()-start));
+						return rowCount;
+					}
+					if(executeUpdateWithRecording2Annotation!=null) {
+						int rowCount = executeUpdateWithRecording(executeUpdateWithRecording2Annotation.sql(), executeUpdateWithRecording2Annotation.tableName(), args);
+						log.warn("Duration======{}======{}", executeUpdateWithRecording2Annotation.sql(), (System.currentTimeMillis()-start));
 						return rowCount;
 					}
 					return null;
@@ -205,5 +221,147 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			if(connectionHolder==null&&conn!=null)
 				conn.close();
 		}
+	}
+
+	@Override
+	public int executeUpdateWithRecording(String sql, Object... args) throws SQLException {
+		String selectSql = sql.replaceFirst("update", "SELECT {0} FROM").replaceFirst("UPDATE", "SELECT {0} FROM").replaceFirst(" set ", " SET ").replaceFirst(" where ", " WHERE ");
+		int setIndexOf = selectSql.indexOf(" SET ");
+		int whereIndexOf = selectSql.indexOf(" WHERE ");
+		String tableName = selectSql.substring("SELECT {0} FROM ".length(), setIndexOf).trim();
+		String fields = "id,"+selectSql.substring(setIndexOf+" SET ".length(), whereIndexOf).replaceAll("\s", "").replaceAll("=\\?", "");
+		selectSql = selectSql.substring(0, setIndexOf)+selectSql.substring(whereIndexOf);
+		selectSql = MessageFormat.format(selectSql, fields);
+		return this.executeUpdateWithRecording(sql, selectSql, tableName, false, args);
+	}
+
+	@Override
+	public int executeUpdateWithRecording(String sql, String selectSql, String tableName, Object... args)
+			throws SQLException {
+		return this.executeUpdateWithRecording(sql, selectSql, tableName, true, args);
+	}
+
+	private int executeUpdateWithRecording(String sql, String selectSql, String tableName, boolean valueFuctionalized, Object... args) throws SQLException {
+		boolean selfConn = true;
+		Connection conn = null;
+		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
+		if(connectionHolder==null) {//如果不在事务中，从连接池获取一个连接对象
+			conn = dataSource.getConnection();
+			conn.setAutoCommit(false);
+		} else {//如果已经在事务中，使用框架容器提供的连接对象
+			conn = ((ConnectionHolder)connectionHolder).getConnection();
+			selfConn = false;
+		}
+		PreparedStatement statment = null;
+		PreparedStatement selectStatment = null;
+		PreparedStatement updationAutoIncrementStatment = null;
+		PreparedStatement updationStatment = null;
+		PreparedStatement updationFieldStatment = null;
+		ResultSet autoIncrementRs = null;
+		ResultSet oldValueRs = null;
+		ResultSet newValueRs = null;
+		try {
+			selectStatment = conn.prepareStatement(selectSql);
+			int questionMarkCount = symolCount(selectSql, '?');
+			int start = args.length-questionMarkCount-1;
+			statment = conn.prepareStatement(sql);
+			if(args!=null&&args.length>0) {
+				for(int i=1;i<=questionMarkCount;i++)
+					selectStatment.setObject(i, args[start+i]);
+				for(int i=0;i<args.length;i++)
+					statment.setObject(i+1, args[i]);
+			}
+			ResultSetMetaData rsmd = selectStatment.getMetaData();
+			int columnCount = rsmd.getColumnCount();
+
+			oldValueRs = selectStatment.executeQuery();
+			List<Map<String, String>> oldValueRows = new ArrayList<Map<String, String>>();
+			while(oldValueRs.next()) {
+				Map<String, String> oldValueMap = new HashMap<String, String>();
+				for(int i=1;i<=columnCount;i++)
+					oldValueMap.put(rsmd.getColumnName(i), oldValueRs.getString(i));
+				oldValueRows.add(oldValueMap);
+			}
+			oldValueRs.close();
+			int effected = statment.executeUpdate();
+			System.out.println("更新了"+effected+"行");
+			//如果更新值是函数
+			Map<String, String> newValue = null;
+			if(valueFuctionalized) {
+				newValue = new HashMap<String, String>();
+				newValueRs = selectStatment.executeQuery();//查询新值
+				while(newValueRs.next()) {
+					String id = newValueRs.getString("id");
+					for(int i=1;i<=columnCount;i++) {
+						String columnName = rsmd.getColumnName(i);
+						if(columnName.equals("id"))
+							continue;
+						newValue.put(id+"_"+columnName, newValueRs.getString(i));
+					}
+				}
+			}
+			updationAutoIncrementStatment = conn.prepareStatement("SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE table_schema=? AND table_name='s_updation';");
+			updationAutoIncrementStatment.setString(1, conn.getCatalog());
+			updationStatment = conn.prepareStatement("INSERT INTO s_updation VALUES(?, ?, ?, ?);");
+			updationStatment.setString(2, tableName);
+			updationStatment.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
+			updationFieldStatment = conn.prepareStatement("INSERT INTO s_updation_field(p_id, name, old_value, new_value) VALUES(?, ?, ?, ?);");
+			for(Map<String, String> row:oldValueRows) {
+				autoIncrementRs = updationAutoIncrementStatment.executeQuery();
+				autoIncrementRs.next();
+				Long updationId = autoIncrementRs.getLong("AUTO_INCREMENT");
+				autoIncrementRs.close();
+				String dataId = row.get("id");
+				updationStatment.setLong(1, updationId);
+				updationStatment.setString(3, dataId);
+				updationStatment.executeUpdate();
+				updationFieldStatment.setString(1, updationId.toString());
+				for(int i=1;i<=columnCount;i++) {
+					String columnName = rsmd.getColumnName(i);
+					if(columnName.equals("id"))
+						continue;
+					updationFieldStatment.setString(2, columnName);
+					updationFieldStatment.setString(3, row.get(columnName));
+					updationFieldStatment.setString(4, valueFuctionalized?newValue.get(dataId+"_"+columnName):args[i-2].toString());
+					updationFieldStatment.executeUpdate();
+				}
+			}
+			if(selfConn)//如果是自己获取的连接对象，提交事务
+				conn.commit();
+			return effected;
+		} catch(SQLException e) {
+			if(selfConn)//如果是自己获取的连接对象，回滚事务
+				conn.rollback();
+			throw e;
+		} finally {
+			if(oldValueRs!=null)
+				oldValueRs.close();
+			if(newValueRs!=null)
+				newValueRs.close();
+			if(autoIncrementRs!=null)
+				autoIncrementRs.close();
+			if(statment!=null)
+				statment.close();
+			if(selectStatment!=null)
+				selectStatment.close();
+			if(updationAutoIncrementStatment!=null)
+				updationAutoIncrementStatment.close();
+			if(updationStatment!=null)
+				updationStatment.close();
+			if(updationFieldStatment!=null)
+				updationFieldStatment.close();
+			if(selfConn&&conn!=null)
+				conn.close();
+		}
+	}
+
+	private static int symolCount(String s, char symol) {
+		char[] cc = s.toCharArray();
+		int count = 0;
+		for(char c:cc) {
+			if(c==symol)
+				count++;
+		}
+		return count;
 	}
 }
