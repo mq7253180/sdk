@@ -84,7 +84,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 						return rowCount;
 					}
 					if(executeUpdateWithRecording2Annotation!=null) {
-						int rowCount = executeUpdateWithRecording(executeUpdateWithRecording2Annotation.sql(), executeUpdateWithRecording2Annotation.tableName(), args);
+						int rowCount = executeUpdateWithRecording(executeUpdateWithRecording2Annotation.sql(), executeUpdateWithRecording2Annotation.selectionSql(), executeUpdateWithRecording2Annotation.tableName(), args);
 						log.warn("Duration======{}======{}", executeUpdateWithRecording2Annotation.sql(), (System.currentTimeMillis()-start));
 						return rowCount;
 					}
