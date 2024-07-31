@@ -49,6 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor, JdbcDao {
 	private DataSource dataSource;
 	private Map<Class<?>, Map<String, Method>> classMethodMap;
+	private static Map<String, String> selectionSqlMap = new HashMap<String, String>();
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
@@ -216,8 +217,6 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		}
 	}
 
-	private static Map<String, String> selectionSqlMap = new HashMap<String, String>();
-
 	@Override
 	public int executeUpdateWithHistory(String sql, Object... args) throws SQLException {
 		String selectSql = selectionSqlMap.get(sql);
@@ -277,7 +276,6 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			ResultSetMetaData rsmd = selectStatment.getMetaData();
 			String tableName = rsmd.getTableName(1);
 			int columnCount = rsmd.getColumnCount();
-
 			oldValueRs = selectStatment.executeQuery();
 			List<Map<String, String>> oldValueRows = new ArrayList<Map<String, String>>();
 			while(oldValueRs.next()) {
@@ -288,7 +286,6 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			}
 			oldValueRs.close();
 			int effected = statment.executeUpdate();
-			System.out.println("更新了"+effected+"行");
 			//如果更新值是函数
 			Map<String, String> newValue = null;
 			if(valueFuctionalized) {
