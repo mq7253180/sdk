@@ -99,7 +99,6 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 	public void setDataSource(DataSource dataSource) {
 		this.dataSource = dataSource;
 	}
-
 	public void setClassMethodMap(Map<Class<?>, Map<String, Method>> classMethodMap) {
 		this.classMethodMap = classMethodMap;
 	}
@@ -217,14 +216,25 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		}
 	}
 
+	private static Map<String, String> selectionSqlMap = new HashMap<String, String>();
+
 	@Override
 	public int executeUpdateWithHistory(String sql, Object... args) throws SQLException {
-		String selectSql = sql.replaceFirst("update", "SELECT {0} FROM").replaceFirst("UPDATE", "SELECT {0} FROM").replaceFirst(" set ", " SET ").replaceFirst(" where ", " WHERE ");
-		int setIndexOf = selectSql.indexOf(" SET ");
-		int whereIndexOf = selectSql.indexOf(" WHERE ");
-		String fields = "id,"+selectSql.substring(setIndexOf+" SET ".length(), whereIndexOf).replaceAll("\s", "").replaceAll("=\\?", "");
-		selectSql = selectSql.substring(0, setIndexOf)+selectSql.substring(whereIndexOf);
-		selectSql = MessageFormat.format(selectSql, fields);
+		String selectSql = selectionSqlMap.get(sql);
+		if(selectSql==null) {
+			synchronized(selectionSqlMap) {
+				selectSql = selectionSqlMap.get(sql);
+				if(selectSql==null) {
+					selectSql = sql.replaceFirst("update", "SELECT {0} FROM").replaceFirst("UPDATE", "SELECT {0} FROM").replaceFirst(" set ", " SET ").replaceFirst(" where ", " WHERE ");
+					int setIndexOf = selectSql.indexOf(" SET ");
+					int whereIndexOf = selectSql.indexOf(" WHERE ");
+					String fields = "id,"+selectSql.substring(setIndexOf+" SET ".length(), whereIndexOf).replaceAll("\s", "").replaceAll("=\\?", "");
+					selectSql = selectSql.substring(0, setIndexOf)+selectSql.substring(whereIndexOf);
+					selectSql = MessageFormat.format(selectSql, fields);
+					selectionSqlMap.put(sql, selectSql);
+				}
+			}
+		}
 		return this.executeUpdateWithHistory(sql, selectSql, false, args);
 	}
 
