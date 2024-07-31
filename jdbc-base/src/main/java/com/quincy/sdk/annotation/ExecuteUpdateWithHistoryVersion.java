@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(value = {ElementType.METHOD})
-public @interface ExecuteUpdateWithRecording {
+public @interface ExecuteUpdateWithHistoryVersion {
 	public String sql();
 	public String selectionSql() default "";
 }
