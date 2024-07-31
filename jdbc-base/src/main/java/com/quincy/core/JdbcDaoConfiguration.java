@@ -39,7 +39,6 @@ import org.springframework.util.Assert;
 import com.quincy.sdk.JdbcDao;
 import com.quincy.sdk.annotation.ExecuteQuery;
 import com.quincy.sdk.annotation.ExecuteUpdate;
-import com.quincy.sdk.annotation.ExecuteUpdateWithHistoryVersion;
 import com.quincy.sdk.annotation.JDBCDao;
 import com.quincy.sdk.helper.CommonHelper;
 
@@ -61,8 +60,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					long start = System.currentTimeMillis();
 					ExecuteQuery queryAnnotation = method.getAnnotation(ExecuteQuery.class);
 					ExecuteUpdate executeUpdateAnnotation = method.getAnnotation(ExecuteUpdate.class);
-					ExecuteUpdateWithHistoryVersion executeUpdateWithHistoryVersionAnnotation = method.getAnnotation(ExecuteUpdateWithHistoryVersion.class);
-					Assert.isTrue(queryAnnotation!=null||executeUpdateAnnotation!=null||executeUpdateWithHistoryVersionAnnotation!=null, "What do you want to do?");
+					Assert.isTrue(queryAnnotation!=null||executeUpdateAnnotation!=null, "What do you want to do?");
 					Class<?> returnType = method.getReturnType();
 					if(queryAnnotation!=null) {
 						Class<?> returnItemType = queryAnnotation.returnItemType();
@@ -73,15 +71,15 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					}
 					Assert.isTrue(returnType.getName().equals(int.class.getName())||returnType.getName().equals(Integer.class.getName()), "Return type must be int[] or Integer[].");
 					if(executeUpdateAnnotation!=null) {
-						int rowCount = executeUpdate(executeUpdateAnnotation.sql(), args);
+						String sql = executeUpdateAnnotation.sql();
+						int rowCount = -1;
+						if(!executeUpdateAnnotation.withHistory()) {
+							rowCount = executeUpdate(sql, args);
+						} else {
+							String selectionSql = CommonHelper.trim(executeUpdateAnnotation.selectionSql());
+							rowCount = selectionSql==null?executeUpdateWithHistory(sql, args):executeUpdateWithHistory(sql, selectionSql, args);
+						}
 						log.warn("Duration======{}======{}", executeUpdateAnnotation.sql(), (System.currentTimeMillis()-start));
-						return rowCount;
-					}
-					if(executeUpdateWithHistoryVersionAnnotation!=null) {
-						String sql = executeUpdateWithHistoryVersionAnnotation.sql();
-						String selectionSql = CommonHelper.trim(executeUpdateWithHistoryVersionAnnotation.selectionSql());
-						int rowCount = selectionSql==null?executeUpdateWithHistoryVersion(sql, args):executeUpdateWithHistoryVersion(sql, selectionSql, args);
-						log.warn("Duration======{}======{}", sql, (System.currentTimeMillis()-start));
 						return rowCount;
 					}
 					return null;
@@ -220,23 +218,23 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 	}
 
 	@Override
-	public int executeUpdateWithHistoryVersion(String sql, Object... args) throws SQLException {
+	public int executeUpdateWithHistory(String sql, Object... args) throws SQLException {
 		String selectSql = sql.replaceFirst("update", "SELECT {0} FROM").replaceFirst("UPDATE", "SELECT {0} FROM").replaceFirst(" set ", " SET ").replaceFirst(" where ", " WHERE ");
 		int setIndexOf = selectSql.indexOf(" SET ");
 		int whereIndexOf = selectSql.indexOf(" WHERE ");
 		String fields = "id,"+selectSql.substring(setIndexOf+" SET ".length(), whereIndexOf).replaceAll("\s", "").replaceAll("=\\?", "");
 		selectSql = selectSql.substring(0, setIndexOf)+selectSql.substring(whereIndexOf);
 		selectSql = MessageFormat.format(selectSql, fields);
-		return this.executeUpdateWithHistoryVersion(sql, selectSql, false, args);
+		return this.executeUpdateWithHistory(sql, selectSql, false, args);
 	}
 
 	@Override
-	public int executeUpdateWithHistoryVersion(String sql, String selectSql, Object... args)
+	public int executeUpdateWithHistory(String sql, String selectSql, Object... args)
 			throws SQLException {
-		return this.executeUpdateWithHistoryVersion(sql, selectSql, true, args);
+		return this.executeUpdateWithHistory(sql, selectSql, true, args);
 	}
 
-	private int executeUpdateWithHistoryVersion(String sql, String selectSql, boolean valueFuctionalized, Object... args) throws SQLException {
+	private int executeUpdateWithHistory(String sql, String selectSql, boolean valueFuctionalized, Object... args) throws SQLException {
 		boolean selfConn = true;
 		Connection conn = null;
 		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);

@@ -11,4 +11,6 @@ import java.lang.annotation.Target;
 @Target(value = {ElementType.METHOD})
 public @interface ExecuteUpdate {
 	public String sql();
+	public boolean withHistory() default false;
+	public String selectionSql() default "";
 }
