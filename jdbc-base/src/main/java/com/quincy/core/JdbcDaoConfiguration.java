@@ -84,7 +84,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 						return rowCount;
 					}
 					if(executeUpdateWithRecording2Annotation!=null) {
-						int rowCount = executeUpdateWithRecording(executeUpdateWithRecording2Annotation.sql(), executeUpdateWithRecording2Annotation.selectionSql(), executeUpdateWithRecording2Annotation.tableName(), args);
+						int rowCount = executeUpdateWithRecording(executeUpdateWithRecording2Annotation.sql(), executeUpdateWithRecording2Annotation.selectionSql(), args);
 						log.warn("Duration======{}======{}", executeUpdateWithRecording2Annotation.sql(), (System.currentTimeMillis()-start));
 						return rowCount;
 					}
@@ -228,20 +228,19 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		String selectSql = sql.replaceFirst("update", "SELECT {0} FROM").replaceFirst("UPDATE", "SELECT {0} FROM").replaceFirst(" set ", " SET ").replaceFirst(" where ", " WHERE ");
 		int setIndexOf = selectSql.indexOf(" SET ");
 		int whereIndexOf = selectSql.indexOf(" WHERE ");
-		String tableName = selectSql.substring("SELECT {0} FROM ".length(), setIndexOf).trim();
 		String fields = "id,"+selectSql.substring(setIndexOf+" SET ".length(), whereIndexOf).replaceAll("\s", "").replaceAll("=\\?", "");
 		selectSql = selectSql.substring(0, setIndexOf)+selectSql.substring(whereIndexOf);
 		selectSql = MessageFormat.format(selectSql, fields);
-		return this.executeUpdateWithRecording(sql, selectSql, tableName, false, args);
+		return this.executeUpdateWithRecording(sql, selectSql, false, args);
 	}
 
 	@Override
-	public int executeUpdateWithRecording(String sql, String selectSql, String tableName, Object... args)
+	public int executeUpdateWithRecording(String sql, String selectSql, Object... args)
 			throws SQLException {
-		return this.executeUpdateWithRecording(sql, selectSql, tableName, true, args);
+		return this.executeUpdateWithRecording(sql, selectSql, true, args);
 	}
 
-	private int executeUpdateWithRecording(String sql, String selectSql, String tableName, boolean valueFuctionalized, Object... args) throws SQLException {
+	private int executeUpdateWithRecording(String sql, String selectSql, boolean valueFuctionalized, Object... args) throws SQLException {
 		boolean selfConn = true;
 		Connection conn = null;
 		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
@@ -272,6 +271,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					statment.setObject(i+1, args[i]);
 			}
 			ResultSetMetaData rsmd = selectStatment.getMetaData();
+			String tableName = rsmd.getTableName(1);
 			int columnCount = rsmd.getColumnCount();
 
 			oldValueRs = selectStatment.executeQuery();

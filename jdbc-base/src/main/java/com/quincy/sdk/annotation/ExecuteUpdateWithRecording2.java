@@ -12,5 +12,4 @@ import java.lang.annotation.Target;
 public @interface ExecuteUpdateWithRecording2 {
 	public String sql();
 	public String selectionSql();
-	public String tableName();
 }
