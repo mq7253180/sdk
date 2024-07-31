@@ -11,4 +11,5 @@ import java.lang.annotation.Target;
 @Target(value = {ElementType.METHOD})
 public @interface ExecuteUpdateWithRecording {
 	public String sql();
+	public String selectionSql() default "";
 }

@@ -40,8 +40,8 @@ import com.quincy.sdk.JdbcDao;
 import com.quincy.sdk.annotation.ExecuteQuery;
 import com.quincy.sdk.annotation.ExecuteUpdate;
 import com.quincy.sdk.annotation.ExecuteUpdateWithRecording;
-import com.quincy.sdk.annotation.ExecuteUpdateWithRecording2;
 import com.quincy.sdk.annotation.JDBCDao;
+import com.quincy.sdk.helper.CommonHelper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -62,8 +62,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					ExecuteQuery queryAnnotation = method.getAnnotation(ExecuteQuery.class);
 					ExecuteUpdate executeUpdateAnnotation = method.getAnnotation(ExecuteUpdate.class);
 					ExecuteUpdateWithRecording executeUpdateWithRecordingAnnotation = method.getAnnotation(ExecuteUpdateWithRecording.class);
-					ExecuteUpdateWithRecording2 executeUpdateWithRecording2Annotation = method.getAnnotation(ExecuteUpdateWithRecording2.class);
-					Assert.isTrue(queryAnnotation!=null||executeUpdateAnnotation!=null||executeUpdateWithRecordingAnnotation!=null||executeUpdateWithRecording2Annotation!=null, "What do you want to do?");
+					Assert.isTrue(queryAnnotation!=null||executeUpdateAnnotation!=null||executeUpdateWithRecordingAnnotation!=null, "What do you want to do?");
 					Class<?> returnType = method.getReturnType();
 					if(queryAnnotation!=null) {
 						Class<?> returnItemType = queryAnnotation.returnItemType();
@@ -79,13 +78,10 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 						return rowCount;
 					}
 					if(executeUpdateWithRecordingAnnotation!=null) {
-						int rowCount = executeUpdateWithRecording(executeUpdateWithRecordingAnnotation.sql(), args);
+						String selectionSql = CommonHelper.trim(executeUpdateWithRecordingAnnotation.selectionSql());
+						int rowCount = selectionSql==null?executeUpdateWithRecording(executeUpdateWithRecordingAnnotation.sql(), args)
+								:executeUpdateWithRecording(executeUpdateWithRecordingAnnotation.sql(), selectionSql, args);
 						log.warn("Duration======{}======{}", executeUpdateWithRecordingAnnotation.sql(), (System.currentTimeMillis()-start));
-						return rowCount;
-					}
-					if(executeUpdateWithRecording2Annotation!=null) {
-						int rowCount = executeUpdateWithRecording(executeUpdateWithRecording2Annotation.sql(), executeUpdateWithRecording2Annotation.selectionSql(), args);
-						log.warn("Duration======{}======{}", executeUpdateWithRecording2Annotation.sql(), (System.currentTimeMillis()-start));
 						return rowCount;
 					}
 					return null;
