@@ -280,7 +280,6 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			Map<String, Map<String, Map<String, String>>> oldValueTables = new HashMap<String, Map<String, Map<String, String>>>();
 			int columnCount = rsmd.getColumnCount();
 			for(int i=1;i<=columnCount;i++) {
-				System.out.println(i+"===CatalogName: "+rsmd.getCatalogName(i)+"---TableName: "+rsmd.getTableName(i)+"---SchemaName: "+rsmd.getSchemaName(i)+"---ColumnName: "+rsmd.getColumnName(i)+"---ColumnLabel: "+rsmd.getColumnLabel(i)+"---ColumnClassName: "+rsmd.getColumnClassName(i)+"---ColumnDisplaySize: "+rsmd.getColumnDisplaySize(i)+"---ColumnType: "+rsmd.getColumnType(i)+"---ColumnTypeName: "+rsmd.getColumnTypeName(i));
 				String tableName = rsmd.getTableName(i);
 				String columnName = rsmd.getColumnName(i);
 				if(columnName.equals("id"))
