@@ -280,10 +280,10 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			oldValueRs = selectStatment.executeQuery();
 			List<Map<String, String>> oldValueRows = new ArrayList<Map<String, String>>();
 			while(oldValueRs.next()) {
-				Map<String, String> oldValueMap = new HashMap<String, String>();
+				Map<String, String> oldValueRow = new HashMap<String, String>();
 				for(int i=1;i<=columnCount;i++)
-					oldValueMap.put(rsmd.getColumnName(i), oldValueRs.getString(i));
-				oldValueRows.add(oldValueMap);
+					oldValueRow.put(rsmd.getColumnName(i), oldValueRs.getString(i));
+				oldValueRows.add(oldValueRow);
 			}
 			oldValueRs.close();
 			int effected = statment.executeUpdate();
