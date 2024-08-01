@@ -250,6 +250,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		if(connectionHolder==null) {//如果不在事务中，从连接池获取一个连接对象
 			conn = dataSource.getConnection();
 			conn.setAutoCommit(false);
+			conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
 		} else {//如果已经在事务中，使用框架容器提供的连接对象
 			conn = ((ConnectionHolder)connectionHolder).getConnection();
 			selfConn = false;
