@@ -288,9 +288,9 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			oldValueRs.close();
 			int effected = statment.executeUpdate();
 			//如果更新值是函数
-			Map<String, String> newValue = null;
+			Map<String, String> newValueHolder = null;
 			if(valueFuctionalized) {
-				newValue = new HashMap<String, String>();
+				newValueHolder = new HashMap<String, String>();
 				newValueRs = selectStatment.executeQuery();//查询新值
 				while(newValueRs.next()) {
 					String id = newValueRs.getString("id");
@@ -298,7 +298,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 						String columnName = rsmd.getColumnName(i);
 						if(columnName.equals("id"))
 							continue;
-						newValue.put(id+"_"+columnName, newValueRs.getString(i));
+						newValueHolder.put(id+"_"+columnName, newValueRs.getString(i));
 					}
 				}
 			}
@@ -324,7 +324,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 						continue;
 					updationFieldStatment.setString(2, columnName);
 					updationFieldStatment.setString(3, row.get(columnName));
-					updationFieldStatment.setString(4, valueFuctionalized?newValue.get(dataId+"_"+columnName):args[i-2].toString());
+					updationFieldStatment.setString(4, valueFuctionalized?newValueHolder.get(dataId+"_"+columnName):args[i-2].toString());
 					updationFieldStatment.executeUpdate();
 				}
 			}
