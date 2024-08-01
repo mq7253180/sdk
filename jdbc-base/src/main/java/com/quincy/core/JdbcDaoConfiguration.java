@@ -49,7 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor, JdbcDao {
 	private DataSource dataSource;
 	private Map<Class<?>, Map<String, Method>> classMethodMap;
-	private static Map<String, String> selectionSqlMap = new HashMap<String, String>();
+	private static Map<String, String> selectionSqlCache = new HashMap<String, String>();
 
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
@@ -219,10 +219,10 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 
 	@Override
 	public int executeUpdateWithHistory(String sql, Object... args) throws SQLException {
-		String selectSql = selectionSqlMap.get(sql);
+		String selectSql = selectionSqlCache.get(sql);
 		if(selectSql==null) {
-			synchronized(selectionSqlMap) {
-				selectSql = selectionSqlMap.get(sql);
+			synchronized(selectionSqlCache) {
+				selectSql = selectionSqlCache.get(sql);
 				if(selectSql==null) {
 					selectSql = sql.replaceFirst("update", "SELECT {0} FROM").replaceFirst("UPDATE", "SELECT {0} FROM").replaceFirst(" set ", " SET ").replaceFirst(" where ", " WHERE ");
 					int setIndexOf = selectSql.indexOf(" SET ");
@@ -230,7 +230,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					String fields = "id,"+selectSql.substring(setIndexOf+" SET ".length(), whereIndexOf).replaceAll("\s", "").replaceAll("=\\?", "");
 					selectSql = selectSql.substring(0, setIndexOf)+selectSql.substring(whereIndexOf);
 					selectSql = MessageFormat.format(selectSql, fields);
-					selectionSqlMap.put(sql, selectSql);
+					selectionSqlCache.put(sql, selectSql);
 				}
 			}
 		}
