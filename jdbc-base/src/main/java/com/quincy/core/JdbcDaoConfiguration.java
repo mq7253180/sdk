@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import javax.sql.DataSource;
 
@@ -275,15 +276,34 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					statment.setObject(i+1, args[i]);
 			}
 			ResultSetMetaData rsmd = selectStatment.getMetaData();
-			String tableName = rsmd.getTableName(1);
+			Map<String, Integer> idColumnIndex = new HashMap<String, Integer>();
+			Map<String, Map<String, Map<String, String>>> oldValueTables = new HashMap<String, Map<String, Map<String, String>>>();
 			int columnCount = rsmd.getColumnCount();
+			for(int i=1;i<=columnCount;i++) {
+				System.out.println(i+"===CatalogName: "+rsmd.getCatalogName(i)+"---TableName: "+rsmd.getTableName(i)+"---SchemaName: "+rsmd.getSchemaName(i)+"---ColumnName: "+rsmd.getColumnName(i)+"---ColumnLabel: "+rsmd.getColumnLabel(i)+"---ColumnClassName: "+rsmd.getColumnClassName(i)+"---ColumnDisplaySize: "+rsmd.getColumnDisplaySize(i)+"---ColumnType: "+rsmd.getColumnType(i)+"---ColumnTypeName: "+rsmd.getColumnTypeName(i));
+				String tableName = rsmd.getTableName(i);
+				String columnName = rsmd.getColumnName(i);
+				if(columnName.equals("id"))
+					idColumnIndex.put(tableName, i);
+				if(oldValueTables.get(tableName)==null)
+					oldValueTables.put(tableName, new HashMap<String, Map<String, String>>());
+			}
 			oldValueRs = selectStatment.executeQuery();
-			List<Map<String, String>> oldValueTable = new ArrayList<Map<String, String>>();
 			while(oldValueRs.next()) {
-				Map<String, String> oldValueRow = new HashMap<String, String>();
-				for(int i=1;i<=columnCount;i++)
-					oldValueRow.put(rsmd.getColumnName(i), oldValueRs.getString(i));
-				oldValueTable.add(oldValueRow);
+				for(int i=1;i<=columnCount;i++) {
+					String columnName = rsmd.getColumnName(i);
+					if(columnName.equals("id"))
+						continue;
+					String tableName = rsmd.getTableName(i);
+					Map<String, Map<String, String>> table = oldValueTables.get(tableName);
+					String id = oldValueRs.getString(idColumnIndex.get(tableName));
+					Map<String, String> row = table.get(id);
+					if(row==null) {
+						row = new HashMap<String, String>();
+						table.put(id, row);
+					}
+					row.put(columnName, oldValueRs.getString(i));
+				}
 			}
 			oldValueRs.close();
 			int effected = statment.executeUpdate();
@@ -293,39 +313,53 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				newValueHolder = new HashMap<String, String>();
 				newValueRs = selectStatment.executeQuery();//查询新值
 				while(newValueRs.next()) {
-					String id = newValueRs.getString("id");
 					for(int i=1;i<=columnCount;i++) {
 						String columnName = rsmd.getColumnName(i);
 						if(columnName.equals("id"))
 							continue;
-						newValueHolder.put(id+"_"+columnName, newValueRs.getString(i));
+						String tableName = rsmd.getTableName(i);
+						String dataId = newValueRs.getString(idColumnIndex.get(tableName));
+						newValueHolder.put(tableName+"_"+dataId+"_"+columnName, newValueRs.getString(i));
 					}
 				}
 			}
 			updationAutoIncrementStatment = conn.prepareStatement("SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE table_schema=? AND table_name='s_updation';");
 			updationAutoIncrementStatment.setString(1, conn.getCatalog());
 			updationStatment = conn.prepareStatement("INSERT INTO s_updation VALUES(?, ?, ?, ?);");
-			updationStatment.setString(2, tableName);
 			updationStatment.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
 			updationFieldStatment = conn.prepareStatement("INSERT INTO s_updation_field(p_id, name, old_value, new_value) VALUES(?, ?, ?, ?);");
-			for(Map<String, String> row:oldValueTable) {
-				autoIncrementRs = updationAutoIncrementStatment.executeQuery();
-				autoIncrementRs.next();
-				Long updationId = autoIncrementRs.getLong("AUTO_INCREMENT");
-				autoIncrementRs.close();
-				String dataId = row.get("id");
-				updationStatment.setLong(1, updationId);
-				updationStatment.setString(3, dataId);
-				updationStatment.executeUpdate();
-				updationFieldStatment.setString(1, updationId.toString());
-				for(int i=1;i<=columnCount;i++) {
-					String columnName = rsmd.getColumnName(i);
-					if(columnName.equals("id"))
-						continue;
-					updationFieldStatment.setString(2, columnName);
-					updationFieldStatment.setString(3, row.get(columnName));
-					updationFieldStatment.setString(4, valueFuctionalized?newValueHolder.get(dataId+"_"+columnName):args[i-2].toString());
-					updationFieldStatment.executeUpdate();
+			for(String tableName:oldValueTables.keySet()) {
+				Map<String, Map<String, String>> table = oldValueTables.get(tableName);
+				updationStatment.setString(2, tableName);
+				for(Entry<String, Map<String, String>> row:table.entrySet()) {
+					autoIncrementRs = updationAutoIncrementStatment.executeQuery();
+					autoIncrementRs.next();
+					Long updationId = autoIncrementRs.getLong("AUTO_INCREMENT");
+					autoIncrementRs.close();
+					String dataId = row.getKey();
+					updationStatment.setLong(1, updationId);
+					updationStatment.setString(3, dataId);
+					updationStatment.executeUpdate();
+					updationFieldStatment.setString(1, updationId.toString());
+					if(valueFuctionalized) {
+						for(Entry<String, String> field:row.getValue().entrySet()) {
+							String columnName = field.getKey();
+							updationFieldStatment.setString(2, columnName);
+							updationFieldStatment.setString(3, field.getValue());
+							updationFieldStatment.setString(4, newValueHolder.get(tableName+"_"+dataId+"_"+columnName));
+							updationFieldStatment.executeUpdate();
+						}
+					} else {
+						for(int i=1;i<=columnCount;i++) {
+							String columnName = rsmd.getColumnName(i);
+							if(columnName.equals("id"))
+								continue;
+							updationFieldStatment.setString(2, columnName);
+							updationFieldStatment.setString(3, table.get(dataId).get(columnName));
+							updationFieldStatment.setString(4, args[i-2].toString());
+							updationFieldStatment.executeUpdate();
+						}
+					}
 				}
 			}
 			if(selfConn)//如果是自己获取的连接对象，提交事务
