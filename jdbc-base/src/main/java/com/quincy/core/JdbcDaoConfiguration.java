@@ -278,12 +278,12 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			String tableName = rsmd.getTableName(1);
 			int columnCount = rsmd.getColumnCount();
 			oldValueRs = selectStatment.executeQuery();
-			List<Map<String, String>> oldValueRows = new ArrayList<Map<String, String>>();
+			List<Map<String, String>> oldValueTable = new ArrayList<Map<String, String>>();
 			while(oldValueRs.next()) {
 				Map<String, String> oldValueRow = new HashMap<String, String>();
 				for(int i=1;i<=columnCount;i++)
 					oldValueRow.put(rsmd.getColumnName(i), oldValueRs.getString(i));
-				oldValueRows.add(oldValueRow);
+				oldValueTable.add(oldValueRow);
 			}
 			oldValueRs.close();
 			int effected = statment.executeUpdate();
@@ -308,7 +308,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			updationStatment.setString(2, tableName);
 			updationStatment.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
 			updationFieldStatment = conn.prepareStatement("INSERT INTO s_updation_field(p_id, name, old_value, new_value) VALUES(?, ?, ?, ?);");
-			for(Map<String, String> row:oldValueRows) {
+			for(Map<String, String> row:oldValueTable) {
 				autoIncrementRs = updationAutoIncrementStatment.executeQuery();
 				autoIncrementRs.next();
 				Long updationId = autoIncrementRs.getLong("AUTO_INCREMENT");
