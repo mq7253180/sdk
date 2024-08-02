@@ -248,11 +248,11 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		boolean selfConn = true;
 		Connection conn = null;
 		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
-		if(connectionHolder==null) {//如果不在事务中，从连接池获取一个连接对象
+		if(connectionHolder==null) {
 			conn = dataSource.getConnection();
 			conn.setAutoCommit(false);
 			conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
-		} else {//如果已经在事务中，使用框架容器提供的连接对象
+		} else {
 			conn = ((ConnectionHolder)connectionHolder).getConnection();
 			selfConn = false;
 		}
@@ -260,21 +260,13 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		PreparedStatement selectStatment = null;
 		PreparedStatement updationAutoIncrementStatment = null;
 		PreparedStatement updationStatment = null;
+		PreparedStatement updationTableStatment = null;
 		PreparedStatement updationFieldStatment = null;
 		ResultSet autoIncrementRs = null;
 		ResultSet oldValueRs = null;
 		ResultSet newValueRs = null;
 		try {
 			selectStatment = conn.prepareStatement(selectSql);
-			int questionMarkCount = symolCount(selectSql, '?');
-			int start = args.length-questionMarkCount-1;
-			statment = conn.prepareStatement(sql);
-			if(args!=null&&args.length>0) {
-				for(int i=1;i<=questionMarkCount;i++)
-					selectStatment.setObject(i, args[start+i]);
-				for(int i=0;i<args.length;i++)
-					statment.setObject(i+1, args[i]);
-			}
 			ResultSetMetaData rsmd = selectStatment.getMetaData();
 			Map<String, Integer> idColumnIndex = new HashMap<String, Integer>();
 			Map<String, Map<String, Map<String, String>>> oldValueTables = new HashMap<String, Map<String, Map<String, String>>>();
@@ -286,6 +278,15 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					idColumnIndex.put(tableName, i);
 				if(oldValueTables.get(tableName)==null)
 					oldValueTables.put(tableName, new HashMap<String, Map<String, String>>());
+			}
+			int questionMarkCount = symolCount(selectSql, '?');
+			int offset = args.length-questionMarkCount-1;
+			statment = conn.prepareStatement(sql);
+			if(args!=null&&args.length>0) {
+				for(int i=1;i<=questionMarkCount;i++)
+					selectStatment.setObject(i, args[offset+i]);
+				for(int i=0;i<args.length;i++)
+					statment.setObject(i+1, args[i]);
 			}
 			oldValueRs = selectStatment.executeQuery();
 			while(oldValueRs.next()) {
@@ -322,24 +323,41 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					}
 				}
 			}
-			updationAutoIncrementStatment = conn.prepareStatement("SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE table_schema=? AND table_name='s_updation';");
+			updationAutoIncrementStatment = conn.prepareStatement("SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE table_schema=? AND table_name=?;");
 			updationAutoIncrementStatment.setString(1, conn.getCatalog());
-			updationStatment = conn.prepareStatement("INSERT INTO s_updation VALUES(?, ?, ?, ?);");
+			updationAutoIncrementStatment.setString(2, "s_updation");
+			autoIncrementRs = updationAutoIncrementStatment.executeQuery();
+			autoIncrementRs.next();
+			Long updationId = autoIncrementRs.getLong("AUTO_INCREMENT");
+			autoIncrementRs.close();
+			updationAutoIncrementStatment.setString(2, "s_updation_table");//s_updation表的自增只取一次，后续s_updation_table表的自增要取多次
+			//插入s_updation表，记录sql、参数、时间
+			StringBuilder sb = new StringBuilder();
+			for(Object param:args)
+				sb.append(",").append(param);
+			updationStatment = conn.prepareStatement("INSERT INTO s_updation VALUES(?, ?, ?, ?)");
+			updationStatment.setLong(1, updationId);
+			updationStatment.setString(2, sql);
+			updationStatment.setString(3, sb.substring(1));
 			updationStatment.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
+			updationStatment.executeUpdate();
+			
+			updationTableStatment = conn.prepareStatement("INSERT INTO s_updation_table VALUES(?, ?, ?, ?);");
+			updationTableStatment.setLong(2, updationId);
 			updationFieldStatment = conn.prepareStatement("INSERT INTO s_updation_field(p_id, name, old_value, new_value) VALUES(?, ?, ?, ?);");
 			for(String tableName:oldValueTables.keySet()) {
 				Map<String, Map<String, String>> table = oldValueTables.get(tableName);
-				updationStatment.setString(2, tableName);
+				updationTableStatment.setString(3, tableName);
 				for(Entry<String, Map<String, String>> row:table.entrySet()) {
 					autoIncrementRs = updationAutoIncrementStatment.executeQuery();
 					autoIncrementRs.next();
-					Long updationId = autoIncrementRs.getLong("AUTO_INCREMENT");
+					Long updationTableId = autoIncrementRs.getLong("AUTO_INCREMENT");
 					autoIncrementRs.close();
 					String dataId = row.getKey();
-					updationStatment.setLong(1, updationId);
-					updationStatment.setString(3, dataId);
-					updationStatment.executeUpdate();
-					updationFieldStatment.setString(1, updationId.toString());
+					updationTableStatment.setLong(1, updationTableId);
+					updationTableStatment.setString(4, dataId);
+					updationTableStatment.executeUpdate();
+					updationFieldStatment.setLong(1, updationTableId);//设置s_updation_field表的p_id字段值
 					if(valueFuctionalized) {
 						for(Entry<String, String> field:row.getValue().entrySet()) {
 							String columnName = field.getKey();
@@ -361,11 +379,11 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					}
 				}
 			}
-			if(selfConn)//如果是自己获取的连接对象，提交事务
+			if(selfConn)
 				conn.commit();
 			return effected;
 		} catch(SQLException e) {
-			if(selfConn)//如果是自己获取的连接对象，回滚事务
+			if(selfConn)
 				conn.rollback();
 			throw e;
 		} finally {
@@ -383,6 +401,8 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				updationAutoIncrementStatment.close();
 			if(updationStatment!=null)
 				updationStatment.close();
+			if(updationTableStatment!=null)
+				updationTableStatment.close();
 			if(updationFieldStatment!=null)
 				updationFieldStatment.close();
 			if(selfConn&&conn!=null)
