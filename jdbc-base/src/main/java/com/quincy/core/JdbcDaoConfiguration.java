@@ -268,14 +268,14 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		try {
 			selectStatment = conn.prepareStatement(selectSql);
 			ResultSetMetaData rsmd = selectStatment.getMetaData();
-			Map<String, Integer> idColumnIndex = new HashMap<String, Integer>();
+			Map<String, IdMeta> idMetaData = new HashMap<String, IdMeta>();
 			Map<String, Map<String, Map<String, String>>> oldValueTables = new HashMap<String, Map<String, Map<String, String>>>();
 			int columnCount = rsmd.getColumnCount();
 			for(int i=1;i<=columnCount;i++) {
 				String tableName = rsmd.getTableName(i);
 				String columnName = rsmd.getColumnName(i);
 				if(columnName.equals("id"))
-					idColumnIndex.put(tableName, i);
+					idMetaData.put(tableName, new IdMeta(i, rsmd.getColumnClassName(i)));
 				if(oldValueTables.get(tableName)==null)
 					oldValueTables.put(tableName, new HashMap<String, Map<String, String>>());
 			}
@@ -296,11 +296,11 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 						continue;
 					String tableName = rsmd.getTableName(i);
 					Map<String, Map<String, String>> table = oldValueTables.get(tableName);
-					String id = oldValueRs.getString(idColumnIndex.get(tableName));
-					Map<String, String> row = table.get(id);
+					String dataId = oldValueRs.getString(idMetaData.get(tableName).getColumnIndex());
+					Map<String, String> row = table.get(dataId);
 					if(row==null) {
 						row = new HashMap<String, String>();
-						table.put(id, row);
+						table.put(dataId, row);
 					}
 					row.put(columnName, oldValueRs.getString(i));
 				}
@@ -318,7 +318,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 						if(columnName.equals("id"))
 							continue;
 						String tableName = rsmd.getTableName(i);
-						String dataId = newValueRs.getString(idColumnIndex.get(tableName));
+						String dataId = newValueRs.getString(idMetaData.get(tableName).getColumnIndex());
 						newValueHolder.put(tableName+"_"+dataId+"_"+columnName, newValueRs.getString(i));
 					}
 				}
@@ -418,5 +418,21 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				count++;
 		}
 		return count;
+	}
+
+	private class IdMeta {
+		private Integer columnIndex;
+		private String className;
+
+		public IdMeta(Integer columnIndex, String className) {
+			this.columnIndex = columnIndex;
+			this.className = className;
+		}
+		public Integer getColumnIndex() {
+			return columnIndex;
+		}
+		public String getClassName() {
+			return className;
+		}
 	}
 }
