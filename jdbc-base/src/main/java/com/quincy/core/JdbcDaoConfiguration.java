@@ -260,7 +260,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		PreparedStatement selectStatment = null;
 		PreparedStatement updationAutoIncrementStatment = null;
 		PreparedStatement updationStatment = null;
-		PreparedStatement updationTableStatment = null;
+		PreparedStatement updationRowStatment = null;
 		PreparedStatement updationFieldStatment = null;
 		ResultSet autoIncrementRs = null;
 		ResultSet oldValueRs = null;
@@ -330,7 +330,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			autoIncrementRs.next();
 			Long updationId = autoIncrementRs.getLong("AUTO_INCREMENT");
 			autoIncrementRs.close();
-			updationAutoIncrementStatment.setString(2, "s_updation_table");//s_updation表的自增只取一次，后续s_updation_table表的自增要取多次
+			updationAutoIncrementStatment.setString(2, "s_updation_row");//s_updation表的自增只取一次，后续s_updation_row表的自增要取多次
 			//插入s_updation表，记录sql、参数、时间
 			StringBuilder sb = new StringBuilder();
 			for(Object param:args)
@@ -342,22 +342,22 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			updationStatment.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
 			updationStatment.executeUpdate();
 			
-			updationTableStatment = conn.prepareStatement("INSERT INTO s_updation_table VALUES(?, ?, ?, ?);");
-			updationTableStatment.setLong(2, updationId);
+			updationRowStatment = conn.prepareStatement("INSERT INTO s_updation_row VALUES(?, ?, ?, ?);");
+			updationRowStatment.setLong(2, updationId);
 			updationFieldStatment = conn.prepareStatement("INSERT INTO s_updation_field(p_id, name, old_value, new_value) VALUES(?, ?, ?, ?);");
 			for(String tableName:oldValueTables.keySet()) {
-				Map<String, Map<String, String>> table = oldValueTables.get(tableName);
-				updationTableStatment.setString(3, tableName);
-				for(Entry<String, Map<String, String>> row:table.entrySet()) {
+				Map<String, Map<String, String>> rows = oldValueTables.get(tableName);
+				updationRowStatment.setString(3, tableName);
+				for(Entry<String, Map<String, String>> row:rows.entrySet()) {
 					autoIncrementRs = updationAutoIncrementStatment.executeQuery();
 					autoIncrementRs.next();
-					Long updationTableId = autoIncrementRs.getLong("AUTO_INCREMENT");
+					Long updationRowId = autoIncrementRs.getLong("AUTO_INCREMENT");
 					autoIncrementRs.close();
 					String dataId = row.getKey();
-					updationTableStatment.setLong(1, updationTableId);
-					updationTableStatment.setString(4, dataId);
-					updationTableStatment.executeUpdate();
-					updationFieldStatment.setLong(1, updationTableId);//设置s_updation_field表的p_id字段值
+					updationRowStatment.setLong(1, updationRowId);
+					updationRowStatment.setString(4, dataId);
+					updationRowStatment.executeUpdate();
+					updationFieldStatment.setLong(1, updationRowId);//设置s_updation_field表的p_id字段值
 					if(valueFuctionalized) {
 						for(Entry<String, String> field:row.getValue().entrySet()) {
 							String columnName = field.getKey();
@@ -372,7 +372,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 							if(columnName.equals("id"))
 								continue;
 							updationFieldStatment.setString(2, columnName);
-							updationFieldStatment.setString(3, table.get(dataId).get(columnName));
+							updationFieldStatment.setString(3, rows.get(dataId).get(columnName));
 							updationFieldStatment.setString(4, args[i-2].toString());
 							updationFieldStatment.executeUpdate();
 						}
@@ -401,8 +401,8 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				updationAutoIncrementStatment.close();
 			if(updationStatment!=null)
 				updationStatment.close();
-			if(updationTableStatment!=null)
-				updationTableStatment.close();
+			if(updationRowStatment!=null)
+				updationRowStatment.close();
 			if(updationFieldStatment!=null)
 				updationFieldStatment.close();
 			if(selfConn&&conn!=null)
