@@ -289,7 +289,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					statment.setObject(i+1, args[i]);
 			}
 			oldValueRs = selectStatment.executeQuery();
-			while(oldValueRs.next()) {
+			while(oldValueRs.next()) {//将变更前的旧值放进一个三维的Map里，分别以表名、id、字段名作为key
 				for(int i=1;i<=columnCount;i++) {
 					String columnName = rsmd.getColumnName(i);
 					if(columnName.equals("id"))
@@ -312,7 +312,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			if(valueFuctionalized) {
 				newValueHolder = new HashMap<String, String>();
 				newValueRs = selectStatment.executeQuery();//查询新值
-				while(newValueRs.next()) {
+				while(newValueRs.next()) {//将变更后的新值保存进一维Map中，使用表名、id、字段名组合作为key，以便在遍历旧值三维Map时组合key查询对应的新值
 					for(int i=1;i<=columnCount;i++) {
 						String columnName = rsmd.getColumnName(i);
 						if(columnName.equals("id"))
