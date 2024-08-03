@@ -268,7 +268,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		try {
 			selectStatment = conn.prepareStatement(selectSql);
 			ResultSetMetaData rsmd = selectStatment.getMetaData();
-			Map<String, Map<Object, Map<String, String>>> oldValueTables = new HashMap<String, Map<Object, Map<String, String>>>();
+			Map<String, Map<Object, Map<String, Object>>> oldValueTables = new HashMap<String, Map<Object, Map<String, Object>>>();
 			int columnCount = rsmd.getColumnCount();
 			updationAutoIncrementStatment = conn.prepareStatement("SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE table_schema=? AND table_name=?;");
 			updationAutoIncrementStatment.setString(1, conn.getCatalog());
@@ -283,7 +283,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				if(columnName.equals("id"))
 					dataIdMetaData.put(tableName, new DataIdMeta(i, rsmd.getColumnClassName(i), conn, updationId));
 				if(oldValueTables.get(tableName)==null)
-					oldValueTables.put(tableName, new HashMap<Object, Map<String, String>>());
+					oldValueTables.put(tableName, new HashMap<Object, Map<String, Object>>());
 			}
 			int questionMarkCount = symolCount(selectSql, '?');
 			int offset = args.length-questionMarkCount-1;
@@ -301,11 +301,11 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					if(columnName.equals("id"))
 						continue;
 					String tableName = rsmd.getTableName(i);
-					Map<Object, Map<String, String>> table = oldValueTables.get(tableName);
-					String dataId = oldValueRs.getString(dataIdMetaData.get(tableName).getColumnIndex());
-					Map<String, String> row = table.get(dataId);
+					Map<Object, Map<String, Object>> table = oldValueTables.get(tableName);
+					Object dataId = oldValueRs.getString(dataIdMetaData.get(tableName).getColumnIndex());
+					Map<String, Object> row = table.get(dataId);
 					if(row==null) {
-						row = new HashMap<String, String>();
+						row = new HashMap<String, Object>();
 						table.put(dataId, row);
 					}
 					row.put(columnName, oldValueRs.getString(i));
@@ -344,10 +344,10 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 
 			updationFieldStatment = conn.prepareStatement("INSERT INTO s_updation_field(p_id, name, old_value, new_value) VALUES(?, ?, ?, ?);");
 			for(String tableName:oldValueTables.keySet()) {
-				Map<Object, Map<String, String>> rows = oldValueTables.get(tableName);
+				Map<Object, Map<String, Object>> rows = oldValueTables.get(tableName);
 				PreparedStatement updationRowStatment = dataIdMetaData.get(tableName).getStatement();
 				updationRowStatment.setString(3, tableName);
-				for(Entry<Object, Map<String, String>> row:rows.entrySet()) {
+				for(Entry<Object, Map<String, Object>> row:rows.entrySet()) {
 					autoIncrementRs = updationAutoIncrementStatment.executeQuery();
 					autoIncrementRs.next();
 					Long updationRowId = autoIncrementRs.getLong("AUTO_INCREMENT");
@@ -358,10 +358,10 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					updationRowStatment.executeUpdate();
 					updationFieldStatment.setLong(1, updationRowId);//设置s_updation_field表的p_id字段值
 					if(valueFuctionalized) {
-						for(Entry<String, String> field:row.getValue().entrySet()) {
+						for(Entry<String, Object> field:row.getValue().entrySet()) {
 							String columnName = field.getKey();
 							updationFieldStatment.setString(2, columnName);
-							updationFieldStatment.setString(3, field.getValue());
+							updationFieldStatment.setObject(3, field.getValue());
 							updationFieldStatment.setString(4, newValueHolder.get(tableName+"_"+dataId.toString()+"_"+columnName));
 							updationFieldStatment.executeUpdate();
 						}
@@ -371,7 +371,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 							if(columnName.equals("id"))
 								continue;
 							updationFieldStatment.setString(2, columnName);
-							updationFieldStatment.setString(3, rows.get(dataId).get(columnName));
+							updationFieldStatment.setObject(3, rows.get(dataId).get(columnName));
 							updationFieldStatment.setString(4, args[i-2].toString());
 							updationFieldStatment.executeUpdate();
 						}
