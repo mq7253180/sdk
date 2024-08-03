@@ -18,6 +18,7 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.MessageFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -295,7 +296,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					} else if(columnClassName.equals(BigDecimal.class.getName())) {
 						oldValName = "old_value_decimal";
 						newValName = "new_value_decimal";
-					} else if(columnClassName.equals(Timestamp.class.getName())) {
+					} else if(columnClassName.equals(Timestamp.class.getName())||columnClassName.equals(java.sql.Date.class.getName())||columnClassName.equals(LocalDateTime.class.getName())) {
 						oldValName = "old_value_time";
 						newValName = "new_value_time";
 					}
