@@ -302,21 +302,21 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 						continue;
 					String tableName = rsmd.getTableName(i);
 					Map<Object, Map<String, Object>> table = oldValueTables.get(tableName);
-					Object dataId = oldValueRs.getString(dataIdMetaData.get(tableName).getColumnIndex());
+					Object dataId = oldValueRs.getObject(dataIdMetaData.get(tableName).getColumnIndex());
 					Map<String, Object> row = table.get(dataId);
 					if(row==null) {
 						row = new HashMap<String, Object>();
 						table.put(dataId, row);
 					}
-					row.put(columnName, oldValueRs.getString(i));
+					row.put(columnName, oldValueRs.getObject(i));
 				}
 			}
 			oldValueRs.close();
 			int effected = statment.executeUpdate();
 			//如果更新值是函数
-			Map<String, String> newValueHolder = null;
+			Map<String, Object> newValueHolder = null;
 			if(valueFuctionalized) {
-				newValueHolder = new HashMap<String, String>();
+				newValueHolder = new HashMap<String, Object>();
 				newValueRs = selectStatment.executeQuery();//查询新值
 				while(newValueRs.next()) {//将变更后的新值保存进一维Map中，使用表名、id、字段名组合作为key，以便在遍历旧值三维Map时组合key查询对应的新值
 					for(int i=1;i<=columnCount;i++) {
@@ -325,7 +325,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 							continue;
 						String tableName = rsmd.getTableName(i);
 						String dataId = newValueRs.getString(dataIdMetaData.get(tableName).getColumnIndex());
-						newValueHolder.put(tableName+"_"+dataId+"_"+columnName, newValueRs.getString(i));
+						newValueHolder.put(tableName+"_"+dataId+"_"+columnName, newValueRs.getObject(i));
 					}
 				}
 			}
@@ -362,7 +362,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 							String columnName = field.getKey();
 							updationFieldStatment.setString(2, columnName);
 							updationFieldStatment.setObject(3, field.getValue());
-							updationFieldStatment.setString(4, newValueHolder.get(tableName+"_"+dataId.toString()+"_"+columnName));
+							updationFieldStatment.setObject(4, newValueHolder.get(tableName+"_"+dataId.toString()+"_"+columnName));
 							updationFieldStatment.executeUpdate();
 						}
 					} else {
@@ -372,7 +372,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 								continue;
 							updationFieldStatment.setString(2, columnName);
 							updationFieldStatment.setObject(3, rows.get(dataId).get(columnName));
-							updationFieldStatment.setString(4, args[i-2].toString());
+							updationFieldStatment.setObject(4, args[i-2]);
 							updationFieldStatment.executeUpdate();
 						}
 					}
