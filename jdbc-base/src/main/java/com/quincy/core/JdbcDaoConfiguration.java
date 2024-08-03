@@ -260,7 +260,6 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		PreparedStatement selectStatment = null;
 		PreparedStatement updationAutoIncrementStatment = null;
 		PreparedStatement updationStatment = null;
-//		PreparedStatement updationFieldStatment = null;
 		ResultSet autoIncrementRs = null;
 		ResultSet oldValueRs = null;
 		ResultSet newValueRs = null;
