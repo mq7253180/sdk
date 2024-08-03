@@ -296,7 +296,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					} else if(columnClassName.equals(BigDecimal.class.getName())) {
 						oldValName = "old_value_decimal";
 						newValName = "new_value_decimal";
-					} else if(columnClassName.equals(Timestamp.class.getName())||columnClassName.equals(java.sql.Date.class.getName())||columnClassName.equals(LocalDateTime.class.getName())) {
+					} else if(columnClassName.equals(LocalDateTime.class.getName())||columnClassName.equals(Timestamp.class.getName())||columnClassName.equals(java.sql.Date.class.getName())||columnClassName.equals(Time.class.getName())) {
 						oldValName = "old_value_time";
 						newValName = "new_value_time";
 					}
