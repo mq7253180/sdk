@@ -260,11 +260,12 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		PreparedStatement selectStatment = null;
 		PreparedStatement updationAutoIncrementStatment = null;
 		PreparedStatement updationStatment = null;
-		PreparedStatement updationFieldStatment = null;
+//		PreparedStatement updationFieldStatment = null;
 		ResultSet autoIncrementRs = null;
 		ResultSet oldValueRs = null;
 		ResultSet newValueRs = null;
 		Map<String, DataIdMeta> dataIdMetaData = new HashMap<String, DataIdMeta>();
+		Map<String, PreparedStatement> updationFieldStatmentHolder = new HashMap<String, PreparedStatement>();
 		try {
 			selectStatment = conn.prepareStatement(selectSql);
 			ResultSetMetaData rsmd = selectStatment.getMetaData();
@@ -278,10 +279,29 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			Long updationId = autoIncrementRs.getLong("AUTO_INCREMENT");
 			autoIncrementRs.close();
 			for(int i=1;i<=columnCount;i++) {
-				String columnName = rsmd.getColumnName(i);
 				String tableName = rsmd.getTableName(i);
-				if(columnName.equals("id"))
-					dataIdMetaData.put(tableName, new DataIdMeta(i, rsmd.getColumnClassName(i), conn, updationId));
+				String columnName = rsmd.getColumnName(i);
+				String columnClassName = rsmd.getColumnClassName(i);
+				if(columnName.equals("id")) {
+					dataIdMetaData.put(tableName, new DataIdMeta(i, columnClassName, conn, updationId));
+				} else {
+					String oldValName = null;
+					String newValName = null;
+					if(columnClassName.equals(String.class.getName())) {
+						oldValName = "old_value_str";
+						newValName = "new_value_str";
+					} else if(columnClassName.equals(Integer.class.getName())) {
+						oldValName = "old_value_int";
+						newValName = "new_value_int";
+					} else if(columnClassName.equals(BigDecimal.class.getName())) {
+						oldValName = "old_value_decimal";
+						newValName = "new_value_decimal";
+					} else if(columnClassName.equals(Timestamp.class.getName())) {
+						oldValName = "old_value_time";
+						newValName = "new_value_time";
+					}
+					updationFieldStatmentHolder.put(tableName+"_"+columnName, conn.prepareStatement("INSERT INTO s_updation_field(p_id, name, "+oldValName+", "+newValName+") VALUES(?, ?, ?, ?);"));
+				}
 				if(oldValueTables.get(tableName)==null)
 					oldValueTables.put(tableName, new HashMap<Object, Map<String, Object>>());
 			}
@@ -329,8 +349,6 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					}
 				}
 			}
-
-			updationAutoIncrementStatment.setString(2, "s_updation_row");//s_updation表的自增只取一次，后续s_updation_row表的自增要取多次
 			//插入s_updation表，记录sql、参数、时间
 			StringBuilder sb = new StringBuilder();
 			for(Object param:args)
@@ -342,7 +360,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			updationStatment.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
 			updationStatment.executeUpdate();
 
-			updationFieldStatment = conn.prepareStatement("INSERT INTO s_updation_field(p_id, name, old_value, new_value) VALUES(?, ?, ?, ?);");
+			updationAutoIncrementStatment.setString(2, "s_updation_row");//s_updation表的自增只取一次，后续s_updation_row表的自增要取多次
 			for(String tableName:oldValueTables.keySet()) {
 				Map<Object, Map<String, Object>> rows = oldValueTables.get(tableName);
 				PreparedStatement updationRowStatment = dataIdMetaData.get(tableName).getStatement();
@@ -356,10 +374,11 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					updationRowStatment.setLong(1, updationRowId);
 					updationRowStatment.setObject(4, dataId);
 					updationRowStatment.executeUpdate();
-					updationFieldStatment.setLong(1, updationRowId);//设置s_updation_field表的p_id字段值
 					if(valueFuctionalized) {
 						for(Entry<String, Object> field:row.getValue().entrySet()) {
 							String columnName = field.getKey();
+							PreparedStatement updationFieldStatment = updationFieldStatmentHolder.get(tableName+"_"+columnName);
+							updationFieldStatment.setLong(1, updationRowId);
 							updationFieldStatment.setString(2, columnName);
 							updationFieldStatment.setObject(3, field.getValue());
 							updationFieldStatment.setObject(4, newValueHolder.get(tableName+"_"+dataId.toString()+"_"+columnName));
@@ -370,6 +389,8 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 							String columnName = rsmd.getColumnName(i);
 							if(columnName.equals("id"))
 								continue;
+							PreparedStatement updationFieldStatment = updationFieldStatmentHolder.get(tableName+"_"+columnName);
+							updationFieldStatment.setLong(1, updationRowId);
 							updationFieldStatment.setString(2, columnName);
 							updationFieldStatment.setObject(3, rows.get(dataId).get(columnName));
 							updationFieldStatment.setObject(4, args[i-2]);
@@ -402,7 +423,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				updationStatment.close();
 			for(DataIdMeta dataIdMeta:dataIdMetaData.values())
 				dataIdMeta.getStatement().close();
-			if(updationFieldStatment!=null)
+			for(PreparedStatement updationFieldStatment:updationFieldStatmentHolder.values())
 				updationFieldStatment.close();
 			if(selfConn&&conn!=null)
 				conn.close();
