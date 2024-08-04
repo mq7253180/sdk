@@ -286,22 +286,16 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				if(columnName.equals("id")||columnLabel.equals("id")) {
 					dataIdMetaData.put(tableName, new DataIdMeta(i, columnClassName, conn, updationId));
 				} else {
-					String oldValName = null;
-					String newValName = null;
+					String valColumnNameSuffix = null;
 					if(columnClassName.equals(Integer.class.getName())) {
-						oldValName = "old_value_int";
-						newValName = "new_value_int";
+						valColumnNameSuffix = "int";
 					} else if(columnClassName.equals(BigDecimal.class.getName())) {
-						oldValName = "old_value_decimal";
-						newValName = "new_value_decimal";
+						valColumnNameSuffix = "decimal";
 					} else if(columnClassName.equals(LocalDateTime.class.getName())||columnClassName.equals(Timestamp.class.getName())||columnClassName.equals(java.sql.Date.class.getName())||columnClassName.equals(Time.class.getName())) {
-						oldValName = "old_value_time";
-						newValName = "new_value_time";
-					} else {
-						oldValName = "old_value_str";
-						newValName = "new_value_str";
-					}
-					updationFieldStatmentHolder.put(tableName+"_"+columnName, conn.prepareStatement("INSERT INTO s_updation_field(p_id, name, "+oldValName+", "+newValName+") VALUES(?, ?, ?, ?);"));
+						valColumnNameSuffix = "time";
+					} else
+						valColumnNameSuffix = "str";
+					updationFieldStatmentHolder.put(tableName+"_"+columnName, conn.prepareStatement("INSERT INTO s_updation_field(p_id, name, old_value_"+valColumnNameSuffix+", new_value_"+valColumnNameSuffix+") VALUES(?, ?, ?, ?);"));
 				}
 				if(oldValueTables.get(tableName)==null)
 					oldValueTables.put(tableName, new HashMap<Object, Map<String, Object>>());
