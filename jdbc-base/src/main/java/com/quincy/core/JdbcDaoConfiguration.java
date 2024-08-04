@@ -288,10 +288,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				} else {
 					String oldValName = null;
 					String newValName = null;
-					if(columnClassName.equals(String.class.getName())) {
-						oldValName = "old_value_str";
-						newValName = "new_value_str";
-					} else if(columnClassName.equals(Integer.class.getName())) {
+					if(columnClassName.equals(Integer.class.getName())) {
 						oldValName = "old_value_int";
 						newValName = "new_value_int";
 					} else if(columnClassName.equals(BigDecimal.class.getName())) {
@@ -300,6 +297,9 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					} else if(columnClassName.equals(LocalDateTime.class.getName())||columnClassName.equals(Timestamp.class.getName())||columnClassName.equals(java.sql.Date.class.getName())||columnClassName.equals(Time.class.getName())) {
 						oldValName = "old_value_time";
 						newValName = "new_value_time";
+					} else {
+						oldValName = "old_value_str";
+						newValName = "new_value_str";
 					}
 					updationFieldStatmentHolder.put(tableName+"_"+columnName, conn.prepareStatement("INSERT INTO s_updation_field(p_id, name, "+oldValName+", "+newValName+") VALUES(?, ?, ?, ?);"));
 				}
