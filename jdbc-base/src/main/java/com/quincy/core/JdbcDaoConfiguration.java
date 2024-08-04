@@ -444,8 +444,8 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 
 		public DataIdMeta(Integer columnIndex, String className, Connection conn, Long updationId) throws SQLException {
 			this.columnIndex = columnIndex;
-			String fieldName = className.equals(Integer.class.getName())?"data_id_int":"data_id_str";
-			statement = conn.prepareStatement("INSERT INTO s_updation_row(id, p_id, table_name, "+fieldName+") VALUES(?, ?, ?, ?);");
+			String dataIdFieldNameSuffix = className.equals(Integer.class.getName())?"int":"str";
+			statement = conn.prepareStatement("INSERT INTO s_updation_row(id, p_id, table_name, data_id_"+dataIdFieldNameSuffix+") VALUES(?, ?, ?, ?);");
 			statement.setLong(2, updationId);
 		}
 		public Integer getColumnIndex() {
