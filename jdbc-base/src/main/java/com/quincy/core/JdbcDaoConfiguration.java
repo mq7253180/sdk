@@ -246,6 +246,16 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 	}
 
 	private int executeUpdateWithHistory(String sql, String selectSql, boolean valueFuctionalized, Object... args) throws SQLException {
+		PreparedStatement statment = null;
+		PreparedStatement selectStatment = null;
+		PreparedStatement updationAutoIncrementStatment = null;
+		PreparedStatement updationStatment = null;
+		ResultSet autoIncrementRs = null;
+		ResultSet oldValueRs = null;
+		ResultSet newValueRs = null;
+		Map<String, DataIdMeta> dataIdMetaData = new HashMap<String, DataIdMeta>();
+		Map<String, PreparedStatement> updationFieldStatmentHolder = new HashMap<String, PreparedStatement>();
+		Map<String, Map<Object, Map<String, Object>>> oldValueTables = new HashMap<String, Map<Object, Map<String, Object>>>();
 		boolean selfConn = true;
 		Connection conn = null;
 		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
@@ -257,19 +267,9 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			conn = ((ConnectionHolder)connectionHolder).getConnection();
 			selfConn = false;
 		}
-		PreparedStatement statment = null;
-		PreparedStatement selectStatment = null;
-		PreparedStatement updationAutoIncrementStatment = null;
-		PreparedStatement updationStatment = null;
-		ResultSet autoIncrementRs = null;
-		ResultSet oldValueRs = null;
-		ResultSet newValueRs = null;
-		Map<String, DataIdMeta> dataIdMetaData = new HashMap<String, DataIdMeta>();
-		Map<String, PreparedStatement> updationFieldStatmentHolder = new HashMap<String, PreparedStatement>();
 		try {
 			selectStatment = conn.prepareStatement(selectSql);
 			ResultSetMetaData rsmd = selectStatment.getMetaData();
-			Map<String, Map<Object, Map<String, Object>>> oldValueTables = new HashMap<String, Map<Object, Map<String, Object>>>();
 			int columnCount = rsmd.getColumnCount();
 			updationAutoIncrementStatment = conn.prepareStatement("SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE table_schema=? AND table_name=?;");
 			updationAutoIncrementStatment.setString(1, conn.getCatalog());
