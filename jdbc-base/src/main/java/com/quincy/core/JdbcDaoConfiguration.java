@@ -281,8 +281,9 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			for(int i=1;i<=columnCount;i++) {
 				String tableName = rsmd.getTableName(i);
 				String columnName = rsmd.getColumnName(i);
+				String columnLabel = rsmd.getColumnLabel(i);
 				String columnClassName = rsmd.getColumnClassName(i);
-				if(columnName.equals("id")) {
+				if(columnName.equals("id")||columnLabel.equals("id")) {
 					dataIdMetaData.put(tableName, new DataIdMeta(i, columnClassName, conn, updationId));
 				} else {
 					String oldValName = null;
@@ -318,7 +319,8 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			while(oldValueRs.next()) {//将变更前的旧值放进一个三维的Map里，分别以表名、id、字段名作为key
 				for(int i=1;i<=columnCount;i++) {
 					String columnName = rsmd.getColumnName(i);
-					if(columnName.equals("id"))
+					String columnLabel = rsmd.getColumnLabel(i);
+					if(columnName.equals("id")||columnLabel.equals("id"))
 						continue;
 					String tableName = rsmd.getTableName(i);
 					Map<Object, Map<String, Object>> table = oldValueTables.get(tableName);
@@ -341,7 +343,8 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				while(newValueRs.next()) {//将变更后的新值保存进一维Map中，使用表名、id、字段名组合作为key，以便在遍历旧值三维Map时组合key查询对应的新值
 					for(int i=1;i<=columnCount;i++) {
 						String columnName = rsmd.getColumnName(i);
-						if(columnName.equals("id"))
+						String columnLabel = rsmd.getColumnLabel(i);
+						if(columnName.equals("id")||columnLabel.equals("id"))
 							continue;
 						String tableName = rsmd.getTableName(i);
 						String dataId = newValueRs.getString(dataIdMetaData.get(tableName).getColumnIndex());
@@ -387,7 +390,8 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					} else {
 						for(int i=1;i<=columnCount;i++) {
 							String columnName = rsmd.getColumnName(i);
-							if(columnName.equals("id"))
+							String columnLabel = rsmd.getColumnLabel(i);
+							if(columnName.equals("id")||columnLabel.equals("id"))
 								continue;
 							PreparedStatement updationFieldStatment = updationFieldStatmentHolder.get(tableName+"_"+columnName);
 							updationFieldStatment.setLong(1, updationRowId);
