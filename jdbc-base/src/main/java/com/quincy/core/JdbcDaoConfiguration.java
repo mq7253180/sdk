@@ -121,6 +121,8 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		ResultSet rs = null;
 		try {
 			statment = conn.prepareStatement(sql);
+			ResultSetMetaData rsmd = statment.getMetaData();
+			int columnCount = rsmd.getColumnCount();
 			if(args!=null&&args.length>0) {
 				for(int i=0;i<args.length;i++)
 					statment.setObject(i+1, args[i]);
@@ -128,8 +130,6 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			rs = statment.executeQuery();
 			while(rs.next()) {
 				Object item = returnItemType.getDeclaredConstructor().newInstance();
-				ResultSetMetaData rsmd = rs.getMetaData();
-				int columnCount = rsmd.getColumnCount();
 				for(int i=1;i<=columnCount;i++) {
 					String columnName = rsmd.getColumnLabel(i);
 					Method setterMethod = map.get(columnName);
