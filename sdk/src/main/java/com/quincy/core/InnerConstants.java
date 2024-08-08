@@ -22,4 +22,6 @@ public class InnerConstants {
 	public final static String BEAN_NAME_PROPERTIES = "mailProperties";
 	public final static String BEAN_NAME_SYS_THREAD_POOL = "sysThreadPoolExecutor";
 	public final static String BEAN_NAME_SYS_JEDIS_SOURCE = "sysJedisSource";
+	public final static String DYNAMIC_FIELD_LIST_SETTER_METHOD_KEY = "dynamic_field_list_setter_method";
+	public final static String DYNAMIC_FIELD_LIST_GETTER_METHOD_KEY = "dynamic_field_list_getter_method";
 }

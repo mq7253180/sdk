@@ -38,6 +38,7 @@ import org.springframework.jdbc.datasource.ConnectionHolder;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 
+import com.quincy.sdk.DynamicField;
 import com.quincy.sdk.JdbcDao;
 import com.quincy.sdk.annotation.ExecuteQuery;
 import com.quincy.sdk.annotation.ExecuteUpdate;
@@ -131,57 +132,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			while(rs.next()) {
 				Object item = returnItemType.getDeclaredConstructor().newInstance();
 				for(int i=1;i<=columnCount;i++) {
-					String columnName = rsmd.getColumnLabel(i);
-					Method setterMethod = map.get(columnName);
-					if(setterMethod!=null) {
-						Object v = rs.getObject(i);
-						Class<?> parameterType = setterMethod.getParameterTypes()[0];
-						if(!parameterType.isInstance(v)) {
-							if(parameterType.getName().equals(String.class.getName())) {
-								v = rs.getString(i);
-							} else if(parameterType.getName().equals(boolean.class.getName())||parameterType.getName().equals(Boolean.class.getName())) {
-								v = rs.getBoolean(i);
-							} else if(parameterType.getName().equals(byte.class.getName())||parameterType.getName().equals(Byte.class.getName())) {
-								v = rs.getByte(i);
-							} else if(parameterType.getName().equals(short.class.getName())||parameterType.getName().equals(Short.class.getName())) {
-								v = rs.getShort(i);
-							} else if(parameterType.getName().equals(int.class.getName())||parameterType.getName().equals(Integer.class.getName())) {
-								v = rs.getInt(i);
-							} else if(parameterType.getName().equals(long.class.getName())||parameterType.getName().equals(Long.class.getName())) {
-								v = rs.getLong(i);
-							} else if(parameterType.getName().equals(float.class.getName())||parameterType.getName().equals(Float.class.getName())) {
-								v = rs.getFloat(i);
-							} else if(parameterType.getName().equals(double.class.getName())||parameterType.getName().equals(Double.class.getName())) {
-								v = rs.getDouble(i);
-							} else if(parameterType.getName().equals(BigDecimal.class.getName())) {
-								v = rs.getBigDecimal(i);
-							} else if(parameterType.getName().equals(Date.class.getName())||parameterType.getName().equals(java.sql.Date.class.getName())) {
-								v = rs.getDate(i);
-							} else if(parameterType.getName().equals(Time.class.getName())) {
-								v = rs.getTime(i);
-							} else if(parameterType.getName().equals(Timestamp.class.getName())) {
-								v = rs.getTimestamp(i);
-							} else if(parameterType.getName().equals(Array.class.getName())) {
-								v = rs.getArray(i);
-							} else if(parameterType.getName().equals(Blob.class.getName())) {
-								v = rs.getBlob(i);
-							} else if(parameterType.getName().equals(Clob.class.getName())) {
-								v = rs.getClob(i);
-							} else if(parameterType.getName().equals(byte[].class.getName())) {
-								InputStream in = null;
-								try {
-									in = rs.getBinaryStream(i);
-									byte[] buf = new byte[in.available()];
-									in.read(buf);
-									v = buf;
-								} finally {
-									if(in!=null)
-										in.close();
-								}
-							}
-						}
-						setterMethod.invoke(item, v);
-					}
+					this.loadItem(map, item, rsmd, rs, i);
 				}
 				if(returnDto) {
 					return item;
@@ -196,6 +147,60 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				statment.close();
 			if(connectionHolder==null&&conn!=null)
 				conn.close();
+		}
+	}
+
+	private void loadItem(Map<String, Method> map, Object item, ResultSetMetaData rsmd, ResultSet rs, int i) throws SQLException, IOException, IllegalAccessException, InvocationTargetException {
+		String columnName = rsmd.getColumnLabel(i);
+		Method setterMethod = map.get(columnName);
+		if(setterMethod!=null) {
+			Class<?> parameterType = setterMethod.getParameterTypes()[0];
+			Object v = rs.getObject(i);
+			if(!parameterType.isInstance(v)) {
+				if(parameterType.getName().equals(String.class.getName())) {
+					v = rs.getString(i);
+				} else if(parameterType.getName().equals(boolean.class.getName())||parameterType.getName().equals(Boolean.class.getName())) {
+					v = rs.getBoolean(i);
+				} else if(parameterType.getName().equals(byte.class.getName())||parameterType.getName().equals(Byte.class.getName())) {
+					v = rs.getByte(i);
+				} else if(parameterType.getName().equals(short.class.getName())||parameterType.getName().equals(Short.class.getName())) {
+					v = rs.getShort(i);
+				} else if(parameterType.getName().equals(int.class.getName())||parameterType.getName().equals(Integer.class.getName())) {
+					v = rs.getInt(i);
+				} else if(parameterType.getName().equals(long.class.getName())||parameterType.getName().equals(Long.class.getName())) {
+					v = rs.getLong(i);
+				} else if(parameterType.getName().equals(float.class.getName())||parameterType.getName().equals(Float.class.getName())) {
+					v = rs.getFloat(i);
+				} else if(parameterType.getName().equals(double.class.getName())||parameterType.getName().equals(Double.class.getName())) {
+					v = rs.getDouble(i);
+				} else if(parameterType.getName().equals(BigDecimal.class.getName())) {
+					v = rs.getBigDecimal(i);
+				} else if(parameterType.getName().equals(Date.class.getName())||parameterType.getName().equals(java.sql.Date.class.getName())) {
+					v = rs.getDate(i);
+				} else if(parameterType.getName().equals(Time.class.getName())) {
+					v = rs.getTime(i);
+				} else if(parameterType.getName().equals(Timestamp.class.getName())) {
+					v = rs.getTimestamp(i);
+				} else if(parameterType.getName().equals(Array.class.getName())) {
+					v = rs.getArray(i);
+				} else if(parameterType.getName().equals(Blob.class.getName())) {
+					v = rs.getBlob(i);
+				} else if(parameterType.getName().equals(Clob.class.getName())) {
+					v = rs.getClob(i);
+				} else if(parameterType.getName().equals(byte[].class.getName())) {
+					InputStream in = null;
+					try {
+						in = rs.getBinaryStream(i);
+						byte[] buf = new byte[in.available()];
+						in.read(buf);
+						v = buf;
+					} finally {
+						if(in!=null)
+							in.close();
+					}
+				}
+			}
+			setterMethod.invoke(item, v);
 		}
 	}
 
@@ -453,6 +458,97 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		}
 		public PreparedStatement getStatement() {
 			return statement;
+		}
+	}
+
+	@Override
+	public Object executeQueryWithDynamicFields(String _sql, String _tableName, Class<?> returnType, Class<?> returnItemType,
+			Object... args) throws SQLException, IOException, InstantiationException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		boolean returnDto = returnType.getName().equals(returnItemType.getName());
+		List<Object> list = null;
+		if(!returnDto)
+			list = new ArrayList<>();
+		Map<String, Method> map = classMethodMap.get(returnItemType);
+		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
+		Connection conn = connectionHolder==null?dataSource.getConnection():((ConnectionHolder)connectionHolder).getConnection();
+		PreparedStatement statment = null;
+		ResultSet rs = null;
+		String sql = _sql+" s LEFT OUTER JOIN s_dynamic_field_val v ON s.id=v.business_id_str OR s.id=v.business_id_int LEFT OUTER JOIN (SELECT * FROM s_dynamic_field WHERE table_name=? ORDER BY sort) f ON v.field_id=f.id;";
+		Map<Object, Object> groupedResultMap = new HashMap<Object, Object>();
+		try {
+			statment = conn.prepareStatement(sql);
+			ResultSetMetaData rsmd = statment.getMetaData();
+			int columnCount = rsmd.getColumnCount();
+			int fieldIdColumnIndex = 0;
+			int businessIdColumnIndex = 0;
+			for(int i=1;i<=columnCount;i++) {
+				String columnName = rsmd.getColumnName(i);
+				String columnLabel = rsmd.getColumnLabel(i);
+				String tableName = rsmd.getTableName(i);
+				if(columnName.equals("id")||columnLabel.equals("id")) {
+					if(tableName.equals("s_dynamic_field"))
+						fieldIdColumnIndex = i;
+					else
+						businessIdColumnIndex = i;
+				}
+				if(i>2&&fieldIdColumnIndex>0&&businessIdColumnIndex>0)//如果业务数据id和动态字段id都找到后
+					break;
+			}
+			statment.setString(args.length+1, _tableName);
+			if(args!=null&&args.length>0) {
+				for(int i=0;i<args.length;i++)
+					statment.setObject(i+1, args[i]);
+			}
+			rs = statment.executeQuery();
+			while(rs.next()) {
+				Object businessId = rs.getObject(businessIdColumnIndex);
+				Object item = groupedResultMap.get(businessId);
+				List<DynamicField> dynamicFields = null;
+				if(item==null) {
+					item = returnItemType.getDeclaredConstructor().newInstance();
+					for(int i=1;i<=columnCount;i++) {
+						String tableName = rsmd.getTableName(i);
+						if(!tableName.equals("s_dynamic_field")&&!tableName.equals("s_dynamic_field_val"))
+							this.loadItem(map, item, rsmd, rs, i);
+					}
+					Method setterMethod = map.get(InnerConstants.DYNAMIC_FIELD_LIST_SETTER_METHOD_KEY);
+					if(setterMethod!=null) {
+						dynamicFields = new ArrayList<DynamicField>();
+						setterMethod.invoke(item, dynamicFields);
+					}
+					groupedResultMap.put(businessId, item);
+					if(!returnDto)
+						list.add(item);
+				} else {
+					Method getterMethod = map.get(InnerConstants.DYNAMIC_FIELD_LIST_GETTER_METHOD_KEY);
+					if(getterMethod!=null)
+						dynamicFields = (List)getterMethod.invoke(item);
+				}
+				if(dynamicFields!=null) {
+					String name = null;
+					Object value = null;
+					for(int i=1;i<=columnCount;i++) {
+						String tableName = rsmd.getTableName(i);
+						String columnName = rsmd.getColumnName(i);
+						if(tableName.equals("s_dynamic_field")&&columnName.equals("name"))
+							name = rs.getString(i);
+						else if(tableName.equals("s_dynamic_field_val")&&columnName.startsWith("value_"))
+							value = rs.getObject(i);
+					}
+					dynamicFields.add(new DynamicField(name, value));
+				}
+				if(returnDto)
+					return item;
+			}
+			return returnDto?null:list;
+		} finally {
+			if(rs!=null)
+				rs.close();
+			if(statment!=null)
+				statment.close();
+			if(connectionHolder==null&&conn!=null)
+				conn.close();
 		}
 	}
 }

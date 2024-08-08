@@ -3,6 +3,7 @@ package com.quincy.core;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -10,9 +11,11 @@ import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.Assert;
 
 import com.quincy.sdk.annotation.Column;
 import com.quincy.sdk.annotation.DTO;
+import com.quincy.sdk.annotation.DynamicColumns;
 
 import jakarta.annotation.PostConstruct;
 
@@ -33,9 +36,26 @@ public class JdbcPostConstruction {
 			Field[] fields = clazz.getDeclaredFields();
 			for(Field field:fields) {
 				Column column = field.getAnnotation(Column.class);
+				String setterKey = null;
+				String getterKey = null;
 				if(column!=null) {
-					String setterName = "set"+String.valueOf(field.getName().charAt(0)).toUpperCase()+field.getName().substring(1);
-					subMap.put(column.value(), clazz.getMethod(setterName, field.getType()));
+					setterKey = column.value();
+				} else {
+					DynamicColumns dynamicColumns = field.getAnnotation(DynamicColumns.class);
+					if(dynamicColumns!=null) {
+						Assert.isTrue(List.class.isAssignableFrom(field.getType()), "The type with name of "+field.getName()+" must be List or ArrayList.");
+						setterKey = InnerConstants.DYNAMIC_FIELD_LIST_SETTER_METHOD_KEY;
+						getterKey = InnerConstants.DYNAMIC_FIELD_LIST_GETTER_METHOD_KEY;
+					}
+				}
+				String fieldNameByFistUpperCase = String.valueOf(field.getName().charAt(0)).toUpperCase()+field.getName().substring(1);
+				if(setterKey!=null) {
+					String setterName = "set"+fieldNameByFistUpperCase;
+					subMap.put(setterKey, clazz.getMethod(setterName, field.getType()));
+				}
+				if(getterKey!=null) {
+					String getterName = "get"+fieldNameByFistUpperCase;
+					subMap.put(getterKey, clazz.getMethod(getterName));
 				}
 			}
 			this.classMethodMap.put(clazz, subMap);
