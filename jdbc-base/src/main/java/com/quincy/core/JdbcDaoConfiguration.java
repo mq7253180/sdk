@@ -464,7 +464,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 	}
 
 	@Override
-	public Object executeQueryWithDynamicFields(String _sql, String _tableName, Class<?> returnType, Class<?> returnItemType,
+	public Object executeQueryWithDynamicFields(String sqlFrontHalf, String tableName, Class<?> returnType, Class<?> returnItemType,
 			Object... args) throws SQLException, IOException, InstantiationException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		boolean returnDto = returnType.getName().equals(returnItemType.getName());
@@ -477,7 +477,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		Connection conn = connectionHolder==null?dataSource.getConnection():((ConnectionHolder)connectionHolder).getConnection();
 		PreparedStatement statment = null;
 		ResultSet rs = null;
-		String sql = _sql+" s LEFT OUTER JOIN s_dynamic_field_val v ON s.id=v.business_id_str OR s.id=v.business_id_int LEFT OUTER JOIN s_dynamic_field f ON v.field_id=f.id AND table_name=?;";
+		String sql = sqlFrontHalf+" s LEFT OUTER JOIN s_dynamic_field_val v ON s.id=v.business_id_str OR s.id=v.business_id_int LEFT OUTER JOIN s_dynamic_field f ON v.field_id=f.id AND f.table_name=?;";
 		Map<Object, Object> groupedResultMap = new HashMap<Object, Object>();
 		try {
 			statment = conn.prepareStatement(sql);
@@ -488,9 +488,9 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			for(int i=1;i<=columnCount;i++) {
 				String columnName = rsmd.getColumnName(i);
 				String columnLabel = rsmd.getColumnLabel(i);
-				String tableName = rsmd.getTableName(i);
+				String tbName = rsmd.getTableName(i);
 				if(columnName.equals("id")||columnLabel.equals("id")) {
-					if(tableName.equals("s_dynamic_field"))
+					if(tbName.equals("s_dynamic_field"))
 						fieldIdColumnIndex = i;
 					else
 						businessIdColumnIndex = i;
@@ -498,7 +498,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				if(i>2&&fieldIdColumnIndex>0&&businessIdColumnIndex>0)//如果业务数据id和动态字段id都找到后
 					break;
 			}
-			statment.setString(args.length+1, _tableName);
+			statment.setString(args.length+1, tableName);
 			if(args!=null&&args.length>0) {
 				for(int i=0;i<args.length;i++)
 					statment.setObject(i+1, args[i]);
@@ -511,8 +511,8 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				if(item==null) {
 					item = returnItemType.getDeclaredConstructor().newInstance();
 					for(int i=1;i<=columnCount;i++) {
-						String tableName = rsmd.getTableName(i);
-						if(!tableName.equals("s_dynamic_field")&&!tableName.equals("s_dynamic_field_val"))
+						String tbName = rsmd.getTableName(i);
+						if(!tbName.equals("s_dynamic_field")&&!tbName.equals("s_dynamic_field_val"))
 							this.loadItem(map, item, rsmd, rs, i);
 					}
 					Method setterMethod = map.get(InnerConstants.DYNAMIC_FIELD_LIST_SETTER_METHOD_KEY);
@@ -530,14 +530,14 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					Object value = null;
 					Integer sort = null;
 					for(int i=1;i<=columnCount;i++) {
-						String tableName = rsmd.getTableName(i);
+						String tbName = rsmd.getTableName(i);
 						String columnName = rsmd.getColumnName(i);
-						if(tableName.equals("s_dynamic_field")) {
+						if(tbName.equals("s_dynamic_field")) {
 							if(columnName.equals("name"))
 								name = rs.getString(i);
 							else if(columnName.equals("sort"))
 								sort = rs.getInt(i);
-						} else if(tableName.equals("s_dynamic_field_val")&&columnName.startsWith("value_"))
+						} else if(tbName.equals("s_dynamic_field_val")&&columnName.startsWith("value_"))
 							value = rs.getObject(i);
 					}
 					dynamicFields.add(new DynamicField(name, value, sort));
