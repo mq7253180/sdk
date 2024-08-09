@@ -133,6 +133,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		if(!returnDto)
 			list = new ArrayList<>();
 		Map<String, Method> map = classMethodMap.get(returnItemType);
+		Assert.isTrue(map!=null, returnItemType.getName()+" must be marked by @DTO.");
 		Connection conn = null;
 		PreparedStatement statment = null;
 		ResultSet rs = null;
@@ -490,6 +491,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		String sql = sqlFrontHalf+" s LEFT OUTER JOIN s_dynamic_field_val v ON s.id=v.business_id_str OR s.id=v.business_id_int LEFT OUTER JOIN s_dynamic_field f ON v.field_id=f.id AND f.table_name=?;";
 		Map<Object, Object> groupedResultMap = new HashMap<Object, Object>();
 		Map<String, Method> map = classMethodMap.get(returnItemType);
+		Assert.isTrue(map!=null, returnItemType.getName()+" must be marked by @DTO.");
 		Method getterMethod = map.get(InnerConstants.DYNAMIC_FIELD_LIST_GETTER_METHOD_KEY);
 		Connection conn = null;
 		PreparedStatement statment = null;
