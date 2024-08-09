@@ -45,6 +45,7 @@ import com.quincy.sdk.JdbcDao;
 import com.quincy.sdk.annotation.ExecuteQuery;
 import com.quincy.sdk.annotation.ExecuteQueryWIthDynamicFields;
 import com.quincy.sdk.annotation.ExecuteUpdate;
+import com.quincy.sdk.annotation.FindDynamicFields;
 import com.quincy.sdk.annotation.JDBCDao;
 import com.quincy.sdk.helper.CommonHelper;
 
@@ -68,7 +69,8 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					ExecuteQuery queryAnnotation = method.getAnnotation(ExecuteQuery.class);
 					ExecuteUpdate executeUpdateAnnotation = method.getAnnotation(ExecuteUpdate.class);
 					ExecuteQueryWIthDynamicFields executeQueryWIthDynamicFieldsAnnotation = method.getAnnotation(ExecuteQueryWIthDynamicFields.class);
-					Assert.isTrue(queryAnnotation!=null||executeUpdateAnnotation!=null||executeQueryWIthDynamicFieldsAnnotation!=null, "What do you want to do?");
+					FindDynamicFields findDynamicFieldsAnnotation = method.getAnnotation(FindDynamicFields.class);
+					Assert.isTrue(queryAnnotation!=null||executeUpdateAnnotation!=null||executeQueryWIthDynamicFieldsAnnotation!=null||findDynamicFieldsAnnotation!=null, "What do you want to do?");
 					Class<?> returnType = method.getReturnType();
 					if(queryAnnotation!=null) {
 						Class<?> returnItemType = queryAnnotation.returnItemType();
@@ -84,8 +86,12 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 						log.warn("Duration======{}======{}", executeQueryWIthDynamicFieldsAnnotation.sqlFrontHalf(), (System.currentTimeMillis()-start));
 						return result;
 					}
-					Assert.isTrue(returnType.getName().equals(int.class.getName())||returnType.getName().equals(Integer.class.getName()), "Return type must be int[] or Integer[].");
+					if(findDynamicFieldsAnnotation!=null) {
+						Assert.isTrue(returnType.getName().equals(List.class.getName())||returnType.getName().equals(ArrayList.class.getName()), "Return type must be List or ArrayList.");
+						return findDynamicFields(findDynamicFieldsAnnotation.value());
+					}
 					if(executeUpdateAnnotation!=null) {
+						Assert.isTrue(returnType.getName().equals(int.class.getName())||returnType.getName().equals(Integer.class.getName()), "Return type must be int or Integer.");
 						String sql = executeUpdateAnnotation.sql();
 						int rowCount = -1;
 						if(!executeUpdateAnnotation.withHistory()) {
@@ -127,11 +133,12 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		if(!returnDto)
 			list = new ArrayList<>();
 		Map<String, Method> map = classMethodMap.get(returnItemType);
-		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
-		Connection conn = connectionHolder==null?dataSource.getConnection():((ConnectionHolder)connectionHolder).getConnection();
+		Connection conn = null;
 		PreparedStatement statment = null;
 		ResultSet rs = null;
+		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
 		try {
+			conn = connectionHolder==null?dataSource.getConnection():((ConnectionHolder)connectionHolder).getConnection();
 			statment = conn.prepareStatement(sql);
 			ResultSetMetaData rsmd = statment.getMetaData();
 			int columnCount = rsmd.getColumnCount();
@@ -142,9 +149,8 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			rs = statment.executeQuery();
 			while(rs.next()) {
 				Object item = returnItemType.getDeclaredConstructor().newInstance();
-				for(int i=1;i<=columnCount;i++) {
+				for(int i=1;i<=columnCount;i++)
 					this.loadItem(map, item, rsmd, rs, i);
-				}
 				if(returnDto) {
 					return item;
 				} else
@@ -217,16 +223,17 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 
 	@Override
 	public int executeUpdate(String sql, Object... args) throws SQLException {
-		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
-		Connection conn = connectionHolder==null?dataSource.getConnection():((ConnectionHolder)connectionHolder).getConnection();
+		Connection conn = null;
 		PreparedStatement statment = null;
+		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
 		try {
+			conn = connectionHolder==null?dataSource.getConnection():((ConnectionHolder)connectionHolder).getConnection();
 			statment = conn.prepareStatement(sql);
 			if(args!=null&&args.length>0) {
 				for(int i=0;i<args.length;i++)
 					statment.setObject(i+1, args[i]);
 			}
-			return statment.executeUpdate();
+			return statment.executeUpdate();//只有一步操作，如果是自获取连接无需设置事务，直接自动提交即可，如果是从上下文获取的连接，事务提交还是回滚取决于外层事务
 		} finally {
 			if(statment!=null)
 				statment.close();
@@ -262,6 +269,11 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 	}
 
 	private int executeUpdateWithHistory(String sql, String selectSql, boolean valueFuctionalized, Object... args) throws SQLException {
+		Map<String, DataIdMeta> dataIdMetaData = new HashMap<String, DataIdMeta>();
+		Map<String, PreparedStatement> updationFieldStatmentHolder = new HashMap<String, PreparedStatement>();
+		Map<String, Map<Object, Map<String, Object>>> oldValueTables = new HashMap<String, Map<Object, Map<String, Object>>>();
+		boolean selfConn = true;
+		Connection conn = null;
 		PreparedStatement statment = null;
 		PreparedStatement selectStatment = null;
 		PreparedStatement updationAutoIncrementStatment = null;
@@ -269,21 +281,16 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		ResultSet autoIncrementRs = null;
 		ResultSet oldValueRs = null;
 		ResultSet newValueRs = null;
-		Map<String, DataIdMeta> dataIdMetaData = new HashMap<String, DataIdMeta>();
-		Map<String, PreparedStatement> updationFieldStatmentHolder = new HashMap<String, PreparedStatement>();
-		Map<String, Map<Object, Map<String, Object>>> oldValueTables = new HashMap<String, Map<Object, Map<String, Object>>>();
-		boolean selfConn = true;
-		Connection conn = null;
 		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
-		if(connectionHolder==null) {
-			conn = dataSource.getConnection();
-			conn.setAutoCommit(false);
-			conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
-		} else {
-			conn = ((ConnectionHolder)connectionHolder).getConnection();
-			selfConn = false;
-		}
 		try {
+			if(connectionHolder==null) {
+				conn = dataSource.getConnection();
+				conn.setAutoCommit(false);
+				conn.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
+			} else {
+				conn = ((ConnectionHolder)connectionHolder).getConnection();
+				selfConn = false;
+			}
 			selectStatment = conn.prepareStatement(selectSql);
 			ResultSetMetaData rsmd = selectStatment.getMetaData();
 			int columnCount = rsmd.getColumnCount();
@@ -372,7 +379,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			updationStatment.setString(3, sb.substring(1));
 			updationStatment.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
 			updationStatment.executeUpdate();
-
+			//插入s_updation表结束
 			updationAutoIncrementStatment.setString(2, "s_updation_row");//s_updation表的自增只取一次，后续s_updation_row表的自增要取多次
 			for(String tableName:oldValueTables.keySet()) {
 				Map<Object, Map<String, Object>> rows = oldValueTables.get(tableName);
@@ -480,15 +487,16 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		List<Object> list = null;
 		if(!returnDto)
 			list = new ArrayList<>();
-		Map<String, Method> map = classMethodMap.get(returnItemType);
-		Method getterMethod = map.get(InnerConstants.DYNAMIC_FIELD_LIST_GETTER_METHOD_KEY);
-		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
-		Connection conn = connectionHolder==null?dataSource.getConnection():((ConnectionHolder)connectionHolder).getConnection();
-		PreparedStatement statment = null;
-		ResultSet rs = null;
 		String sql = sqlFrontHalf+" s LEFT OUTER JOIN s_dynamic_field_val v ON s.id=v.business_id_str OR s.id=v.business_id_int LEFT OUTER JOIN s_dynamic_field f ON v.field_id=f.id AND f.table_name=?;";
 		Map<Object, Object> groupedResultMap = new HashMap<Object, Object>();
+		Map<String, Method> map = classMethodMap.get(returnItemType);
+		Method getterMethod = map.get(InnerConstants.DYNAMIC_FIELD_LIST_GETTER_METHOD_KEY);
+		Connection conn = null;
+		PreparedStatement statment = null;
+		ResultSet rs = null;
+		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
 		try {
+			conn = connectionHolder==null?dataSource.getConnection():((ConnectionHolder)connectionHolder).getConnection();
 			statment = conn.prepareStatement(sql);
 			ResultSetMetaData rsmd = statment.getMetaData();
 			int columnCount = rsmd.getColumnCount();
@@ -569,6 +577,34 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				}
 			}
 			return returnDto?null:list;
+		} finally {
+			if(rs!=null)
+				rs.close();
+			if(statment!=null)
+				statment.close();
+			if(connectionHolder==null&&conn!=null)
+				conn.close();
+		}
+	}
+
+	@Override
+	public List<String> findDynamicFields(String tableName) throws SQLException {
+		Connection conn = null;
+		PreparedStatement statment = null;
+		ResultSet rs = null;
+		List<String> list = null;
+		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
+		try {
+			conn = connectionHolder==null?dataSource.getConnection():((ConnectionHolder)connectionHolder).getConnection();
+			statment = conn.prepareStatement("SELECT name FROM s_dynamic_field WHERE table_name=? ORDER BY sort;");
+			statment.setString(1, tableName);
+			rs = statment.executeQuery();
+			while(rs.next()) {
+				if(list==null)
+					list = new ArrayList<String>();
+				list.add(rs.getString("name"));
+			}
+			return list;
 		} finally {
 			if(rs!=null)
 				rs.close();

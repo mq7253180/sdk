@@ -2,6 +2,7 @@ package com.quincy.core;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +44,7 @@ public class JdbcPostConstruction {
 				} else {
 					DynamicColumns dynamicColumns = field.getAnnotation(DynamicColumns.class);
 					if(dynamicColumns!=null) {
-						Assert.isTrue(List.class.isAssignableFrom(field.getType()), "The type with name of "+field.getName()+" must be List or ArrayList.");
+						Assert.isTrue(field.getType().getName().equals(List.class.getName())||field.getType().getName().equals(ArrayList.class.getName()), field.getName()+" must be List or ArrayList.");
 						setterKey = InnerConstants.DYNAMIC_FIELD_LIST_SETTER_METHOD_KEY;
 						getterKey = InnerConstants.DYNAMIC_FIELD_LIST_GETTER_METHOD_KEY;
 					}
