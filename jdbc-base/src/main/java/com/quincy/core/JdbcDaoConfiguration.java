@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
 import com.quincy.sdk.DynamicField;
 import com.quincy.sdk.JdbcDao;
 import com.quincy.sdk.annotation.ExecuteQuery;
+import com.quincy.sdk.annotation.ExecuteQueryWIthDynamicFields;
 import com.quincy.sdk.annotation.ExecuteUpdate;
 import com.quincy.sdk.annotation.JDBCDao;
 import com.quincy.sdk.helper.CommonHelper;
@@ -66,13 +67,21 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					long start = System.currentTimeMillis();
 					ExecuteQuery queryAnnotation = method.getAnnotation(ExecuteQuery.class);
 					ExecuteUpdate executeUpdateAnnotation = method.getAnnotation(ExecuteUpdate.class);
-					Assert.isTrue(queryAnnotation!=null||executeUpdateAnnotation!=null, "What do you want to do?");
+					ExecuteQueryWIthDynamicFields executeQueryWIthDynamicFieldsAnnotation = method.getAnnotation(ExecuteQueryWIthDynamicFields.class);
+					Assert.isTrue(queryAnnotation!=null||executeUpdateAnnotation!=null||executeQueryWIthDynamicFieldsAnnotation!=null, "What do you want to do?");
 					Class<?> returnType = method.getReturnType();
 					if(queryAnnotation!=null) {
 						Class<?> returnItemType = queryAnnotation.returnItemType();
-						Assert.isTrue(returnType.getName().equals(List[].class.getName())||returnType.getName().equals(ArrayList[].class.getName())||returnType.getName().equals(returnItemType.getName()), "Return type must be List[] or ArrayList[] or given returnItemType.");
+						Assert.isTrue(returnType.getName().equals(List.class.getName())||returnType.getName().equals(ArrayList.class.getName())||returnType.getName().equals(returnItemType.getName()), "Return type must be List or ArrayList or given returnItemType.");
 						Object result = executeQuery(queryAnnotation.sql(), returnType, queryAnnotation.returnItemType(), args);
 						log.warn("Duration======{}======{}", queryAnnotation.sql(), (System.currentTimeMillis()-start));
+						return result;
+					}
+					if(executeQueryWIthDynamicFieldsAnnotation!=null) {
+						Class<?> returnItemType = executeQueryWIthDynamicFieldsAnnotation.returnItemType();
+						Assert.isTrue(returnType.getName().equals(List.class.getName())||returnType.getName().equals(ArrayList.class.getName())||returnType.getName().equals(returnItemType.getName()), "Return type must be List or ArrayList or given returnItemType.");
+						Object result = executeQueryWithDynamicFields(executeQueryWIthDynamicFieldsAnnotation.sqlFrontHalf(), executeQueryWIthDynamicFieldsAnnotation.tableName(), returnType, executeQueryWIthDynamicFieldsAnnotation.returnItemType(), args);
+						log.warn("Duration======{}======{}", executeQueryWIthDynamicFieldsAnnotation.sqlFrontHalf(), (System.currentTimeMillis()-start));
 						return result;
 					}
 					Assert.isTrue(returnType.getName().equals(int.class.getName())||returnType.getName().equals(Integer.class.getName()), "Return type must be int[] or Integer[].");
@@ -498,11 +507,14 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				if(i>2&&fieldIdColumnIndex>0&&businessIdColumnIndex>0)//如果业务数据id和动态字段id都找到后
 					break;
 			}
-			statment.setString(args.length+1, tableName);
-			if(args!=null&&args.length>0) {
-				for(int i=0;i<args.length;i++)
-					statment.setObject(i+1, args[i]);
+			int tableNameIndex = 1;
+			if(args!=null) {
+				tableNameIndex = args.length+1;
+				if(args.length>0)
+					for(int i=0;i<args.length;i++)
+						statment.setObject(i+1, args[i]);
 			}
+			statment.setString(tableNameIndex, tableName);
 			rs = statment.executeQuery();
 			while(rs.next()) {
 				Object businessId = rs.getObject(businessIdColumnIndex);
