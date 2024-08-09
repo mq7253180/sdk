@@ -20,6 +20,8 @@ import java.sql.Timestamp;
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -470,11 +472,12 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		if(!returnDto)
 			list = new ArrayList<>();
 		Map<String, Method> map = classMethodMap.get(returnItemType);
+		Method getterMethod = map.get(InnerConstants.DYNAMIC_FIELD_LIST_GETTER_METHOD_KEY);
 		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
 		Connection conn = connectionHolder==null?dataSource.getConnection():((ConnectionHolder)connectionHolder).getConnection();
 		PreparedStatement statment = null;
 		ResultSet rs = null;
-		String sql = _sql+" s LEFT OUTER JOIN s_dynamic_field_val v ON s.id=v.business_id_str OR s.id=v.business_id_int LEFT OUTER JOIN (SELECT * FROM s_dynamic_field WHERE table_name=? ORDER BY sort) f ON v.field_id=f.id;";
+		String sql = _sql+" s LEFT OUTER JOIN s_dynamic_field_val v ON s.id=v.business_id_str OR s.id=v.business_id_int LEFT OUTER JOIN s_dynamic_field f ON v.field_id=f.id AND table_name=?;";
 		Map<Object, Object> groupedResultMap = new HashMap<Object, Object>();
 		try {
 			statment = conn.prepareStatement(sql);
@@ -520,26 +523,38 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					groupedResultMap.put(businessId, item);
 					if(!returnDto)
 						list.add(item);
-				} else {
-					Method getterMethod = map.get(InnerConstants.DYNAMIC_FIELD_LIST_GETTER_METHOD_KEY);
-					if(getterMethod!=null)
-						dynamicFields = (List)getterMethod.invoke(item);
-				}
+				} else if(getterMethod!=null)
+					dynamicFields = (List)getterMethod.invoke(item);
 				if(dynamicFields!=null) {
 					String name = null;
 					Object value = null;
+					Integer sort = null;
 					for(int i=1;i<=columnCount;i++) {
 						String tableName = rsmd.getTableName(i);
 						String columnName = rsmd.getColumnName(i);
-						if(tableName.equals("s_dynamic_field")&&columnName.equals("name"))
-							name = rs.getString(i);
-						else if(tableName.equals("s_dynamic_field_val")&&columnName.startsWith("value_"))
+						if(tableName.equals("s_dynamic_field")) {
+							if(columnName.equals("name"))
+								name = rs.getString(i);
+							else if(columnName.equals("sort"))
+								sort = rs.getInt(i);
+						} else if(tableName.equals("s_dynamic_field_val")&&columnName.startsWith("value_"))
 							value = rs.getObject(i);
 					}
-					dynamicFields.add(new DynamicField(name, value));
+					dynamicFields.add(new DynamicField(name, value, sort));
 				}
 				if(returnDto)
 					return item;
+			}
+			if(getterMethod!=null) {
+				for(Object item:groupedResultMap.values()) {
+					List<DynamicField> dynamicFieldList = (List)getterMethod.invoke(item);
+					Collections.sort(dynamicFieldList, new Comparator<DynamicField>() {
+						@Override
+						public int compare(DynamicField o1, DynamicField o2) {
+							return o1.getSort()-o2.getSort();
+						}
+					});
+				}
 			}
 			return returnDto?null:list;
 		} finally {
