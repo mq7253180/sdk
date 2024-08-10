@@ -493,6 +493,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		Map<String, Method> map = classMethodMap.get(returnItemType);
 		Assert.isTrue(map!=null, returnItemType.getName()+" must be marked by @DTO.");
 		Method getterMethod = map.get(InnerConstants.DYNAMIC_FIELD_LIST_GETTER_METHOD_KEY);
+		Assert.isTrue(getterMethod!=null, "No getter method of the field marked by @DynamicColumns in "+returnItemType.getName()+".");
 		Connection conn = null;
 		PreparedStatement statment = null;
 		ResultSet rs = null;
@@ -545,7 +546,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					groupedResultMap.put(businessId, item);
 					if(!returnDto)
 						list.add(item);
-				} else if(getterMethod!=null)
+				} else
 					dynamicFields = (List)getterMethod.invoke(item);
 				if(dynamicFields!=null) {
 					String name = null;
@@ -564,20 +565,13 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					}
 					dynamicFields.add(new DynamicField(name, value, sort));
 				}
-				if(returnDto)
+				if(returnDto) {
+					this.sortDynamicColumns(getterMethod, item);
 					return item;
-			}
-			if(getterMethod!=null) {
-				for(Object item:groupedResultMap.values()) {
-					List<DynamicField> dynamicFieldList = (List)getterMethod.invoke(item);
-					Collections.sort(dynamicFieldList, new Comparator<DynamicField>() {
-						@Override
-						public int compare(DynamicField o1, DynamicField o2) {
-							return o1.getSort()-o2.getSort();
-						}
-					});
 				}
 			}
+			for(Object item:list)
+				this.sortDynamicColumns(getterMethod, item);
 			return returnDto?null:list;
 		} finally {
 			if(rs!=null)
@@ -587,6 +581,16 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			if(connectionHolder==null&&conn!=null)
 				conn.close();
 		}
+	}
+
+	private void sortDynamicColumns(Method getterMethod, Object item) throws IllegalAccessException, InvocationTargetException {
+		List<DynamicField> dynamicFieldList = (List)getterMethod.invoke(item);
+		Collections.sort(dynamicFieldList, new Comparator<DynamicField>() {
+			@Override
+			public int compare(DynamicField o1, DynamicField o2) {
+				return o1.getSort()-o2.getSort();
+			}
+		});
 	}
 
 	@Override
