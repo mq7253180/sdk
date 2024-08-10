@@ -486,15 +486,15 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		boolean returnDto = returnType.getName().equals(returnItemType.getName());
 		List<String> dynamicFieldList = new ArrayList<String>();
-		List<Object> list = null;
-		if(!returnDto)
-			list = new ArrayList<>();
+		List<Object> list = new ArrayList<>();
 		String sql = sqlFrontHalf+" s LEFT OUTER JOIN s_dynamic_field_val v ON s.id=v.business_id_str OR s.id=v.business_id_int LEFT OUTER JOIN s_dynamic_field f ON v.field_id=f.id AND f.table_name=?;";
 		Map<Object, Object> groupedResultMap = new HashMap<Object, Object>();
 		Map<String, Method> map = classMethodMap.get(returnItemType);
 		Assert.isTrue(map!=null, returnItemType.getName()+" must be marked by @DTO.");
 		Method getterMethod = map.get(InnerConstants.DYNAMIC_FIELD_LIST_GETTER_METHOD_KEY);
 		Assert.isTrue(getterMethod!=null, "No getter method of the field marked by @DynamicColumns in "+returnItemType.getName()+".");
+		Method setterMethod = map.get(InnerConstants.DYNAMIC_FIELD_LIST_SETTER_METHOD_KEY);
+		Assert.isTrue(setterMethod!=null, "No setter method of the field marked by @DynamicColumns in "+returnItemType.getName()+".");
 		Connection conn = null;
 		PreparedStatement dynamicFieldsStatment = null;
 		PreparedStatement statment = null;
@@ -546,41 +546,44 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 						if(!tbName.equals("s_dynamic_field")&&!tbName.equals("s_dynamic_field_val"))
 							this.loadItem(map, item, rsmd, rs, i);
 					}
-					Method setterMethod = map.get(InnerConstants.DYNAMIC_FIELD_LIST_SETTER_METHOD_KEY);
-					if(setterMethod!=null) {
-						dynamicFields = new ArrayList<DynamicField>();
-						setterMethod.invoke(item, dynamicFields);
-					}
+					dynamicFields = new ArrayList<DynamicField>();
+					setterMethod.invoke(item, dynamicFields);
 					groupedResultMap.put(businessId, item);
-					if(!returnDto)
-						list.add(item);
+					list.add(item);
 				} else
 					dynamicFields = (List)getterMethod.invoke(item);
-				if(dynamicFields!=null) {
-					String name = null;
-					Object value = null;
-					Integer sort = null;
-					for(int i=1;i<=columnCount;i++) {
-						String tbName = rsmd.getTableName(i);
-						String columnName = rsmd.getColumnName(i);
-						if(tbName.equals("s_dynamic_field")) {
-							if(columnName.equals("name"))
-								name = rs.getString(i);
-							else if(columnName.equals("sort"))
-								sort = rs.getInt(i);
-						} else if(tbName.equals("s_dynamic_field_val")&&columnName.startsWith("value_"))
-							value = rs.getObject(i);
-					}
-					dynamicFields.add(new DynamicField(name, value, sort));
+				String name = null;
+				Object value = null;
+				Integer sort = null;
+				for(int i=1;i<=columnCount;i++) {
+					String tbName = rsmd.getTableName(i);
+					String columnName = rsmd.getColumnName(i);
+					if(tbName.equals("s_dynamic_field")) {
+						if(columnName.equals("name"))
+							name = rs.getString(i);
+						else if(columnName.equals("sort"))
+							sort = rs.getInt(i);
+					} else if(tbName.equals("s_dynamic_field_val")&&columnName.startsWith("value_"))
+						value = rs.getObject(i);
 				}
+				dynamicFields.add(new DynamicField(name, value, sort));
 				if(returnDto&&dynamicFields.size()==dynamicFieldList.size()) {
 					this.sortDynamicColumns(dynamicFields);
 					return item;
 				}
 			}
-			for(Object item:list)
-				this.sortDynamicColumns((List)getterMethod.invoke(item));
-			return returnDto?null:list;
+			if(returnDto) {
+				Object item = null;
+				if(list.size()>0) {
+					item = list.get(0);
+					this.sortDynamicColumns((List)getterMethod.invoke(item));
+				}
+				return item;
+			} else {
+				for(Object item:list)
+					this.sortDynamicColumns((List)getterMethod.invoke(item));
+				return list;
+			}
 		} finally {
 			if(dynamicFieldsRs!=null)
 				dynamicFieldsRs.close();
