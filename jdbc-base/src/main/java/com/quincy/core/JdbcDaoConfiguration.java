@@ -485,6 +485,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			Object... args) throws SQLException, IOException, InstantiationException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		boolean returnDto = returnType.getName().equals(returnItemType.getName());
+		List<String> dynamicFieldList = new ArrayList<String>();
 		List<Object> list = null;
 		if(!returnDto)
 			list = new ArrayList<>();
@@ -495,7 +496,9 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		Method getterMethod = map.get(InnerConstants.DYNAMIC_FIELD_LIST_GETTER_METHOD_KEY);
 		Assert.isTrue(getterMethod!=null, "No getter method of the field marked by @DynamicColumns in "+returnItemType.getName()+".");
 		Connection conn = null;
+		PreparedStatement dynamicFieldsStatment = null;
 		PreparedStatement statment = null;
+		ResultSet dynamicFieldsRs = null;
 		ResultSet rs = null;
 		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
 		try {
@@ -518,6 +521,11 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				if(i>2&&fieldIdColumnIndex>0&&businessIdColumnIndex>0)//如果业务数据id和动态字段id都找到后
 					break;
 			}
+			dynamicFieldsStatment = conn.prepareStatement("SELECT name FROM s_dynamic_field WHERE table_name=? ORDER BY sort;");
+			dynamicFieldsStatment.setString(1, tableName);
+			dynamicFieldsRs = dynamicFieldsStatment.executeQuery();
+			while(dynamicFieldsRs.next())
+				dynamicFieldList.add(dynamicFieldsRs.getString("name"));
 			int tableNameIndex = 1;
 			if(args!=null) {
 				tableNameIndex = args.length+1;
@@ -565,17 +573,21 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					}
 					dynamicFields.add(new DynamicField(name, value, sort));
 				}
-				if(returnDto) {
-					this.sortDynamicColumns(getterMethod, item);
+				if(returnDto&&dynamicFields.size()==dynamicFieldList.size()) {
+					this.sortDynamicColumns(dynamicFields);
 					return item;
 				}
 			}
 			for(Object item:list)
-				this.sortDynamicColumns(getterMethod, item);
+				this.sortDynamicColumns((List)getterMethod.invoke(item));
 			return returnDto?null:list;
 		} finally {
+			if(dynamicFieldsRs!=null)
+				dynamicFieldsRs.close();
 			if(rs!=null)
 				rs.close();
+			if(dynamicFieldsStatment!=null)
+				dynamicFieldsStatment.close();
 			if(statment!=null)
 				statment.close();
 			if(connectionHolder==null&&conn!=null)
@@ -583,8 +595,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		}
 	}
 
-	private void sortDynamicColumns(Method getterMethod, Object item) throws IllegalAccessException, InvocationTargetException {
-		List<DynamicField> dynamicFieldList = (List)getterMethod.invoke(item);
+	private void sortDynamicColumns(List<DynamicField> dynamicFieldList) throws IllegalAccessException, InvocationTargetException {
 		Collections.sort(dynamicFieldList, new Comparator<DynamicField>() {
 			@Override
 			public int compare(DynamicField o1, DynamicField o2) {
@@ -598,18 +609,15 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		Connection conn = null;
 		PreparedStatement statment = null;
 		ResultSet rs = null;
-		List<String> list = null;
+		List<String> list = new ArrayList<String>();
 		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
 		try {
 			conn = connectionHolder==null?dataSource.getConnection():((ConnectionHolder)connectionHolder).getConnection();
 			statment = conn.prepareStatement("SELECT name FROM s_dynamic_field WHERE table_name=? ORDER BY sort;");
 			statment.setString(1, tableName);
 			rs = statment.executeQuery();
-			while(rs.next()) {
-				if(list==null)
-					list = new ArrayList<String>();
+			while(rs.next())
 				list.add(rs.getString("name"));
-			}
 			return list;
 		} finally {
 			if(rs!=null)
