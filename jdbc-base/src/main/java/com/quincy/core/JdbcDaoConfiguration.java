@@ -40,10 +40,10 @@ import org.springframework.jdbc.datasource.ConnectionHolder;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 
-import com.quincy.sdk.DynamicField;
+import com.quincy.sdk.DynamicColumn;
 import com.quincy.sdk.JdbcDao;
 import com.quincy.sdk.annotation.ExecuteQuery;
-import com.quincy.sdk.annotation.ExecuteQueryWIthDynamicFields;
+import com.quincy.sdk.annotation.ExecuteQueryWIthDynamicColumns;
 import com.quincy.sdk.annotation.ExecuteUpdate;
 import com.quincy.sdk.annotation.FindDynamicFields;
 import com.quincy.sdk.annotation.JDBCDao;
@@ -68,9 +68,9 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					long start = System.currentTimeMillis();
 					ExecuteQuery queryAnnotation = method.getAnnotation(ExecuteQuery.class);
 					ExecuteUpdate executeUpdateAnnotation = method.getAnnotation(ExecuteUpdate.class);
-					ExecuteQueryWIthDynamicFields executeQueryWIthDynamicFieldsAnnotation = method.getAnnotation(ExecuteQueryWIthDynamicFields.class);
+					ExecuteQueryWIthDynamicColumns executeQueryWIthDynamicColumnsAnnotation = method.getAnnotation(ExecuteQueryWIthDynamicColumns.class);
 					FindDynamicFields findDynamicFieldsAnnotation = method.getAnnotation(FindDynamicFields.class);
-					Assert.isTrue(queryAnnotation!=null||executeUpdateAnnotation!=null||executeQueryWIthDynamicFieldsAnnotation!=null||findDynamicFieldsAnnotation!=null, "What do you want to do?");
+					Assert.isTrue(queryAnnotation!=null||executeUpdateAnnotation!=null||executeQueryWIthDynamicColumnsAnnotation!=null||findDynamicFieldsAnnotation!=null, "What do you want to do?");
 					Class<?> returnType = method.getReturnType();
 					if(queryAnnotation!=null) {
 						Class<?> returnItemType = queryAnnotation.returnItemType();
@@ -79,11 +79,11 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 						log.warn("Duration======{}======{}", queryAnnotation.sql(), (System.currentTimeMillis()-start));
 						return result;
 					}
-					if(executeQueryWIthDynamicFieldsAnnotation!=null) {
-						Class<?> returnItemType = executeQueryWIthDynamicFieldsAnnotation.returnItemType();
+					if(executeQueryWIthDynamicColumnsAnnotation!=null) {
+						Class<?> returnItemType = executeQueryWIthDynamicColumnsAnnotation.returnItemType();
 						Assert.isTrue(returnType.getName().equals(List.class.getName())||returnType.getName().equals(ArrayList.class.getName())||returnType.getName().equals(returnItemType.getName()), "Return type must be List or ArrayList or given returnItemType.");
-						Object result = executeQueryWithDynamicFields(executeQueryWIthDynamicFieldsAnnotation.sqlFrontHalf(), executeQueryWIthDynamicFieldsAnnotation.tableName(), returnType, executeQueryWIthDynamicFieldsAnnotation.returnItemType(), args);
-						log.warn("Duration======{}======{}", executeQueryWIthDynamicFieldsAnnotation.sqlFrontHalf(), (System.currentTimeMillis()-start));
+						Object result = executeQueryWithDynamicColumns(executeQueryWIthDynamicColumnsAnnotation.sqlFrontHalf(), executeQueryWIthDynamicColumnsAnnotation.tableName(), returnType, executeQueryWIthDynamicColumnsAnnotation.returnItemType(), args);
+						log.warn("Duration======{}======{}", executeQueryWIthDynamicColumnsAnnotation.sqlFrontHalf(), (System.currentTimeMillis()-start));
 						return result;
 					}
 					if(findDynamicFieldsAnnotation!=null) {
@@ -481,11 +481,11 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 	}
 
 	@Override
-	public Object executeQueryWithDynamicFields(String sqlFrontHalf, String tableName, Class<?> returnType, Class<?> returnItemType,
+	public Object executeQueryWithDynamicColumns(String sqlFrontHalf, String tableName, Class<?> returnType, Class<?> returnItemType,
 			Object... args) throws SQLException, IOException, InstantiationException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		boolean returnDto = returnType.getName().equals(returnItemType.getName());
-		List<String> dynamicFieldList = new ArrayList<String>();
+		List<String> dynamicFields = new ArrayList<String>();
 		List<Object> list = new ArrayList<>();
 		String sql = sqlFrontHalf+" s LEFT OUTER JOIN s_dynamic_field_val v ON s.id=v.business_id_str OR s.id=v.business_id_int LEFT OUTER JOIN s_dynamic_field f ON v.field_id=f.id AND f.table_name=?;";
 		Map<Object, Object> groupedResultMap = new HashMap<Object, Object>();
@@ -525,7 +525,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			dynamicFieldsStatment.setString(1, tableName);
 			dynamicFieldsRs = dynamicFieldsStatment.executeQuery();
 			while(dynamicFieldsRs.next())
-				dynamicFieldList.add(dynamicFieldsRs.getString("name"));
+				dynamicFields.add(dynamicFieldsRs.getString("name"));
 			int tableNameIndex = 1;
 			if(args!=null) {
 				tableNameIndex = args.length+1;
@@ -538,7 +538,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			while(rs.next()) {
 				Object businessId = rs.getObject(businessIdColumnIndex);
 				Object item = groupedResultMap.get(businessId);
-				List<DynamicField> dynamicFields = null;
+				List<DynamicColumn> dynamicColumns = null;
 				if(item==null) {
 					item = returnItemType.getDeclaredConstructor().newInstance();
 					for(int i=1;i<=columnCount;i++) {
@@ -546,12 +546,12 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 						if(!tbName.equals("s_dynamic_field")&&!tbName.equals("s_dynamic_field_val"))
 							this.loadItem(map, item, rsmd, rs, i);
 					}
-					dynamicFields = new ArrayList<DynamicField>();
-					setterMethod.invoke(item, dynamicFields);
+					dynamicColumns = new ArrayList<DynamicColumn>();
+					setterMethod.invoke(item, dynamicColumns);
 					groupedResultMap.put(businessId, item);
 					list.add(item);
 				} else
-					dynamicFields = (List)getterMethod.invoke(item);
+					dynamicColumns = (List)getterMethod.invoke(item);
 				String name = null;
 				Object value = null;
 				Integer sort = null;
@@ -566,9 +566,9 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					} else if(tbName.equals("s_dynamic_field_val")&&columnName.startsWith("value_"))
 						value = rs.getObject(i);
 				}
-				dynamicFields.add(new DynamicField(name, value, sort));
-				if(returnDto&&dynamicFields.size()==dynamicFieldList.size()) {
-					this.sortDynamicColumns(dynamicFields);
+				dynamicColumns.add(new DynamicColumn(name, value, sort));
+				if(returnDto&&dynamicColumns.size()==dynamicFields.size()) {
+					this.sortDynamicColumns(dynamicColumns);
 					return item;
 				}
 			}
@@ -598,10 +598,10 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		}
 	}
 
-	private void sortDynamicColumns(List<DynamicField> dynamicFieldList) throws IllegalAccessException, InvocationTargetException {
-		Collections.sort(dynamicFieldList, new Comparator<DynamicField>() {
+	private void sortDynamicColumns(List<DynamicColumn> list) throws IllegalAccessException, InvocationTargetException {
+		Collections.sort(list, new Comparator<DynamicColumn>() {
 			@Override
-			public int compare(DynamicField o1, DynamicField o2) {
+			public int compare(DynamicColumn o1, DynamicColumn o2) {
 				return o1.getSort()-o2.getSort();
 			}
 		});

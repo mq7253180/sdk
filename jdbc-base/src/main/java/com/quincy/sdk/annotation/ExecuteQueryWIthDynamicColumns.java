@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(value = {ElementType.METHOD})
-public @interface ExecuteQueryWIthDynamicFields {
+public @interface ExecuteQueryWIthDynamicColumns {
 	/**
 	 * f.name,f.sort,v.value_decimal and primary key of business data as id must be presented in sqlFrontHalf.
 	 */

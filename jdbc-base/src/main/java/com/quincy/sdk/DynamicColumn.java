@@ -1,11 +1,11 @@
 package com.quincy.sdk;
 
-public class DynamicField {
+public class DynamicColumn {
 	private String name;
 	private Object value;
 	private int sort;
 
-	public DynamicField(String name, Object value, int sort) {
+	public DynamicColumn(String name, Object value, int sort) {
 		this.name = name;
 		this.value = value;
 		this.sort = sort;
