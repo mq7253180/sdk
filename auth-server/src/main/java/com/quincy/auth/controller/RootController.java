@@ -10,7 +10,6 @@ import org.springframework.web.servlet.ModelAndView;
 import com.quincy.auth.AuthHandler;
 import com.quincy.auth.AuthConstants;
 import com.quincy.auth.annotation.LoginRequired;
-import com.quincy.core.InnerConstants;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -22,7 +21,7 @@ public class RootController {
 	private AuthHandler authHandler;
 
 	public ModelAndView root(HttpServletRequest request, HttpServletResponse response) throws Exception {
-		ModelAndView mv = new ModelAndView("/index").addObject(InnerConstants.ATTR_SESSION, request.getSession(false).getAttribute(InnerConstants.ATTR_SESSION));
+		ModelAndView mv = new ModelAndView("/index").addObject(AuthConstants.ATTR_SESSION, request.getSession(false).getAttribute(AuthConstants.ATTR_SESSION));
 		if(authHandler!=null) {
 			Map<String, ?> map = authHandler.rootViewObjects(request);
 			if(map!=null&&map.size()>0)

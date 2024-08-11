@@ -114,7 +114,7 @@ public class AuthorizationServerController {
 		user.setJsessionid(session.getId());
 		XSession xsession = authorizationServerService.createXSession(user.getId());
 		xsession.setUser(user);
-		session.setAttribute(InnerConstants.ATTR_SESSION, xsession);
+		session.setAttribute(AuthConstants.ATTR_SESSION, xsession);
 		if(sessionInvalidation!=null) {//同一user同一类端之间互踢，清除session
 			originalJsessionid = CommonHelper.trim(originalJsessionid);
 			if(originalJsessionid!=null) {
