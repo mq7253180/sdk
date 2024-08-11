@@ -7,8 +7,8 @@ import org.aspectj.lang.annotation.Around;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-import com.quincy.core.InnerConstants;
 import com.quincy.core.redis.JedisSource;
+import com.quincy.core.redis.RedisConstants;
 import com.quincy.sdk.helper.AopHelper;
 
 import redis.clients.jedis.Jedis;
@@ -20,7 +20,7 @@ public abstract class JedisNeededBaseAop<T extends Annotation> {
 	protected abstract void after(Jedis jedis, Object passFromBefore);
 
 	@Autowired
-	@Qualifier(InnerConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
+	@Qualifier(RedisConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
 	private JedisSource jedisSource;
 
     @Around("pointCut()")

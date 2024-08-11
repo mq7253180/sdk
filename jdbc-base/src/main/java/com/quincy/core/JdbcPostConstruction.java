@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 
+import com.quincy.core.db.JdbcDaoConstants;
 import com.quincy.sdk.annotation.Column;
 import com.quincy.sdk.annotation.DTO;
 import com.quincy.sdk.annotation.DynamicColumns;
@@ -45,8 +46,8 @@ public class JdbcPostConstruction {
 					DynamicColumns dynamicColumns = field.getAnnotation(DynamicColumns.class);
 					if(dynamicColumns!=null) {
 						Assert.isTrue(field.getType().getName().equals(List.class.getName())||field.getType().getName().equals(ArrayList.class.getName()), field.getName()+" must be List or ArrayList.");
-						setterKey = InnerConstants.DYNAMIC_FIELD_LIST_SETTER_METHOD_KEY;
-						getterKey = InnerConstants.DYNAMIC_FIELD_LIST_GETTER_METHOD_KEY;
+						setterKey = JdbcDaoConstants.DYNAMIC_COLUMN_LIST_SETTER_METHOD_KEY;
+						getterKey = JdbcDaoConstants.DYNAMIC_COLUMN_LIST_GETTER_METHOD_KEY;
 					}
 				}
 				String fieldNameByFistUpperCase = String.valueOf(field.getName().charAt(0)).toUpperCase()+field.getName().substring(1);

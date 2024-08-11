@@ -7,8 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.quincy.core.InnerConstants;
 import com.quincy.core.redis.JedisSource;
+import com.quincy.core.redis.RedisConstants;
 import com.quincy.sdk.DistributedLock;
 
 import redis.clients.jedis.Jedis;
@@ -16,7 +16,7 @@ import redis.clients.jedis.Jedis;
 @Component
 public class DistributedLockImpl extends SynchronizedAop implements DistributedLock {
 	@Autowired
-	@Qualifier(InnerConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
+	@Qualifier(RedisConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
 	private JedisSource jedisSource;
 	private final static ThreadLocal<Jedis> jedisHolder = new ThreadLocal<Jedis>();
 	private final static ThreadLocal<Map<String, ?>> holder = new ThreadLocal<Map<String, ?>>();

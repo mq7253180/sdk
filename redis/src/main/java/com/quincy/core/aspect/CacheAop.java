@@ -13,8 +13,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import com.quincy.core.InnerConstants;
 import com.quincy.core.redis.JedisSource;
+import com.quincy.core.redis.RedisConstants;
 import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.annotation.Cache;
 import com.quincy.sdk.helper.CommonHelper;
@@ -31,7 +31,7 @@ public class CacheAop {
 	@Qualifier("cacheKeyPrefix")
 	private String cacheKeyPrefix;
 	@Autowired
-	@Qualifier(InnerConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
+	@Qualifier(RedisConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
 	private JedisSource jedisSource;
 	@Autowired
 	private RedisProcessor redisProcessor;
@@ -55,7 +55,7 @@ public class CacheAop {
     		byte[] cache = jedis.get(key);
     		if(cache==null||cache.length==0) {
     			String nxKey = _key+":NX";
-    			long setNx = jedis.setnx(nxKey, InetAddress.getLocalHost().getHostAddress()+"-"+Thread.currentThread().getId());
+    			long setNx = jedis.setnx(nxKey, InetAddress.getLocalHost().getHostAddress()+"-"+Thread.currentThread().threadId());
     			if(setNx>0) {
     				jedis.expire(nxKey, annotation.setnxExpire());
     				Object retVal = this.invokeAndCache(jedis, joinPoint, annotation, key);

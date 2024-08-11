@@ -15,9 +15,9 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import com.quincy.core.InnerConstants;
 import com.quincy.core.redis.JedisSource;
 import com.quincy.core.redis.QuincyJedis;
+import com.quincy.core.redis.RedisConstants;
 import com.quincy.sdk.annotation.JedisSupport;
 import com.quincy.sdk.helper.AopHelper;
 import com.quincy.sdk.helper.CommonHelper;
@@ -34,7 +34,7 @@ import redis.clients.jedis.Transaction;
 public class JedisSupportAop {
 	private final static String MSG_TX_NOT_SUPPORTED = "Redis transaction can not be supported in cluster mode.";
 	@Autowired
-	@Qualifier(InnerConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
+	@Qualifier(RedisConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
 	private JedisSource jedisSource;
 
 	@Pointcut("@annotation(com.quincy.sdk.annotation.JedisSupport)")

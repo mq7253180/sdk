@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.quincy.core.InnerConstants;
 import com.quincy.sdk.RedisProcessor;
 
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +15,7 @@ import redis.clients.jedis.params.SetParams;
 @Component
 public class GeneralProcessorImpl implements RedisProcessor {
 	@Autowired
-	@Qualifier(InnerConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
+	@Qualifier(RedisConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
 	private JedisSource jedisSource;
 	@Value("${spring.application.name}")
 	private String applicationName;

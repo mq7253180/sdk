@@ -40,6 +40,7 @@ import org.springframework.jdbc.datasource.ConnectionHolder;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.Assert;
 
+import com.quincy.core.db.JdbcDaoConstants;
 import com.quincy.sdk.DynamicColumn;
 import com.quincy.sdk.JdbcDao;
 import com.quincy.sdk.annotation.ExecuteQuery;
@@ -56,6 +57,7 @@ import lombok.extern.slf4j.Slf4j;
 public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor, JdbcDao {
 	private DataSource dataSource;
 	private Map<Class<?>, Map<String, Method>> classMethodMap;
+	private Map<Class<?>, Map<String, Method>> dynamicColumnQueryDTOMethods;
 	private static Map<String, String> selectionSqlCache = new HashMap<String, String>();
 
 	@Override
@@ -122,6 +124,9 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 	}
 	public void setClassMethodMap(Map<Class<?>, Map<String, Method>> classMethodMap) {
 		this.classMethodMap = classMethodMap;
+	}
+	public void setDynamicColumnQueryDTOMethods(Map<Class<?>, Map<String, Method>> dynamicColumnQueryDTOMethods) {
+		this.dynamicColumnQueryDTOMethods = dynamicColumnQueryDTOMethods;
 	}
 
 	@Override
@@ -484,6 +489,8 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 	public Object executeQueryWithDynamicColumns(String sqlFrontHalf, String tableName, Class<?> returnType, Class<?> returnItemType,
 			Object... args) throws SQLException, IOException, InstantiationException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		Map<String, Method> wrapperDtoMethods = dynamicColumnQueryDTOMethods.get(returnType);
+		boolean returnWrapper = wrapperDtoMethods!=null;
 		boolean returnDto = returnType.getName().equals(returnItemType.getName());
 		List<String> dynamicFields = new ArrayList<String>();
 		List<Object> list = new ArrayList<>();
@@ -491,9 +498,9 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		Map<Object, Object> groupedResultMap = new HashMap<Object, Object>();
 		Map<String, Method> map = classMethodMap.get(returnItemType);
 		Assert.isTrue(map!=null, returnItemType.getName()+" must be marked by @DTO.");
-		Method getterMethod = map.get(InnerConstants.DYNAMIC_FIELD_LIST_GETTER_METHOD_KEY);
+		Method getterMethod = map.get(JdbcDaoConstants.DYNAMIC_COLUMN_LIST_GETTER_METHOD_KEY);
 		Assert.isTrue(getterMethod!=null, "No getter method of the field marked by @DynamicColumns in "+returnItemType.getName()+".");
-		Method setterMethod = map.get(InnerConstants.DYNAMIC_FIELD_LIST_SETTER_METHOD_KEY);
+		Method setterMethod = map.get(JdbcDaoConstants.DYNAMIC_COLUMN_LIST_SETTER_METHOD_KEY);
 		Assert.isTrue(setterMethod!=null, "No setter method of the field marked by @DynamicColumns in "+returnItemType.getName()+".");
 		Connection conn = null;
 		PreparedStatement dynamicFieldsStatment = null;
