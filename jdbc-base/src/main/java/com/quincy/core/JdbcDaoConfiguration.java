@@ -46,7 +46,6 @@ import com.quincy.sdk.JdbcDao;
 import com.quincy.sdk.annotation.ExecuteQuery;
 import com.quincy.sdk.annotation.ExecuteQueryWIthDynamicColumns;
 import com.quincy.sdk.annotation.ExecuteUpdate;
-import com.quincy.sdk.annotation.FindDynamicFields;
 import com.quincy.sdk.annotation.JDBCDao;
 import com.quincy.sdk.helper.CommonHelper;
 
@@ -57,7 +56,6 @@ import lombok.extern.slf4j.Slf4j;
 public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor, JdbcDao {
 	private DataSource dataSource;
 	private Map<Class<?>, Map<String, Method>> classMethodMap;
-	private Map<Class<?>, Map<String, Method>> dynamicColumnQueryDTOMethods;
 	private static Map<String, String> selectionSqlCache = new HashMap<String, String>();
 
 	@Override
@@ -71,8 +69,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					ExecuteQuery queryAnnotation = method.getAnnotation(ExecuteQuery.class);
 					ExecuteUpdate executeUpdateAnnotation = method.getAnnotation(ExecuteUpdate.class);
 					ExecuteQueryWIthDynamicColumns executeQueryWIthDynamicColumnsAnnotation = method.getAnnotation(ExecuteQueryWIthDynamicColumns.class);
-					FindDynamicFields findDynamicFieldsAnnotation = method.getAnnotation(FindDynamicFields.class);
-					Assert.isTrue(queryAnnotation!=null||executeUpdateAnnotation!=null||executeQueryWIthDynamicColumnsAnnotation!=null||findDynamicFieldsAnnotation!=null, "What do you want to do?");
+					Assert.isTrue(queryAnnotation!=null||executeUpdateAnnotation!=null||executeQueryWIthDynamicColumnsAnnotation!=null, "What do you want to do?");
 					Class<?> returnType = method.getReturnType();
 					if(queryAnnotation!=null) {
 						Class<?> returnItemType = queryAnnotation.returnItemType();
@@ -83,14 +80,10 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					}
 					if(executeQueryWIthDynamicColumnsAnnotation!=null) {
 						Class<?> returnItemType = executeQueryWIthDynamicColumnsAnnotation.returnItemType();
-						Assert.isTrue(returnType.getName().equals(List.class.getName())||returnType.getName().equals(ArrayList.class.getName())||returnType.getName().equals(returnItemType.getName()), "Return type must be List or ArrayList or given returnItemType.");
+						Assert.isTrue(returnType.getName().equals(List.class.getName())||returnType.getName().equals(ArrayList.class.getName())||returnType.getName().equals(returnItemType.getName())||classMethodMap.get(returnType)!=null, "Return type must be List or ArrayList or given returnItemType or the type marked by @DynamicColumnQueryDTO.");
 						Object result = executeQueryWithDynamicColumns(executeQueryWIthDynamicColumnsAnnotation.sqlFrontHalf(), executeQueryWIthDynamicColumnsAnnotation.tableName(), returnType, executeQueryWIthDynamicColumnsAnnotation.returnItemType(), args);
 						log.warn("Duration======{}======{}", executeQueryWIthDynamicColumnsAnnotation.sqlFrontHalf(), (System.currentTimeMillis()-start));
 						return result;
-					}
-					if(findDynamicFieldsAnnotation!=null) {
-						Assert.isTrue(returnType.getName().equals(List.class.getName())||returnType.getName().equals(ArrayList.class.getName()), "Return type must be List or ArrayList.");
-						return findDynamicFields(findDynamicFieldsAnnotation.value());
 					}
 					if(executeUpdateAnnotation!=null) {
 						Assert.isTrue(returnType.getName().equals(int.class.getName())||returnType.getName().equals(Integer.class.getName()), "Return type must be int or Integer.");
@@ -124,9 +117,6 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 	}
 	public void setClassMethodMap(Map<Class<?>, Map<String, Method>> classMethodMap) {
 		this.classMethodMap = classMethodMap;
-	}
-	public void setDynamicColumnQueryDTOMethods(Map<Class<?>, Map<String, Method>> dynamicColumnQueryDTOMethods) {
-		this.dynamicColumnQueryDTOMethods = dynamicColumnQueryDTOMethods;
 	}
 
 	@Override
@@ -489,8 +479,6 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 	public Object executeQueryWithDynamicColumns(String sqlFrontHalf, String tableName, Class<?> returnType, Class<?> returnItemType,
 			Object... args) throws SQLException, IOException, InstantiationException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-		Map<String, Method> wrapperDtoMethods = dynamicColumnQueryDTOMethods.get(returnType);
-		boolean returnWrapper = wrapperDtoMethods!=null;
 		boolean returnDto = returnType.getName().equals(returnItemType.getName());
 		List<String> dynamicFields = new ArrayList<String>();
 		List<Object> list = new ArrayList<>();
@@ -576,21 +564,23 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				dynamicColumns.add(new DynamicColumn(name, value, sort));
 				if(returnDto&&dynamicColumns.size()==dynamicFields.size()) {
 					this.sortDynamicColumns(dynamicColumns);
-					return item;
+					return this.wrapperAndReturn(returnType, dynamicFields, item);
 				}
 			}
+			Object itemOrList = null;
 			if(returnDto) {
 				Object item = null;
 				if(list.size()>0) {
 					item = list.get(0);
 					this.sortDynamicColumns((List)getterMethod.invoke(item));
 				}
-				return item;
+				itemOrList = item;
 			} else {
 				for(Object item:list)
 					this.sortDynamicColumns((List)getterMethod.invoke(item));
-				return list;
+				itemOrList = list;
 			}
+			return this.wrapperAndReturn(returnType, dynamicFields, itemOrList);
 		} finally {
 			if(dynamicFieldsRs!=null)
 				dynamicFieldsRs.close();
@@ -614,28 +604,20 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		});
 	}
 
-	@Override
-	public List<String> findDynamicFields(String tableName) throws SQLException {
-		Connection conn = null;
-		PreparedStatement statment = null;
-		ResultSet rs = null;
-		List<String> list = new ArrayList<String>();
-		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
-		try {
-			conn = connectionHolder==null?dataSource.getConnection():((ConnectionHolder)connectionHolder).getConnection();
-			statment = conn.prepareStatement("SELECT name FROM s_dynamic_field WHERE table_name=? ORDER BY sort;");
-			statment.setString(1, tableName);
-			rs = statment.executeQuery();
-			while(rs.next())
-				list.add(rs.getString("name"));
-			return list;
-		} finally {
-			if(rs!=null)
-				rs.close();
-			if(statment!=null)
-				statment.close();
-			if(connectionHolder==null&&conn!=null)
-				conn.close();
+	private Object wrapperAndReturn(Class<?> returnType, List<String> dynamicFields, Object itemOrList) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		Map<String, Method> wrapperDtoMethods = classMethodMap.get(returnType);
+		if(wrapperDtoMethods==null) {
+			return itemOrList;
+		} else {
+			Method fieldsSetterMethod = wrapperDtoMethods.get(JdbcDaoConstants.DYNAMIC_COLUMN_WRAPPER_FIELDS_SETTER_METHOD_KEY);
+			Method resultSetterMethod = wrapperDtoMethods.get(JdbcDaoConstants.DYNAMIC_COLUMN_WRAPPER_RESULT_SETTER_METHOD_KEY);
+			if(fieldsSetterMethod!=null&&resultSetterMethod!=null) {
+				Object wrapper = returnType.getDeclaredConstructor().newInstance();
+				fieldsSetterMethod.invoke(wrapper, dynamicFields);
+				resultSetterMethod.invoke(wrapper, itemOrList);
+				return wrapper;
+			} else //@DTO和@DynamicColumnQueryDTO都在同一Map中，如果只返回@DTO，获取的Map不会包含@DynamicFields和@ResultList的setter方法
+				return itemOrList;
 		}
 	}
 }
