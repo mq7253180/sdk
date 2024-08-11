@@ -43,7 +43,6 @@ import org.springframework.util.Assert;
 import com.quincy.core.db.JdbcDaoConstants;
 import com.quincy.sdk.DynamicColumn;
 import com.quincy.sdk.JdbcDao;
-import com.quincy.sdk.annotation.DynamicColumnQueryDTO;
 import com.quincy.sdk.annotation.ExecuteQuery;
 import com.quincy.sdk.annotation.ExecuteQueryWIthDynamicColumns;
 import com.quincy.sdk.annotation.ExecuteUpdate;
