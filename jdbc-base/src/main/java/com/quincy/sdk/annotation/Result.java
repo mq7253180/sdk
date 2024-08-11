@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(value = {ElementType.FIELD})
-public @interface ResultList {
+public @interface Result {
 	
 }

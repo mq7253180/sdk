@@ -56,6 +56,7 @@ import lombok.extern.slf4j.Slf4j;
 public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor, JdbcDao {
 	private DataSource dataSource;
 	private Map<Class<?>, Map<String, Method>> classMethodMap;
+	private Map<Class<?>, Class<?>> returnTypeMap;
 	private static Map<String, String> selectionSqlCache = new HashMap<String, String>();
 
 	@Override
@@ -117,6 +118,9 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 	}
 	public void setClassMethodMap(Map<Class<?>, Map<String, Method>> classMethodMap) {
 		this.classMethodMap = classMethodMap;
+	}
+	public void setReturnTypeMap(Map<Class<?>, Class<?>> returnTypeMap) {
+		this.returnTypeMap = returnTypeMap;
 	}
 
 	@Override
@@ -479,17 +483,30 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 	public Object executeQueryWithDynamicColumns(String sqlFrontHalf, String tableName, Class<?> returnType, Class<?> returnItemType,
 			Object... args) throws SQLException, IOException, InstantiationException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-		boolean returnDto = returnType.getName().equals(returnItemType.getName());
+		String returnItemTypeName = returnItemType.getName();
+		Map<String, Method> map = classMethodMap.get(returnItemType);
+		Assert.isTrue(map!=null, returnItemTypeName+" must be marked by @DTO.");
+		Method getterMethod = map.get(JdbcDaoConstants.DYNAMIC_COLUMN_LIST_GETTER_METHOD_KEY);
+		Assert.isTrue(getterMethod!=null, "No getter method of the field marked by @DynamicColumns supplied in "+returnItemTypeName+".");
+		Method setterMethod = map.get(JdbcDaoConstants.DYNAMIC_COLUMN_LIST_SETTER_METHOD_KEY);
+		Assert.isTrue(setterMethod!=null, "No setter method of the field marked by @DynamicColumns supplied in "+returnItemTypeName+".");
+		boolean returnWrapper = false;
+		boolean returnDto = false;
+		Class<?> resultType = null;
+		if(returnType.getName().equals(returnItemTypeName)) {
+			resultType = returnType;
+			returnDto = true;
+		} else if(returnType.getName().equals(List.class.getName())||returnType.getName().equals(ArrayList.class.getName())) {
+			resultType = returnType;
+		} else {
+			resultType = this.returnTypeMap.get(returnType);
+			returnDto = resultType.getName().equals(returnItemTypeName);
+			returnWrapper = true;
+		}
 		List<String> dynamicFields = new ArrayList<String>();
 		List<Object> list = new ArrayList<>();
 		String sql = sqlFrontHalf+" s LEFT OUTER JOIN s_dynamic_field_val v ON s.id=v.business_id_str OR s.id=v.business_id_int LEFT OUTER JOIN s_dynamic_field f ON v.field_id=f.id AND f.table_name=?;";
 		Map<Object, Object> groupedResultMap = new HashMap<Object, Object>();
-		Map<String, Method> map = classMethodMap.get(returnItemType);
-		Assert.isTrue(map!=null, returnItemType.getName()+" must be marked by @DTO.");
-		Method getterMethod = map.get(JdbcDaoConstants.DYNAMIC_COLUMN_LIST_GETTER_METHOD_KEY);
-		Assert.isTrue(getterMethod!=null, "No getter method of the field marked by @DynamicColumns in "+returnItemType.getName()+".");
-		Method setterMethod = map.get(JdbcDaoConstants.DYNAMIC_COLUMN_LIST_SETTER_METHOD_KEY);
-		Assert.isTrue(setterMethod!=null, "No setter method of the field marked by @DynamicColumns in "+returnItemType.getName()+".");
 		Connection conn = null;
 		PreparedStatement dynamicFieldsStatment = null;
 		PreparedStatement statment = null;
@@ -564,7 +581,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				dynamicColumns.add(new DynamicColumn(name, value, sort));
 				if(returnDto&&dynamicColumns.size()==dynamicFields.size()) {
 					this.sortDynamicColumns(dynamicColumns);
-					return this.wrapperAndReturn(returnType, dynamicFields, item);
+					return returnWrapper?this.wrap(returnType, dynamicFields, item):item;
 				}
 			}
 			Object itemOrList = null;
@@ -580,7 +597,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					this.sortDynamicColumns((List)getterMethod.invoke(item));
 				itemOrList = list;
 			}
-			return this.wrapperAndReturn(returnType, dynamicFields, itemOrList);
+			return returnWrapper?this.wrap(returnType, dynamicFields, itemOrList):itemOrList;
 		} finally {
 			if(dynamicFieldsRs!=null)
 				dynamicFieldsRs.close();
@@ -604,20 +621,14 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		});
 	}
 
-	private Object wrapperAndReturn(Class<?> returnType, List<String> dynamicFields, Object itemOrList) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	private Object wrap(Class<?> returnType, List<String> dynamicFields, Object itemOrList) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		Map<String, Method> wrapperDtoMethods = classMethodMap.get(returnType);
-		if(wrapperDtoMethods==null) {
-			return itemOrList;
-		} else {
-			Method fieldsSetterMethod = wrapperDtoMethods.get(JdbcDaoConstants.DYNAMIC_COLUMN_WRAPPER_FIELDS_SETTER_METHOD_KEY);
-			Method resultSetterMethod = wrapperDtoMethods.get(JdbcDaoConstants.DYNAMIC_COLUMN_WRAPPER_RESULT_SETTER_METHOD_KEY);
-			if(fieldsSetterMethod!=null&&resultSetterMethod!=null) {
-				Object wrapper = returnType.getDeclaredConstructor().newInstance();
-				fieldsSetterMethod.invoke(wrapper, dynamicFields);
-				resultSetterMethod.invoke(wrapper, itemOrList);
-				return wrapper;
-			} else //@DTO和@DynamicColumnQueryDTO都在同一Map中，如果只返回@DTO，获取的Map不会包含@DynamicFields和@ResultList的setter方法
-				return itemOrList;
-		}
+		Method fieldsSetterMethod = wrapperDtoMethods.get(JdbcDaoConstants.DYNAMIC_COLUMN_WRAPPER_FIELDS_SETTER_METHOD_KEY);
+		Method resultSetterMethod = wrapperDtoMethods.get(JdbcDaoConstants.DYNAMIC_COLUMN_WRAPPER_RESULT_SETTER_METHOD_KEY);
+		Assert.isTrue(fieldsSetterMethod!=null&&fieldsSetterMethod!=null, "The setter methods of the fields marked by @DynamicFields or @Result must be supplied in "+returnType.getName()+".");
+		Object wrapper = returnType.getDeclaredConstructor().newInstance();
+		fieldsSetterMethod.invoke(wrapper, dynamicFields);
+		resultSetterMethod.invoke(wrapper, itemOrList);
+		return wrapper;
 	}
 }

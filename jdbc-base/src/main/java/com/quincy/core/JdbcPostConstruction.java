@@ -21,7 +21,7 @@ import com.quincy.sdk.annotation.DTO;
 import com.quincy.sdk.annotation.DynamicColumnQueryDTO;
 import com.quincy.sdk.annotation.DynamicColumns;
 import com.quincy.sdk.annotation.DynamicFields;
-import com.quincy.sdk.annotation.ResultList;
+import com.quincy.sdk.annotation.Result;
 
 import jakarta.annotation.PostConstruct;
 
@@ -31,23 +31,22 @@ public class JdbcPostConstruction {
 	private DataSource dataSource;
 	@Autowired
 	private JdbcDaoConfiguration jdbcDaoConfiguration;
-	private Map<Class<?>, Map<String, Method>> classMethodMap;
+	private Map<Class<?>, Map<String, Method>> classMethodMap = new HashMap<Class<?>, Map<String, Method>>();
+	private Map<Class<?>, Class<?>> returnTypeMap = new HashMap<Class<?>, Class<?>>();
 
 	@PostConstruct
 	public void init() throws NoSuchMethodException, SecurityException {
-		this.classMethodMap = new HashMap<Class<?>, Map<String, Method>>();
-		this.doFor(DTO.class, new ForOperation() {
+		this.doLoop(DTO.class, new ForOperation() {
 			@Override
-			public void operate(Class<?> clazz, Field field, Map<String, Method> subMap)
-					throws NoSuchMethodException, SecurityException {
-				Column column = field.getAnnotation(Column.class);
+			public Class<?> innerLoop(Class<?> clazz, Field field, Map<String, Method> subMap) throws NoSuchMethodException, SecurityException {
+				Column columnAnnotation = field.getAnnotation(Column.class);
 				String setterKey = null;
 				String getterKey = null;
-				if(column!=null) {
-					setterKey = column.value();
+				if(columnAnnotation!=null) {
+					setterKey = columnAnnotation.value();
 				} else {
-					DynamicColumns dynamicColumns = field.getAnnotation(DynamicColumns.class);
-					if(dynamicColumns!=null) {
+					DynamicColumns dynamicColumnsAnnotation = field.getAnnotation(DynamicColumns.class);
+					if(dynamicColumnsAnnotation!=null) {
 						Assert.isTrue(field.getType().getName().equals(List.class.getName())||field.getType().getName().equals(ArrayList.class.getName()), field.getName()+" must be List or ArrayList.");
 						setterKey = JdbcDaoConstants.DYNAMIC_COLUMN_LIST_SETTER_METHOD_KEY;
 						getterKey = JdbcDaoConstants.DYNAMIC_COLUMN_LIST_GETTER_METHOD_KEY;
@@ -62,36 +61,49 @@ public class JdbcPostConstruction {
 					String getterName = "get"+fieldNameByFistUpperCase;
 					subMap.put(getterKey, clazz.getMethod(getterName));
 				}
+				return null;
 			}
 		});
-		this.doFor(DynamicColumnQueryDTO.class, new ForOperation() {
+		this.doLoop(DynamicColumnQueryDTO.class, new ForOperation() {
 			@Override
-			public void operate(Class<?> clazz, Field field, Map<String, Method> subMap) throws NoSuchMethodException, SecurityException {
-				DynamicFields dynamicFields = field.getAnnotation(DynamicFields.class);
-				if(dynamicFields!=null)
+			public Class<?> innerLoop(Class<?> clazz, Field field, Map<String, Method> subMap) throws NoSuchMethodException, SecurityException {
+				DynamicFields dynamicFieldsAnnotation = field.getAnnotation(DynamicFields.class);
+				if(dynamicFieldsAnnotation!=null)
 					subMap.put(JdbcDaoConstants.DYNAMIC_COLUMN_WRAPPER_FIELDS_SETTER_METHOD_KEY, clazz.getMethod("set"+String.valueOf(field.getName().charAt(0)).toUpperCase()+field.getName().substring(1), field.getType()));
-				ResultList resultList = field.getAnnotation(ResultList.class);
-				if(resultList!=null)
-					subMap.put(JdbcDaoConstants.DYNAMIC_COLUMN_WRAPPER_RESULT_SETTER_METHOD_KEY, clazz.getMethod("set"+String.valueOf(field.getName().charAt(0)).toUpperCase()+field.getName().substring(1), field.getType()));
+				Class<?> resultType = null;
+				Result resultAnnotation = field.getAnnotation(Result.class);
+				if(resultAnnotation!=null) {
+					String name = String.valueOf(field.getName().charAt(0)).toUpperCase()+field.getName().substring(1);
+					subMap.put(JdbcDaoConstants.DYNAMIC_COLUMN_WRAPPER_RESULT_SETTER_METHOD_KEY, clazz.getMethod("set"+name, field.getType()));
+					resultType = field.getType();
+				}
+				return resultType;
 			}
 		});
 		jdbcDaoConfiguration.setClassMethodMap(this.classMethodMap);
+		jdbcDaoConfiguration.setReturnTypeMap(this.returnTypeMap);
 		jdbcDaoConfiguration.setDataSource(dataSource);
 	}
 
-	private void doFor(Class<? extends Annotation> annotation, ForOperation forOperation) throws NoSuchMethodException, SecurityException {
+	private void doLoop(Class<? extends Annotation> annotation, ForOperation forOperation) throws NoSuchMethodException, SecurityException {
 		Set<Class<?>> classes = ReflectionsHolder.get().getTypesAnnotatedWith(annotation);
 		for(Class<?> clazz:classes) {
 			Map<String, Method> subMap = new HashMap<String, Method>();
 			Field[] fields = clazz.getDeclaredFields();
-			for(Field field:fields)
-				forOperation.operate(clazz, field, subMap);
+			Class<?> returnType = null;
+			for(Field field:fields) {
+				Class<?> tempRetType = forOperation.innerLoop(clazz, field, subMap);
+				if(tempRetType!=null)
+					returnType = tempRetType;
+			}
 			this.classMethodMap.put(clazz, subMap);
+			if(returnType!=null)
+				this.returnTypeMap.put(clazz, returnType);
 		}
 	}
 
 	private interface ForOperation {
-		public void operate(Class<?> clazz, Field field, Map<String, Method> subMap) throws NoSuchMethodException, SecurityException;
+		public Class<?> innerLoop(Class<?> clazz, Field field, Map<String, Method> subMap) throws NoSuchMethodException, SecurityException;
 	}
 
 	public Map<Class<?>, Map<String, Method>> getClassMethodMap() {
