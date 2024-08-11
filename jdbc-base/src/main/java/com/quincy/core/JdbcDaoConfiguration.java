@@ -43,6 +43,7 @@ import org.springframework.util.Assert;
 import com.quincy.core.db.JdbcDaoConstants;
 import com.quincy.sdk.DynamicColumn;
 import com.quincy.sdk.JdbcDao;
+import com.quincy.sdk.annotation.DynamicColumnQueryDTO;
 import com.quincy.sdk.annotation.ExecuteQuery;
 import com.quincy.sdk.annotation.ExecuteQueryWIthDynamicColumns;
 import com.quincy.sdk.annotation.ExecuteUpdate;
@@ -500,6 +501,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			resultType = returnType;
 		} else {
 			resultType = this.returnTypeMap.get(returnType);
+			Assert.isTrue(resultType!=null, "The return type must be one of List, ArrayList, type marked by @DTO or @DynamicColumnQueryDTO.");
 			returnDto = resultType.getName().equals(returnItemTypeName);
 			returnWrapper = true;
 		}
