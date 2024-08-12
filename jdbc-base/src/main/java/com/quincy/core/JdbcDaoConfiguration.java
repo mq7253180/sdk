@@ -75,14 +75,14 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					if(queryAnnotation!=null) {
 						Class<?> returnItemType = queryAnnotation.returnItemType();
 						Assert.isTrue(returnType.getName().equals(List.class.getName())||returnType.getName().equals(ArrayList.class.getName())||returnType.getName().equals(returnItemType.getName()), "Return type must be List or ArrayList or given returnItemType.");
-						Object result = executeQuery(queryAnnotation.sql(), returnType, queryAnnotation.returnItemType(), args);
+						Object result = executeQuery(queryAnnotation.sql(), queryAnnotation.returnItemType(), returnType, args);
 						log.warn("Duration======{}======{}", queryAnnotation.sql(), (System.currentTimeMillis()-start));
 						return result;
 					}
 					if(executeQueryWIthDynamicColumnsAnnotation!=null) {
 						Class<?> returnItemType = executeQueryWIthDynamicColumnsAnnotation.returnItemType();
 						Assert.isTrue(returnType.getName().equals(List.class.getName())||returnType.getName().equals(ArrayList.class.getName())||returnType.getName().equals(returnItemType.getName())||classMethodMap.get(returnType)!=null, "Return type must be List or ArrayList or given returnItemType or the type marked by @DynamicColumnQueryDTO.");
-						Object result = executeQueryWithDynamicColumns(executeQueryWIthDynamicColumnsAnnotation.sqlFrontHalf(), executeQueryWIthDynamicColumnsAnnotation.tableName(), returnType, executeQueryWIthDynamicColumnsAnnotation.returnItemType(), args);
+						Object result = executeQueryWithDynamicColumns(executeQueryWIthDynamicColumnsAnnotation.sqlFrontHalf(), executeQueryWIthDynamicColumnsAnnotation.tableName(), executeQueryWIthDynamicColumnsAnnotation.returnItemType(), returnType, args);
 						log.warn("Duration======{}======{}", executeQueryWIthDynamicColumnsAnnotation.sqlFrontHalf(), (System.currentTimeMillis()-start));
 						return result;
 					}
@@ -124,7 +124,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 	}
 
 	@Override
-	public Object executeQuery(String sql, Class<?> returnType, Class<?> returnItemType, Object... args)
+	public Object executeQuery(String sql, Class<?> returnItemType, Class<?> returnType, Object... args)
 			throws SQLException, IOException, InstantiationException, IllegalAccessException, IllegalArgumentException,
 			InvocationTargetException, NoSuchMethodException, SecurityException {
 		boolean returnDto = returnType.getName().equals(returnItemType.getName());
@@ -480,7 +480,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 	}
 
 	@Override
-	public Object executeQueryWithDynamicColumns(String sqlFrontHalf, String tableName, Class<?> returnType, Class<?> returnItemType,
+	public Object executeQueryWithDynamicColumns(String sqlFrontHalf, String tableName, Class<?> returnItemType, Class<?> returnType,
 			Object... args) throws SQLException, IOException, InstantiationException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		String returnItemTypeName = returnItemType.getName();
@@ -579,7 +579,8 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					} else if(tbName.equals("s_dynamic_field_val")&&columnName.startsWith("value_"))
 						value = rs.getObject(i);
 				}
-				dynamicColumns.add(new DynamicColumn(name, value, sort));
+				if(value!=null)
+					dynamicColumns.add(new DynamicColumn(name, value, sort));
 				if(returnDto&&dynamicColumns.size()==dynamicFields.size()) {
 					this.sortDynamicColumns(dynamicColumns);
 					return returnWrapper?this.wrap(returnType, dynamicFields, item):item;
