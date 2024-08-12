@@ -574,12 +574,14 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				Integer id = null;
 				Object value = null;
 				for(int i=1;i<=columnCount;i++) {
-					String tbName = rsmd.getTableName(i);
-					String columnName = rsmd.getColumnName(i);
-					if(tbName.equals("s_dynamic_field")&&columnName.equals("id")) {
-						id = rs.getInt(i);
-					} else if(tbName.equals("s_dynamic_field_val")&&columnName.startsWith("value_"))
-						value = rs.getObject(i);
+					if(value==null) {
+						String tbName = rsmd.getTableName(i);
+						String columnName = rsmd.getColumnName(i);
+						if(tbName.equals("s_dynamic_field")&&columnName.equals("id")) {
+							id = rs.getInt(i);
+						} else if(tbName.equals("s_dynamic_field_val")&&columnName.startsWith("value_"))
+							value = rs.getObject(i);
+					}
 				}
 				if(value!=null) {
 					for(DynamicColumn dynamicColumn:dynamicColumns) {
@@ -587,10 +589,10 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 							dynamicColumn.setValue(value);
 					}
 				}
-				if(returnDto&&dynamicColumns.size()==dynamicFields.size()) {
+				/*if(returnDto&&dynamicColumns.size()==dynamicFields.size()) {
 					this.sortDynamicColumns(dynamicColumns);
 					return returnWrapper?this.wrap(returnType, dynamicFields, item):item;
-				}
+				}*/
 			}
 			Object itemOrList = null;
 			if(returnDto) {
