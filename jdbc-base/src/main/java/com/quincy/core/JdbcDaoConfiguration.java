@@ -585,8 +585,10 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				}
 				if(value!=null) {
 					for(DynamicColumn dynamicColumn:dynamicColumns) {
-						if(dynamicColumn.getId().intValue()==id)
+						if(dynamicColumn.getId().intValue()==id) {
 							dynamicColumn.setValue(value);
+							break;
+						}
 					}
 				}
 				/*if(returnDto&&dynamicColumns.size()==dynamicFields.size()) {
