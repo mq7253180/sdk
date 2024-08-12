@@ -42,10 +42,12 @@ import org.springframework.util.Assert;
 
 import com.quincy.core.db.JdbcDaoConstants;
 import com.quincy.sdk.DynamicColumn;
+import com.quincy.sdk.DynamicField;
 import com.quincy.sdk.JdbcDao;
 import com.quincy.sdk.annotation.ExecuteQuery;
 import com.quincy.sdk.annotation.ExecuteQueryWIthDynamicColumns;
 import com.quincy.sdk.annotation.ExecuteUpdate;
+import com.quincy.sdk.annotation.FindDynamicFields;
 import com.quincy.sdk.annotation.JDBCDao;
 import com.quincy.sdk.helper.CommonHelper;
 
@@ -70,7 +72,8 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					ExecuteQuery queryAnnotation = method.getAnnotation(ExecuteQuery.class);
 					ExecuteUpdate executeUpdateAnnotation = method.getAnnotation(ExecuteUpdate.class);
 					ExecuteQueryWIthDynamicColumns executeQueryWIthDynamicColumnsAnnotation = method.getAnnotation(ExecuteQueryWIthDynamicColumns.class);
-					Assert.isTrue(queryAnnotation!=null||executeUpdateAnnotation!=null||executeQueryWIthDynamicColumnsAnnotation!=null, "What do you want to do?");
+					FindDynamicFields findDynamicFieldsAnnotation = method.getAnnotation(FindDynamicFields.class);
+					Assert.isTrue(queryAnnotation!=null||executeUpdateAnnotation!=null||executeQueryWIthDynamicColumnsAnnotation!=null||findDynamicFieldsAnnotation!=null, "What do you want to do?");
 					Class<?> returnType = method.getReturnType();
 					if(queryAnnotation!=null) {
 						Class<?> returnItemType = queryAnnotation.returnItemType();
@@ -99,6 +102,8 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 						log.warn("Duration======{}======{}", executeUpdateAnnotation.sql(), (System.currentTimeMillis()-start));
 						return rowCount;
 					}
+					if(findDynamicFieldsAnnotation!=null)
+						return findDynamicFields(findDynamicFieldsAnnotation.value());
 					return null;
 				}
 			});
@@ -134,19 +139,19 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		Map<String, Method> map = classMethodMap.get(returnItemType);
 		Assert.isTrue(map!=null, returnItemType.getName()+" must be marked by @DTO.");
 		Connection conn = null;
-		PreparedStatement statment = null;
+		PreparedStatement statement = null;
 		ResultSet rs = null;
 		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
 		try {
 			conn = connectionHolder==null?dataSource.getConnection():((ConnectionHolder)connectionHolder).getConnection();
-			statment = conn.prepareStatement(sql);
-			ResultSetMetaData rsmd = statment.getMetaData();
+			statement = conn.prepareStatement(sql);
+			ResultSetMetaData rsmd = statement.getMetaData();
 			int columnCount = rsmd.getColumnCount();
 			if(args!=null&&args.length>0) {
 				for(int i=0;i<args.length;i++)
-					statment.setObject(i+1, args[i]);
+					statement.setObject(i+1, args[i]);
 			}
-			rs = statment.executeQuery();
+			rs = statement.executeQuery();
 			while(rs.next()) {
 				Object item = returnItemType.getDeclaredConstructor().newInstance();
 				for(int i=1;i<=columnCount;i++)
@@ -160,8 +165,8 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		} finally {
 			if(rs!=null)
 				rs.close();
-			if(statment!=null)
-				statment.close();
+			if(statement!=null)
+				statement.close();
 			if(connectionHolder==null&&conn!=null)
 				conn.close();
 		}
@@ -224,19 +229,19 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 	@Override
 	public int executeUpdate(String sql, Object... args) throws SQLException {
 		Connection conn = null;
-		PreparedStatement statment = null;
+		PreparedStatement statement = null;
 		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
 		try {
 			conn = connectionHolder==null?dataSource.getConnection():((ConnectionHolder)connectionHolder).getConnection();
-			statment = conn.prepareStatement(sql);
+			statement = conn.prepareStatement(sql);
 			if(args!=null&&args.length>0) {
 				for(int i=0;i<args.length;i++)
-					statment.setObject(i+1, args[i]);
+					statement.setObject(i+1, args[i]);
 			}
-			return statment.executeUpdate();//只有一步操作，如果是自获取连接无需设置事务，直接自动提交即可，如果是从上下文获取的连接，事务提交还是回滚取决于外层事务
+			return statement.executeUpdate();//只有一步操作，如果是自获取连接无需设置事务，直接自动提交即可，如果是从上下文获取的连接，事务提交还是回滚取决于外层事务
 		} finally {
-			if(statment!=null)
-				statment.close();
+			if(statement!=null)
+				statement.close();
 			if(connectionHolder==null&&conn!=null)
 				conn.close();
 		}
@@ -270,14 +275,14 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 
 	private int executeUpdateWithHistory(String sql, String selectSql, boolean valueFuctionalized, Object... args) throws SQLException {
 		Map<String, DataIdMeta> dataIdMetaData = new HashMap<String, DataIdMeta>();
-		Map<String, PreparedStatement> updationFieldStatmentHolder = new HashMap<String, PreparedStatement>();
+		Map<String, PreparedStatement> updationFieldStatementHolder = new HashMap<String, PreparedStatement>();
 		Map<String, Map<Object, Map<String, Object>>> oldValueTables = new HashMap<String, Map<Object, Map<String, Object>>>();
 		boolean selfConn = true;
 		Connection conn = null;
-		PreparedStatement statment = null;
-		PreparedStatement selectStatment = null;
-		PreparedStatement updationAutoIncrementStatment = null;
-		PreparedStatement updationStatment = null;
+		PreparedStatement statement = null;
+		PreparedStatement selectStatement = null;
+		PreparedStatement updationAutoIncrementStatement = null;
+		PreparedStatement updationStatement = null;
 		ResultSet autoIncrementRs = null;
 		ResultSet oldValueRs = null;
 		ResultSet newValueRs = null;
@@ -291,13 +296,13 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				conn = ((ConnectionHolder)connectionHolder).getConnection();
 				selfConn = false;
 			}
-			selectStatment = conn.prepareStatement(selectSql);
-			ResultSetMetaData rsmd = selectStatment.getMetaData();
+			selectStatement = conn.prepareStatement(selectSql);
+			ResultSetMetaData rsmd = selectStatement.getMetaData();
 			int columnCount = rsmd.getColumnCount();
-			updationAutoIncrementStatment = conn.prepareStatement("SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE table_schema=? AND table_name=?;");
-			updationAutoIncrementStatment.setString(1, conn.getCatalog());
-			updationAutoIncrementStatment.setString(2, "s_updation");
-			autoIncrementRs = updationAutoIncrementStatment.executeQuery();
+			updationAutoIncrementStatement = conn.prepareStatement("SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE table_schema=? AND table_name=?;");
+			updationAutoIncrementStatement.setString(1, conn.getCatalog());
+			updationAutoIncrementStatement.setString(2, "s_updation");
+			autoIncrementRs = updationAutoIncrementStatement.executeQuery();
 			autoIncrementRs.next();
 			Long updationId = autoIncrementRs.getLong("AUTO_INCREMENT");
 			autoIncrementRs.close();
@@ -318,21 +323,21 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 						valColumnNameSuffix = "time";
 					} else
 						valColumnNameSuffix = "str";
-					updationFieldStatmentHolder.put(tableName+"_"+columnName, conn.prepareStatement("INSERT INTO s_updation_field(p_id, name, old_value_"+valColumnNameSuffix+", new_value_"+valColumnNameSuffix+") VALUES(?, ?, ?, ?);"));
+					updationFieldStatementHolder.put(tableName+"_"+columnName, conn.prepareStatement("INSERT INTO s_updation_field(p_id, name, old_value_"+valColumnNameSuffix+", new_value_"+valColumnNameSuffix+") VALUES(?, ?, ?, ?);"));
 				}
 				if(oldValueTables.get(tableName)==null)
 					oldValueTables.put(tableName, new HashMap<Object, Map<String, Object>>());
 			}
 			int questionMarkCount = symolCount(selectSql, '?');
 			int offset = args.length-questionMarkCount-1;
-			statment = conn.prepareStatement(sql);
+			statement = conn.prepareStatement(sql);
 			if(args!=null&&args.length>0) {
 				for(int i=1;i<=questionMarkCount;i++)
-					selectStatment.setObject(i, args[offset+i]);
+					selectStatement.setObject(i, args[offset+i]);
 				for(int i=0;i<args.length;i++)
-					statment.setObject(i+1, args[i]);
+					statement.setObject(i+1, args[i]);
 			}
-			oldValueRs = selectStatment.executeQuery();
+			oldValueRs = selectStatement.executeQuery();
 			while(oldValueRs.next()) {//将变更前的旧值放进一个三维的Map里，分别以表名、id、字段名作为key
 				for(int i=1;i<=columnCount;i++) {
 					String columnName = rsmd.getColumnName(i);
@@ -351,12 +356,12 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				}
 			}
 			oldValueRs.close();
-			int effected = statment.executeUpdate();
+			int effected = statement.executeUpdate();
 			//如果更新值是函数
 			Map<String, Object> newValueHolder = null;
 			if(valueFuctionalized) {
 				newValueHolder = new HashMap<String, Object>();
-				newValueRs = selectStatment.executeQuery();//查询新值
+				newValueRs = selectStatement.executeQuery();//查询新值
 				while(newValueRs.next()) {//将变更后的新值保存进一维Map中，使用表名、id、字段名组合作为key，以便在遍历旧值三维Map时组合key查询对应的新值
 					for(int i=1;i<=columnCount;i++) {
 						String columnName = rsmd.getColumnName(i);
@@ -373,36 +378,36 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			StringBuilder sb = new StringBuilder();
 			for(Object param:args)
 				sb.append(",").append(param);
-			updationStatment = conn.prepareStatement("INSERT INTO s_updation VALUES(?, ?, ?, ?)");
-			updationStatment.setLong(1, updationId);
-			updationStatment.setString(2, sql);
-			updationStatment.setString(3, sb.substring(1));
-			updationStatment.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
-			updationStatment.executeUpdate();
+			updationStatement = conn.prepareStatement("INSERT INTO s_updation VALUES(?, ?, ?, ?)");
+			updationStatement.setLong(1, updationId);
+			updationStatement.setString(2, sql);
+			updationStatement.setString(3, sb.substring(1));
+			updationStatement.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
+			updationStatement.executeUpdate();
 			//插入s_updation表结束
-			updationAutoIncrementStatment.setString(2, "s_updation_row");//s_updation表的自增只取一次，后续s_updation_row表的自增要取多次
+			updationAutoIncrementStatement.setString(2, "s_updation_row");//s_updation表的自增只取一次，后续s_updation_row表的自增要取多次
 			for(String tableName:oldValueTables.keySet()) {
 				Map<Object, Map<String, Object>> rows = oldValueTables.get(tableName);
-				PreparedStatement updationRowStatment = dataIdMetaData.get(tableName).getStatement();
-				updationRowStatment.setString(3, tableName);
+				PreparedStatement updationRowStatement = dataIdMetaData.get(tableName).getStatement();
+				updationRowStatement.setString(3, tableName);
 				for(Entry<Object, Map<String, Object>> row:rows.entrySet()) {
-					autoIncrementRs = updationAutoIncrementStatment.executeQuery();
+					autoIncrementRs = updationAutoIncrementStatement.executeQuery();
 					autoIncrementRs.next();
 					Long updationRowId = autoIncrementRs.getLong("AUTO_INCREMENT");
 					autoIncrementRs.close();
 					Object dataId = row.getKey();
-					updationRowStatment.setLong(1, updationRowId);
-					updationRowStatment.setObject(4, dataId);
-					updationRowStatment.executeUpdate();
+					updationRowStatement.setLong(1, updationRowId);
+					updationRowStatement.setObject(4, dataId);
+					updationRowStatement.executeUpdate();
 					if(valueFuctionalized) {
 						for(Entry<String, Object> field:row.getValue().entrySet()) {
 							String columnName = field.getKey();
-							PreparedStatement updationFieldStatment = updationFieldStatmentHolder.get(tableName+"_"+columnName);
-							updationFieldStatment.setLong(1, updationRowId);
-							updationFieldStatment.setString(2, columnName);
-							updationFieldStatment.setObject(3, field.getValue());
-							updationFieldStatment.setObject(4, newValueHolder.get(tableName+"_"+dataId.toString()+"_"+columnName));
-							updationFieldStatment.executeUpdate();
+							PreparedStatement updationFieldStatement = updationFieldStatementHolder.get(tableName+"_"+columnName);
+							updationFieldStatement.setLong(1, updationRowId);
+							updationFieldStatement.setString(2, columnName);
+							updationFieldStatement.setObject(3, field.getValue());
+							updationFieldStatement.setObject(4, newValueHolder.get(tableName+"_"+dataId.toString()+"_"+columnName));
+							updationFieldStatement.executeUpdate();
 						}
 					} else {
 						for(int i=1;i<=columnCount;i++) {
@@ -410,12 +415,12 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 							String columnLabel = rsmd.getColumnLabel(i);
 							if(columnName.equals("id")||columnLabel.equals("id"))
 								continue;
-							PreparedStatement updationFieldStatment = updationFieldStatmentHolder.get(tableName+"_"+columnName);
-							updationFieldStatment.setLong(1, updationRowId);
-							updationFieldStatment.setString(2, columnName);
-							updationFieldStatment.setObject(3, rows.get(dataId).get(columnName));
-							updationFieldStatment.setObject(4, args[i-2]);
-							updationFieldStatment.executeUpdate();
+							PreparedStatement updationFieldStatement = updationFieldStatementHolder.get(tableName+"_"+columnName);
+							updationFieldStatement.setLong(1, updationRowId);
+							updationFieldStatement.setString(2, columnName);
+							updationFieldStatement.setObject(3, rows.get(dataId).get(columnName));
+							updationFieldStatement.setObject(4, args[i-2]);
+							updationFieldStatement.executeUpdate();
 						}
 					}
 				}
@@ -434,18 +439,18 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				newValueRs.close();
 			if(autoIncrementRs!=null)
 				autoIncrementRs.close();
-			if(statment!=null)
-				statment.close();
-			if(selectStatment!=null)
-				selectStatment.close();
-			if(updationAutoIncrementStatment!=null)
-				updationAutoIncrementStatment.close();
-			if(updationStatment!=null)
-				updationStatment.close();
+			if(statement!=null)
+				statement.close();
+			if(selectStatement!=null)
+				selectStatement.close();
+			if(updationAutoIncrementStatement!=null)
+				updationAutoIncrementStatement.close();
+			if(updationStatement!=null)
+				updationStatement.close();
 			for(DataIdMeta dataIdMeta:dataIdMetaData.values())
 				dataIdMeta.getStatement().close();
-			for(PreparedStatement updationFieldStatment:updationFieldStatmentHolder.values())
-				updationFieldStatment.close();
+			for(PreparedStatement updationFieldStatement:updationFieldStatementHolder.values())
+				updationFieldStatement.close();
 			if(selfConn&&conn!=null)
 				conn.close();
 		}
@@ -510,15 +515,15 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		String sql = sqlFrontHalf+" s LEFT OUTER JOIN s_dynamic_field_val v ON s.id=v.business_id_str OR s.id=v.business_id_int LEFT OUTER JOIN s_dynamic_field f ON v.field_id=f.id AND f.table_name=?;";
 		Map<Object, Object> groupedResultMap = new HashMap<Object, Object>();
 		Connection conn = null;
-		PreparedStatement dynamicFieldsStatment = null;
-		PreparedStatement statment = null;
+		PreparedStatement dynamicFieldsStatement = null;
+		PreparedStatement statement = null;
 		ResultSet dynamicFieldsRs = null;
 		ResultSet rs = null;
 		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
 		try {
 			conn = connectionHolder==null?dataSource.getConnection():((ConnectionHolder)connectionHolder).getConnection();
-			statment = conn.prepareStatement(sql);
-			ResultSetMetaData rsmd = statment.getMetaData();
+			statement = conn.prepareStatement(sql);
+			ResultSetMetaData rsmd = statement.getMetaData();
 			int columnCount = rsmd.getColumnCount();
 			int fieldIdColumnIndex = 0;
 			int businessIdColumnIndex = 0;
@@ -535,9 +540,9 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				if(i>2&&fieldIdColumnIndex>0&&businessIdColumnIndex>0)//如果业务数据id和动态字段id都找到后
 					break;
 			}
-			dynamicFieldsStatment = conn.prepareStatement("SELECT * FROM s_dynamic_field WHERE table_name=? ORDER BY sort;");
-			dynamicFieldsStatment.setString(1, tableName);
-			dynamicFieldsRs = dynamicFieldsStatment.executeQuery();
+			dynamicFieldsStatement = conn.prepareStatement("SELECT * FROM s_dynamic_field WHERE table_name=? ORDER BY sort;");
+			dynamicFieldsStatement.setString(1, tableName);
+			dynamicFieldsRs = dynamicFieldsStatement.executeQuery();
 			while(dynamicFieldsRs.next()) {
 				String name = dynamicFieldsRs.getString("name");
 				dynamicFields.add(name);
@@ -548,10 +553,10 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				tableNameIndex = args.length+1;
 				if(args.length>0)
 					for(int i=0;i<args.length;i++)
-						statment.setObject(i+1, args[i]);
+						statement.setObject(i+1, args[i]);
 			}
-			statment.setString(tableNameIndex, tableName);
-			rs = statment.executeQuery();
+			statement.setString(tableNameIndex, tableName);
+			rs = statement.executeQuery();
 			while(rs.next()) {
 				Object businessId = rs.getObject(businessIdColumnIndex);
 				Object item = groupedResultMap.get(businessId);
@@ -611,10 +616,10 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				dynamicFieldsRs.close();
 			if(rs!=null)
 				rs.close();
-			if(dynamicFieldsStatment!=null)
-				dynamicFieldsStatment.close();
-			if(statment!=null)
-				statment.close();
+			if(dynamicFieldsStatement!=null)
+				dynamicFieldsStatement.close();
+			if(statement!=null)
+				statement.close();
 			if(connectionHolder==null&&conn!=null)
 				conn.close();
 		}
@@ -638,5 +643,34 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		fieldsSetterMethod.invoke(wrapper, dynamicFields);
 		resultSetterMethod.invoke(wrapper, itemOrList);
 		return wrapper;
+	}
+
+	@Override
+	public List<DynamicField> findDynamicFields(String tableName) throws SQLException {
+		List<DynamicField> list = new ArrayList<DynamicField>();
+		Connection conn = null;
+		PreparedStatement statement = null;
+		ResultSet rs = null;
+		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
+		try {
+			conn = connectionHolder==null?dataSource.getConnection():((ConnectionHolder)connectionHolder).getConnection();
+			statement = conn.prepareStatement("SELECT * FROM s_dynamic_field WHERE table_name=? ORDER BY sort;");
+			statement.setString(1, tableName);
+			rs = statement.executeQuery();
+			while(rs.next()) {
+				Integer id = rs.getInt("id");
+				String name = rs.getString("name");
+				int sort = rs.getInt("sort");
+				list.add(new DynamicField(id, name, sort));
+			}
+			return list;
+		} finally {
+			if(rs!=null)
+				rs.close();
+			if(statement!=null)
+				statement.close();
+			if(connectionHolder==null&&conn!=null)
+				conn.close();
+		}
 	}
 }

@@ -1,24 +1,10 @@
 package com.quincy.sdk;
 
-public class DynamicColumn implements Cloneable {
-	private Integer id;
-	private String name;
+public class DynamicColumn extends DynamicField implements Cloneable {
 	private Object value;
-	private int sort;
 
 	public DynamicColumn(Integer id, String name, int sort) {
-		this.id = id;
-		this.name = name;
-		this.sort = sort;
-	}
-	public Integer getId() {
-		return id;
-	}
-	public String getName() {
-		return name;
-	}
-	public int getSort() {
-		return sort;
+		super(id, name, sort);
 	}
 	public Object getValue() {
 		return value;
