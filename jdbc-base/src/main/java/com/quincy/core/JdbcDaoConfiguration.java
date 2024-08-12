@@ -482,7 +482,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 	@Override
 	public Object executeQueryWithDynamicColumns(String sqlFrontHalf, String tableName, Class<?> returnItemType, Class<?> returnType,
 			Object... args) throws SQLException, IOException, InstantiationException, IllegalAccessException,
-			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, CloneNotSupportedException {
 		String returnItemTypeName = returnItemType.getName();
 		Map<String, Method> map = classMethodMap.get(returnItemType);
 		Assert.isTrue(map!=null, returnItemTypeName+" must be marked by @DTO.");
@@ -505,6 +505,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			returnWrapper = true;
 		}
 		List<String> dynamicFields = new ArrayList<String>();
+		List<DynamicColumn> dynamicColumnsModel = new ArrayList<DynamicColumn>();
 		List<Object> list = new ArrayList<>();
 		String sql = sqlFrontHalf+" s LEFT OUTER JOIN s_dynamic_field_val v ON s.id=v.business_id_str OR s.id=v.business_id_int LEFT OUTER JOIN s_dynamic_field f ON v.field_id=f.id AND f.table_name=?;";
 		Map<Object, Object> groupedResultMap = new HashMap<Object, Object>();
@@ -534,11 +535,14 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				if(i>2&&fieldIdColumnIndex>0&&businessIdColumnIndex>0)//如果业务数据id和动态字段id都找到后
 					break;
 			}
-			dynamicFieldsStatment = conn.prepareStatement("SELECT name FROM s_dynamic_field WHERE table_name=? ORDER BY sort;");
+			dynamicFieldsStatment = conn.prepareStatement("SELECT * FROM s_dynamic_field WHERE table_name=? ORDER BY sort;");
 			dynamicFieldsStatment.setString(1, tableName);
 			dynamicFieldsRs = dynamicFieldsStatment.executeQuery();
-			while(dynamicFieldsRs.next())
-				dynamicFields.add(dynamicFieldsRs.getString("name"));
+			while(dynamicFieldsRs.next()) {
+				String name = dynamicFieldsRs.getString("name");
+				dynamicFields.add(name);
+				dynamicColumnsModel.add(new DynamicColumn(dynamicFieldsRs.getInt("id"), name, dynamicFieldsRs.getInt("sort")));
+			}
 			int tableNameIndex = 1;
 			if(args!=null) {
 				tableNameIndex = args.length+1;
@@ -560,27 +564,29 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 							this.loadItem(map, item, rsmd, rs, i);
 					}
 					dynamicColumns = new ArrayList<DynamicColumn>();
+					for(DynamicColumn dynamicColumn:dynamicColumnsModel)
+						dynamicColumns.add(dynamicColumn.clone());
 					setterMethod.invoke(item, dynamicColumns);
 					groupedResultMap.put(businessId, item);
 					list.add(item);
 				} else
 					dynamicColumns = (List)getterMethod.invoke(item);
-				String name = null;
+				Integer id = null;
 				Object value = null;
-				Integer sort = null;
 				for(int i=1;i<=columnCount;i++) {
 					String tbName = rsmd.getTableName(i);
 					String columnName = rsmd.getColumnName(i);
-					if(tbName.equals("s_dynamic_field")) {
-						if(columnName.equals("name"))
-							name = rs.getString(i);
-						else if(columnName.equals("sort"))
-							sort = rs.getInt(i);
+					if(tbName.equals("s_dynamic_field")&&columnName.equals("id")) {
+						id = rs.getInt(i);
 					} else if(tbName.equals("s_dynamic_field_val")&&columnName.startsWith("value_"))
 						value = rs.getObject(i);
 				}
-				if(value!=null)
-					dynamicColumns.add(new DynamicColumn(name, value, sort));
+				if(value!=null) {
+					for(DynamicColumn dynamicColumn:dynamicColumns) {
+						if(dynamicColumn.getId().intValue()==id)
+							dynamicColumn.setValue(value);
+					}
+				}
 				if(returnDto&&dynamicColumns.size()==dynamicFields.size()) {
 					this.sortDynamicColumns(dynamicColumns);
 					return returnWrapper?this.wrap(returnType, dynamicFields, item):item;
