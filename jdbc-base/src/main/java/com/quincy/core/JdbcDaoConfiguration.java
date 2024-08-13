@@ -315,9 +315,9 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					dataIdMetaData.put(tableName, new DataIdMeta(i, columnClassName, conn, updationId));
 				} else {
 					String valColumnNameSuffix = null;
-					if(columnClassName.equals(Integer.class.getName())) {
+					if(columnClassName.equals(Integer.class.getName())||columnClassName.equals(Long.class.getName())) {
 						valColumnNameSuffix = "int";
-					} else if(columnClassName.equals(BigDecimal.class.getName())) {
+					} else if(columnClassName.equals(BigDecimal.class.getName())||columnClassName.equals(Double.class.getName())||columnClassName.equals(Float.class.getName())) {
 						valColumnNameSuffix = "decimal";
 					} else if(columnClassName.equals(LocalDateTime.class.getName())||columnClassName.equals(Timestamp.class.getName())||columnClassName.equals(java.sql.Date.class.getName())||columnClassName.equals(Time.class.getName())) {
 						valColumnNameSuffix = "time";
@@ -527,15 +527,19 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			int columnCount = rsmd.getColumnCount();
 			int fieldIdColumnIndex = 0;
 			int businessIdColumnIndex = 0;
+			String joinConditionToRemove = null;
 			for(int i=1;i<=columnCount;i++) {
 				String columnName = rsmd.getColumnName(i);
 				String columnLabel = rsmd.getColumnLabel(i);
 				String tbName = rsmd.getTableName(i);
 				if(columnName.equals("id")||columnLabel.equals("id")) {
-					if(tbName.equals("s_dynamic_field"))
+					if(tbName.equals("s_dynamic_field")) {
 						fieldIdColumnIndex = i;
-					else
+					} else {
 						businessIdColumnIndex = i;
+						joinConditionToRemove = rsmd.getColumnClassName(i).equals(String.class.getName())?"OR s.id=v.business_id_int ":"s.id=v.business_id_str OR ";
+						sql = sql.replaceFirst(joinConditionToRemove, "");
+					}
 				}
 				if(i>2&&fieldIdColumnIndex>0&&businessIdColumnIndex>0)//如果业务数据id和动态字段id都找到后
 					break;
@@ -548,6 +552,8 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				dynamicFields.add(name);
 				dynamicColumnsModel.add(new DynamicColumn(dynamicFieldsRs.getInt("id"), name, dynamicFieldsRs.getInt("sort")));
 			}
+			statement.close();
+			statement = conn.prepareStatement(sql);
 			int tableNameIndex = 1;
 			if(args!=null) {
 				tableNameIndex = args.length+1;
