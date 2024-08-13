@@ -179,7 +179,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			Class<?> parameterType = setterMethod.getParameterTypes()[0];
 			Object v = rs.getObject(i);
 			if(!parameterType.isInstance(v)) {
-				if(parameterType.getName().equals(String.class.getName())) {
+				if(String.class.isAssignableFrom(parameterType)) {
 					v = rs.getString(i);
 				} else if(parameterType.getName().equals(boolean.class.getName())||parameterType.getName().equals(Boolean.class.getName())) {
 					v = rs.getBoolean(i);
@@ -195,21 +195,21 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					v = rs.getFloat(i);
 				} else if(parameterType.getName().equals(double.class.getName())||parameterType.getName().equals(Double.class.getName())) {
 					v = rs.getDouble(i);
-				} else if(parameterType.getName().equals(BigDecimal.class.getName())) {
+				} else if(BigDecimal.class.isAssignableFrom(parameterType)) {
 					v = rs.getBigDecimal(i);
-				} else if(parameterType.getName().equals(Date.class.getName())||parameterType.getName().equals(java.sql.Date.class.getName())) {
-					v = rs.getDate(i);
-				} else if(parameterType.getName().equals(Time.class.getName())) {
-					v = rs.getTime(i);
-				} else if(parameterType.getName().equals(Timestamp.class.getName())) {
+				} else if(Timestamp.class.isAssignableFrom(parameterType)) {
 					v = rs.getTimestamp(i);
-				} else if(parameterType.getName().equals(Array.class.getName())) {
+				} else if(Time.class.isAssignableFrom(parameterType)) {
+					v = rs.getTime(i);
+				} else if(Date.class.isAssignableFrom(parameterType)) {
+					v = rs.getDate(i);
+				} else if(Array.class.isAssignableFrom(parameterType)) {
 					v = rs.getArray(i);
-				} else if(parameterType.getName().equals(Blob.class.getName())) {
+				} else if(Blob.class.isAssignableFrom(parameterType)) {
 					v = rs.getBlob(i);
-				} else if(parameterType.getName().equals(Clob.class.getName())) {
+				} else if(Clob.class.isAssignableFrom(parameterType)) {
 					v = rs.getClob(i);
-				} else if(parameterType.getName().equals(byte[].class.getName())) {
+				} else if(byte[].class.isAssignableFrom(parameterType)) {
 					InputStream in = null;
 					try {
 						in = rs.getBinaryStream(i);
