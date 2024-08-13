@@ -181,19 +181,19 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			if(!parameterType.isInstance(v)) {
 				if(String.class.isAssignableFrom(parameterType)) {
 					v = rs.getString(i);
-				} else if(parameterType.getName().equals(boolean.class.getName())||parameterType.getName().equals(Boolean.class.getName())) {
+				} else if(boolean.class.isAssignableFrom(parameterType)||Boolean.class.isAssignableFrom(parameterType)) {
 					v = rs.getBoolean(i);
-				} else if(parameterType.getName().equals(byte.class.getName())||parameterType.getName().equals(Byte.class.getName())) {
+				} else if(byte.class.isAssignableFrom(parameterType)||Byte.class.isAssignableFrom(parameterType)) {
 					v = rs.getByte(i);
-				} else if(parameterType.getName().equals(short.class.getName())||parameterType.getName().equals(Short.class.getName())) {
+				} else if(short.class.isAssignableFrom(parameterType)||Short.class.isAssignableFrom(parameterType)) {
 					v = rs.getShort(i);
-				} else if(parameterType.getName().equals(int.class.getName())||parameterType.getName().equals(Integer.class.getName())) {
+				} else if(int.class.isAssignableFrom(parameterType)||Integer.class.isAssignableFrom(parameterType)) {
 					v = rs.getInt(i);
-				} else if(parameterType.getName().equals(long.class.getName())||parameterType.getName().equals(Long.class.getName())) {
+				} else if(long.class.isAssignableFrom(parameterType)||Long.class.isAssignableFrom(parameterType)) {
 					v = rs.getLong(i);
-				} else if(parameterType.getName().equals(float.class.getName())||parameterType.getName().equals(Float.class.getName())) {
+				} else if(float.class.isAssignableFrom(parameterType)||Float.class.isAssignableFrom(parameterType)) {
 					v = rs.getFloat(i);
-				} else if(parameterType.getName().equals(double.class.getName())||parameterType.getName().equals(Double.class.getName())) {
+				} else if(double.class.isAssignableFrom(parameterType)||Double.class.isAssignableFrom(parameterType)) {
 					v = rs.getDouble(i);
 				} else if(BigDecimal.class.isAssignableFrom(parameterType)) {
 					v = rs.getBigDecimal(i);
