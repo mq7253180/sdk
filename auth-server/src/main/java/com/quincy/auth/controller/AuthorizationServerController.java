@@ -20,7 +20,7 @@ import com.quincy.auth.PwdRestEmailInfo;
 import com.quincy.auth.TempPwdLoginEmailInfo;
 import com.quincy.auth.o.XSession;
 import com.quincy.auth.o.User;
-import com.quincy.auth.service.AuthorizationServerService;
+import com.quincy.auth.service.XSessionService;
 import com.quincy.core.AuthCommonConstants;
 import com.quincy.core.InnerConstants;
 import com.quincy.core.InnerHelper;
@@ -38,7 +38,7 @@ import jakarta.servlet.http.HttpSession;
 @RequestMapping("/auth")
 public class AuthorizationServerController {
 	@Autowired
-	private AuthorizationServerService authorizationServerService;
+	private XSessionService xSessionService;
 	@Autowired(required = false)
 	private AuthActions authActions;
 	@Autowired(required = false)
@@ -112,7 +112,7 @@ public class AuthorizationServerController {
 		}
 		String originalJsessionid = user.getJsessionid();
 		user.setJsessionid(session.getId());
-		XSession xsession = authorizationServerService.createXSession(user.getId());
+		XSession xsession = xSessionService.create(user.getId(), null);
 		xsession.setUser(user);
 		session.setAttribute(AuthConstants.ATTR_SESSION, xsession);
 		if(sessionInvalidation!=null) {//同一user同一类端之间互踢，清除session
@@ -136,22 +136,26 @@ public class AuthorizationServerController {
 		Client client = Client.get(request);
 		ModelAndView mv = null;
 		if(client.isJson()) {
-			mv = createModelAndView(result);
+			mv = createModelAndView(request.getSession(), result);
 		} else {
 			if(result.getStatus()==1) {
 				String redirectTo = CommonHelper.trim(_redirectTo);
 				mv = new ModelAndView("redirect:"+(redirectTo!=null?redirectTo:""));
 			} else
-				mv = createModelAndView(result);
+				mv = createModelAndView(request.getSession(), result);
 		}
 		return mv;
 	}
 
-	private ModelAndView createModelAndView(Result result) throws JsonProcessingException {
+	private ModelAndView createModelAndView(HttpSession session, Result result) throws JsonProcessingException {
+		String data = new ObjectMapper().writeValueAsString(result.getData());
+		session.setAttribute("status", result.getStatus());
+		session.setAttribute("msg", result.getMsg());
+		session.setAttribute("data", data);
 		return new ModelAndView("/result_login")
 				.addObject("status", result.getStatus())
 				.addObject("msg", result.getMsg())
-				.addObject("data", new ObjectMapper().writeValueAsString(result.getData()));
+				.addObject("data", data);
 	}
 
 	private int getFailures(HttpServletRequest request) {

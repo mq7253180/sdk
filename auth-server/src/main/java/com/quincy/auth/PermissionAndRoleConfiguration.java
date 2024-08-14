@@ -1,4 +1,4 @@
-package com.quincy.auth.service.impl;
+package com.quincy.auth;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,46 +8,53 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportAware;
+import org.springframework.core.annotation.AnnotationAttributes;
+import org.springframework.core.type.AnnotationMetadata;
 
+import com.quincy.auth.annotation.EnablePermissionAndRole;
 import com.quincy.auth.entity.Permission;
 import com.quincy.auth.entity.Role;
 import com.quincy.auth.mapper.AuthMapper;
-import com.quincy.auth.o.XSession;
 import com.quincy.auth.o.Menu;
-import com.quincy.auth.service.AuthorizationServerService;
+import com.quincy.auth.o.XSession;
+import com.quincy.auth.service.XSessionService;
 
-@Service
-public class AuthorizationServerServiceImpl implements AuthorizationServerService {
+@Configuration
+public abstract class PermissionAndRoleConfiguration implements ImportAware, XSessionService {
+	private Boolean multiEnterprises;
 	@Autowired
 	private AuthMapper authMapper;
-	@Value("${auth.enterprise}")
-	private boolean isEnterprise;
 
-	public XSession createXSession(Long userId) {
+	@Override
+	public void setImportMetadata(AnnotationMetadata importMetadata) {
+		AnnotationAttributes attributes = AnnotationAttributes.fromMap(importMetadata.getAnnotationAttributes(EnablePermissionAndRole.class.getName()));
+		this.multiEnterprises = attributes.getBoolean("multiEnterprises");
+	}
+
+	@Override
+	public XSession create(Long userId, Long enterpriseId) {
 		XSession session = new XSession();
-		if(isEnterprise) {
-			//角色
-			List<Role> roleList = authMapper.findRolesByUserId(userId);
-			Map<Long, String> roleMap = new HashMap<Long, String>(roleList.size());
-			for(Role role:roleList)//去重
-				roleMap.put(role.getId(), role.getName());
-			List<String> roles = new ArrayList<String>(roleMap.size());
-			roles.addAll(roleMap.values());
-			session.setRoles(roles);
-			//权限
-			List<Permission> permissionList = authMapper.findPermissionsByUserId(userId);
-			Map<Long, String> permissionMap = new HashMap<Long, String>(permissionList.size());
-			for(Permission permission:permissionList)//去重
-				permissionMap.put(permission.getId(), permission.getName());
-			List<String> permissions = new ArrayList<String>(permissionMap.size());
-			permissions.addAll(permissionMap.values());
-			session.setPermissions(permissions);
-			//菜单
-			List<Menu> rootMenus = this.findMenusByUserId(userId);
-			session.setMenus(rootMenus);
-		}
+		//角色
+		List<Role> roleList = authMapper.findRolesByUserId(userId);
+		Map<Long, String> roleMap = new HashMap<Long, String>(roleList.size());
+		for(Role role:roleList)//去重
+			roleMap.put(role.getId(), role.getName());
+		List<String> roles = new ArrayList<String>(roleMap.size());
+		roles.addAll(roleMap.values());
+		session.setRoles(roles);
+		//权限
+		List<Permission> permissionList = authMapper.findPermissionsByUserId(userId);
+		Map<Long, String> permissionMap = new HashMap<Long, String>(permissionList.size());
+		for(Permission permission:permissionList)//去重
+			permissionMap.put(permission.getId(), permission.getName());
+		List<String> permissions = new ArrayList<String>(permissionMap.size());
+		permissions.addAll(permissionMap.values());
+		session.setPermissions(permissions);
+		//菜单
+		List<Menu> rootMenus = this.findMenusByUserId(userId);
+		session.setMenus(rootMenus);
 		return session;
 	}
 

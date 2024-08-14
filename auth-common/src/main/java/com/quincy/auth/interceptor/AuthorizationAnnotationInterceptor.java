@@ -19,7 +19,7 @@ public class AuthorizationAnnotationInterceptor extends AuthorizationInterceptor
 			PermissionNeeded permissionNeededAnnotation = method.getDeclaredAnnotation(PermissionNeeded.class);
 			boolean permissionNeeded = permissionNeededAnnotation!=null;
 			boolean loginRequired = method.getDeclaredAnnotation(LoginRequired.class)!=null;
-			if(!permissionNeeded&&!loginRequired) {
+			if(!loginRequired&&!permissionNeeded) {
 //				boolean deleteCookieIfExpired = method.getDeclaredAnnotation(KeepCookieIfExpired.class)==null;
 //				this.setExpiry(request, deleteCookieIfExpired);
 				return true;
