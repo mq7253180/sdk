@@ -1,8 +1,16 @@
 package com.quincy.sdk;
 
 import java.util.Date;
+import java.util.Random;
 
 public class SnowFlakeUtil {
+	private static Random random = new Random();
+
+	public int generateShardingKeyValue() {
+		return random.nextInt(1024, 8191);//四位
+//		return random.nextInt(131072, 524287);//六位
+	}
+
 	private static SnowFlakeUtil snowFlakeUtil;
     static {
         snowFlakeUtil = new SnowFlakeUtil();
