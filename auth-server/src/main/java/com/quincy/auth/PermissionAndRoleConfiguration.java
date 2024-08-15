@@ -9,11 +9,7 @@ import java.util.Map.Entry;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportAware;
-import org.springframework.core.annotation.AnnotationAttributes;
-import org.springframework.core.type.AnnotationMetadata;
 
-import com.quincy.auth.annotation.EnablePermissionAndRole;
 import com.quincy.auth.entity.Permission;
 import com.quincy.auth.entity.Role;
 import com.quincy.auth.mapper.AuthMapper;
@@ -22,30 +18,15 @@ import com.quincy.auth.o.XSession;
 import com.quincy.auth.service.XSessionService;
 
 @Configuration
-public class PermissionAndRoleConfiguration implements ImportAware, XSessionService {
-	private Boolean multiEnterprises;
+public class PermissionAndRoleConfiguration implements XSessionService {
 	@Autowired
 	private AuthMapper authMapper;
 
 	@Override
-	public void setImportMetadata(AnnotationMetadata importMetadata) {
-		AnnotationAttributes attributes = AnnotationAttributes.fromMap(importMetadata.getAnnotationAttributes(EnablePermissionAndRole.class.getName()));
-		this.multiEnterprises = attributes.getBoolean("multiEnterprises");
-	}
-
-	@Override
 	public XSession create(Long userId, Long enterpriseId) {
-		List<Role> roleList = null;
-		List<Permission> permissionList = null;
-		if(this.multiEnterprises) {
-			roleList = authMapper.findRolesByUserIdAndEnterpriseId(userId, enterpriseId);
-			permissionList = authMapper.findPermissionsByUserIdAndEnterpriseId(userId, enterpriseId);
-		} else {
-			roleList = authMapper.findRolesByUserId(userId);
-			permissionList = authMapper.findPermissionsByUserId(userId);
-		}
 		XSession session = new XSession();
 		//角色
+		List<Role> roleList = authMapper.findRolesByUserIdAndEnterpriseId(userId, enterpriseId);
 		Map<Long, String> roleMap = new HashMap<Long, String>(roleList.size());
 		for(Role role:roleList)//去重
 			roleMap.put(role.getId(), role.getName());
@@ -53,6 +34,7 @@ public class PermissionAndRoleConfiguration implements ImportAware, XSessionServ
 		roles.addAll(roleMap.values());
 		session.setRoles(roles);
 		//权限
+		List<Permission> permissionList = authMapper.findPermissionsByUserIdAndEnterpriseId(userId, enterpriseId);
 		Map<Long, String> permissionMap = new HashMap<Long, String>(permissionList.size());
 		for(Permission permission:permissionList)//去重
 			permissionMap.put(permission.getId(), permission.getName());
@@ -60,13 +42,13 @@ public class PermissionAndRoleConfiguration implements ImportAware, XSessionServ
 		permissions.addAll(permissionMap.values());
 		session.setPermissions(permissions);
 		//菜单
-		List<Menu> rootMenus = this.findMenusByUserId(userId);
+		List<Menu> rootMenus = this.findMenusByUserIdAndEnterpriseId(userId, enterpriseId);
 		session.setMenus(rootMenus);
 		return session;
 	}
 
-	private List<Menu> findMenusByUserId(Long userId) {
-		List<Menu> allMenus = authMapper.findMenusByUserId(userId);
+	private List<Menu> findMenusByUserIdAndEnterpriseId(Long userId, Long enterpriseId) {
+		List<Menu> allMenus = authMapper.findMenusByUserIdAndEnterpriseId(userId, enterpriseId);
 		Map<Long, Menu> duplicateRemovedMenus = new HashMap<Long, Menu>(allMenus.size());
 		for(Menu menu:allMenus)
 			duplicateRemovedMenus.put(menu.getId(), menu);

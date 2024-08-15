@@ -15,5 +15,5 @@ import com.quincy.auth.PermissionAndRoleConfiguration;
 @Documented
 @Import(PermissionAndRoleConfiguration.class)
 public @interface EnablePermissionAndRole {
-	boolean multiEnterprises() default false;
+	
 }
