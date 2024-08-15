@@ -34,15 +34,18 @@ public class PermissionAndRoleConfiguration implements ImportAware, XSessionServ
 	}
 
 	@Override
-	public XSession create(Long userId) {
-		return this.create(userId, null);
-	}
-
-	@Override
 	public XSession create(Long userId, Long enterpriseId) {
+		List<Role> roleList = null;
+		List<Permission> permissionList = null;
+		if(this.multiEnterprises) {
+			roleList = authMapper.findRolesByUserIdAndEnterpriseId(userId, enterpriseId);
+			permissionList = authMapper.findPermissionsByUserIdAndEnterpriseId(userId, enterpriseId);
+		} else {
+			roleList = authMapper.findRolesByUserId(userId);
+			permissionList = authMapper.findPermissionsByUserId(userId);
+		}
 		XSession session = new XSession();
 		//角色
-		List<Role> roleList = authMapper.findRolesByUserId(userId);
 		Map<Long, String> roleMap = new HashMap<Long, String>(roleList.size());
 		for(Role role:roleList)//去重
 			roleMap.put(role.getId(), role.getName());
@@ -50,7 +53,6 @@ public class PermissionAndRoleConfiguration implements ImportAware, XSessionServ
 		roles.addAll(roleMap.values());
 		session.setRoles(roles);
 		//权限
-		List<Permission> permissionList = authMapper.findPermissionsByUserId(userId);
 		Map<Long, String> permissionMap = new HashMap<Long, String>(permissionList.size());
 		for(Permission permission:permissionList)//去重
 			permissionMap.put(permission.getId(), permission.getName());

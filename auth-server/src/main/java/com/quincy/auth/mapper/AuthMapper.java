@@ -14,4 +14,7 @@ public interface AuthMapper {
 	public List<Role> findRolesByUserId(@Param("userId")Long userId);
 	public List<Permission> findPermissionsByUserId(@Param("userId")Long userId);
 	public List<Menu> findMenusByUserId(@Param("userId")Long userId);
+	public List<Role> findRolesByUserIdAndEnterpriseId(@Param("userId")Long userId, @Param("enterpriseId")Long enterpriseId);
+	public List<Permission> findPermissionsByUserIdAndEnterpriseId(@Param("userId")Long userId, @Param("enterpriseId")Long enterpriseId);
+	public List<Menu> findMenusByUserIdAndEnterpriseId(@Param("userId")Long userId, @Param("enterpriseId")Long enterpriseId);
 }
