@@ -37,7 +37,7 @@ import jakarta.servlet.http.HttpSession;
 @Controller
 @RequestMapping("/auth")
 public class AuthorizationServerController {
-	@Autowired
+	@Autowired(required = false)
 	private XSessionService xSessionService;
 	@Autowired(required = false)
 	private AuthActions authActions;
@@ -112,7 +112,7 @@ public class AuthorizationServerController {
 		}
 		String originalJsessionid = user.getJsessionid();
 		user.setJsessionid(session.getId());
-		XSession xsession = xSessionService.create(user.getId(), null);
+		XSession xsession = xSessionService==null?new XSession():xSessionService.create(user.getId(), null);
 		xsession.setUser(user);
 		session.setAttribute(AuthConstants.ATTR_SESSION, xsession);
 		if(sessionInvalidation!=null) {//同一user同一类端之间互踢，清除session
