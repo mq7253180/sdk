@@ -22,7 +22,7 @@ import com.quincy.auth.o.XSession;
 import com.quincy.auth.service.XSessionService;
 
 @Configuration
-public abstract class PermissionAndRoleConfiguration implements ImportAware, XSessionService {
+public class PermissionAndRoleConfiguration implements ImportAware, XSessionService {
 	private Boolean multiEnterprises;
 	@Autowired
 	private AuthMapper authMapper;
@@ -31,6 +31,11 @@ public abstract class PermissionAndRoleConfiguration implements ImportAware, XSe
 	public void setImportMetadata(AnnotationMetadata importMetadata) {
 		AnnotationAttributes attributes = AnnotationAttributes.fromMap(importMetadata.getAnnotationAttributes(EnablePermissionAndRole.class.getName()));
 		this.multiEnterprises = attributes.getBoolean("multiEnterprises");
+	}
+
+	@Override
+	public XSession create(Long userId) {
+		return this.create(userId, null);
 	}
 
 	@Override
