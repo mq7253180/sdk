@@ -8,11 +8,11 @@ import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Import;
 
-import com.quincy.auth.service.impl.XSessionServiceShardingProxyImpl;
+import com.quincy.auth.service.impl.XSessionServiceShardingImpl;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Documented
-@Import(XSessionServiceShardingProxyImpl.class)
+@Import(XSessionServiceShardingImpl.class)
 public @interface EnableShardingPermissionAndRole {
 }

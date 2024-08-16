@@ -1,18 +1,18 @@
 package com.quincy.auth.service.impl;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.quincy.auth.o.User;
 import com.quincy.auth.o.XSession;
-import com.quincy.auth.service.ShardingXSessionService;
-import com.quincy.auth.service.XSessionService;
+import com.quincy.auth.service.XSessionServiceShardingProxy;
+import com.quincy.sdk.annotation.ReadOnly;
+import com.quincy.sdk.annotation.sharding.ShardingKey;
 
-public class XSessionServiceShardingProxyImpl implements XSessionService {
-	@Autowired
-	private ShardingXSessionService shardingXSessionService;
-
+@Service
+public class XSessionServiceShardingProxyImpl extends XSessionServiceImpl implements XSessionServiceShardingProxy {
+	@ReadOnly
 	@Override
-	public XSession create(User user) {
-		return shardingXSessionService.create(user.getShardingKey(), user);
+	public XSession create(@ShardingKey Integer shardingKey, User user) {
+		return this.create(user);
 	}
 }
