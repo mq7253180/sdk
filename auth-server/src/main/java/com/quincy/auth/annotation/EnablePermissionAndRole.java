@@ -8,12 +8,11 @@ import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Import;
 
-import com.quincy.auth.PermissionAndRoleConfiguration;
+import com.quincy.auth.service.impl.XSessionServiceImpl;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Documented
-@Import(PermissionAndRoleConfiguration.class)
-public @interface EnablePermissionAndRole {
-	
+@Import(XSessionServiceImpl.class)
+public @interface EnablePermissionAndRole {	
 }

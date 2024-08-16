@@ -7,7 +7,7 @@ import com.quincy.auth.o.XSession;
 import com.quincy.auth.service.ShardingXSessionService;
 import com.quincy.auth.service.XSessionService;
 
-public class XSessionServiceShardingImpl implements XSessionService {
+public class XSessionServiceShardingProxyImpl implements XSessionService {
 	@Autowired
 	private ShardingXSessionService shardingXSessionService;
 

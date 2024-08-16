@@ -1,4 +1,4 @@
-package com.quincy.auth;
+package com.quincy.auth.service.impl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,7 +17,7 @@ import com.quincy.auth.o.User;
 import com.quincy.auth.o.XSession;
 import com.quincy.auth.service.XSessionService;
 
-public class PermissionAndRoleConfiguration implements XSessionService {
+public class XSessionServiceImpl implements XSessionService {
 	@Autowired
 	private AuthMapper authMapper;
 
