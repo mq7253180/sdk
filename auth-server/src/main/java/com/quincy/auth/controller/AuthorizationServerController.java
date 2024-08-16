@@ -125,7 +125,7 @@ public class AuthorizationServerController {
 					sessionInvalidation.invalidate(originalJsessionid);
 			}
 		}
-		authActions.updateLastLogin(user.getId(), session.getId(), client);//互踢还需要应用层配合更新数据库里的jsessionid
+		authActions.updateLastLogin(user, session.getId(), client);//互踢还需要应用层配合更新数据库里的jsessionid
 		result.setStatus(1);
 		result.setMsg(requestContext.getMessage("auth.success"));
 		result.setData(xsession);
