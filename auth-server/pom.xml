@@ -6,20 +6,20 @@
 	<name>Auth-Server</name>
 	<url>https://github.com/mq7253180/sdk/tree/master/auth-server</url>
 	<parent>
-		<groupId>com.maqiangcgq</groupId>
+		<groupId>com.quincy</groupId>
 		<artifactId>sdk</artifactId>
-		<version>1.1.2</version>
+		<version>2.0.0</version>
 	</parent>
 	<dependencies>
 		<dependency>
-		    <groupId>com.maqiangcgq</groupId>
+		    <groupId>com.quincy</groupId>
 		    <artifactId>quincy-jdbc-base</artifactId>
-		    <version>1.1.2</version>
+		    <version>2.0.0</version>
 		</dependency>
 		<dependency>
-		    <groupId>com.maqiangcgq</groupId>
+		    <groupId>com.quincy</groupId>
 		    <artifactId>quincy-auth-common</artifactId>
-		    <version>1.1.2</version>
+		    <version>2.0.0</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.apache.oltu.oauth2</groupId>

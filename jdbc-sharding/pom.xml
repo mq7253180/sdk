@@ -6,15 +6,15 @@
 	<name>JDBC Sharding</name>
 	<url>https://github.com/mq7253180/sdk/tree/master/db-sharding</url>
 	<parent>
-		<groupId>com.maqiangcgq</groupId>
+		<groupId>com.quincy</groupId>
 		<artifactId>sdk</artifactId>
-		<version>1.1.2</version>
+		<version>2.0.0</version>
 	</parent>
 	<dependencies>
 		<dependency>
-		    <groupId>com.maqiangcgq</groupId>
+		    <groupId>com.quincy</groupId>
 		    <artifactId>quincy-jdbc-base</artifactId>
-		    <version>1.1.2</version>
+		    <version>2.0.0</version>
 		</dependency>
     </dependencies>
 </project>
