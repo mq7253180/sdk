@@ -9,10 +9,10 @@ import com.quincy.auth.service.XSessionService;
 
 public class XSessionServiceShardingImpl implements XSessionService {
 	@Autowired
-	private XSessionServiceShardingProxy shardingXSessionService;
+	private XSessionServiceShardingProxy xSessionServiceShardingProxy;
 
 	@Override
 	public XSession create(User user) {
-		return shardingXSessionService.create(user.getShardingKey(), user);
+		return xSessionServiceShardingProxy.create(user.getShardingKey(), user);
 	}
 }
