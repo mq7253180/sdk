@@ -152,5 +152,6 @@
 		<module>sftp</module>
 		<module>auth-common</module>
 		<module>auth-server</module>
+		<module>auth-server-sharding</module>
 	</modules>
 </project>

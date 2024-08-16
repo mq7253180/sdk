@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>quincy-auth-server-sharding</artifactId>
+	<name>Auth-Server</name>
+	<url>https://github.com/mq7253180/sdk/tree/master/auth-server</url>
+	<parent>
+		<groupId>com.maqiangcgq</groupId>
+		<artifactId>sdk</artifactId>
+		<version>1.1.2</version>
+	</parent>
+	<dependencies>
+		<dependency>
+		    <groupId>com.maqiangcgq</groupId>
+		    <artifactId>quincy-jdbc-sharding</artifactId>
+		    <version>1.1.2</version>
+		</dependency>
+		<dependency>
+		    <groupId>com.maqiangcgq</groupId>
+		    <artifactId>quincy-auth-server</artifactId>
+		    <version>1.1.2</version>
+		</dependency>
+    </dependencies>
+</project>

@@ -8,25 +8,24 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
 
 import com.quincy.auth.entity.Permission;
 import com.quincy.auth.entity.Role;
 import com.quincy.auth.mapper.AuthMapper;
 import com.quincy.auth.o.Menu;
+import com.quincy.auth.o.User;
 import com.quincy.auth.o.XSession;
 import com.quincy.auth.service.XSessionService;
 
-@Configuration
 public class PermissionAndRoleConfiguration implements XSessionService {
 	@Autowired
 	private AuthMapper authMapper;
 
 	@Override
-	public XSession create(Long userId, Long enterpriseId) {
+	public XSession create(User user) {
 		XSession session = new XSession();
 		//角色
-		List<Role> roleList = authMapper.findRolesByUserIdAndEnterpriseId(userId, enterpriseId);
+		List<Role> roleList = authMapper.findRolesByUserIdAndEnterpriseId(user.getId(), user.getEnterpriseId());
 		Map<Long, String> roleMap = new HashMap<Long, String>(roleList.size());
 		for(Role role:roleList)//去重
 			roleMap.put(role.getId(), role.getName());
@@ -34,7 +33,7 @@ public class PermissionAndRoleConfiguration implements XSessionService {
 		roles.addAll(roleMap.values());
 		session.setRoles(roles);
 		//权限
-		List<Permission> permissionList = authMapper.findPermissionsByUserIdAndEnterpriseId(userId, enterpriseId);
+		List<Permission> permissionList = authMapper.findPermissionsByUserIdAndEnterpriseId(user.getId(), user.getEnterpriseId());
 		Map<Long, String> permissionMap = new HashMap<Long, String>(permissionList.size());
 		for(Permission permission:permissionList)//去重
 			permissionMap.put(permission.getId(), permission.getName());
@@ -42,7 +41,7 @@ public class PermissionAndRoleConfiguration implements XSessionService {
 		permissions.addAll(permissionMap.values());
 		session.setPermissions(permissions);
 		//菜单
-		List<Menu> rootMenus = this.findMenusByUserIdAndEnterpriseId(userId, enterpriseId);
+		List<Menu> rootMenus = this.findMenusByUserIdAndEnterpriseId(user.getId(), user.getEnterpriseId());
 		session.setMenus(rootMenus);
 		return session;
 	}
