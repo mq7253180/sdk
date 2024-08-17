@@ -31,7 +31,7 @@ import com.quincy.core.entity.Transaction;
 import com.quincy.core.entity.TransactionArg;
 import com.quincy.core.entity.TransactionAtomic;
 import com.quincy.core.service.TransactionService;
-import com.quincy.sdk.DTransactionContext;
+import com.quincy.sdk.DTransactionOptRegistry;
 import com.quincy.sdk.DTransactionFailure;
 import com.quincy.sdk.annotation.transaction.AtomicOperational;
 import com.quincy.sdk.annotation.transaction.DTransactional;
@@ -46,7 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 @Aspect
 @Order(7)
 @Component
-public class DistributedTransactionAop implements DTransactionContext {
+public class DistributedTransactionAop implements DTransactionOptRegistry {
 	private final static ThreadLocal<List<TransactionAtomic>> atomicsHolder = new ThreadLocal<List<TransactionAtomic>>();
 	private final static ThreadLocal<Boolean> inTransactionHolder = new ThreadLocal<Boolean>();
 	private final static ThreadLocal<Boolean> inOrderHolder = new ThreadLocal<Boolean>();
