@@ -149,7 +149,7 @@ public class TransactionServiceImpl implements TransactionService {
 	}
 
 	public List<Transaction> findFailedTransactions(String applicationName, String flagForCronJob) {
-		return flagForCronJob==null?transactionRepository.findByApplicationNameAndStatus(applicationName, DTransactionConstants.TX_STATUS_ED):transactionRepository.findByApplicationNameAndStatusAndFrequencyBatch(applicationName, DTransactionConstants.TX_STATUS_ED, flagForCronJob);
+		return flagForCronJob==null?transactionRepository.findByApplicationNameAndStatus(applicationName, DTransactionConstants.TX_STATUS_ED):transactionRepository.findByApplicationNameAndStatusAndFlagForCronJob(applicationName, DTransactionConstants.TX_STATUS_ED, flagForCronJob);
 	}
 
 	public int updateTransactionVersion(Long id, Integer version) {
