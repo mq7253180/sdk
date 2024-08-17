@@ -176,13 +176,12 @@ public class DistributedTransactionAop implements DTransactionContext {
 	}
 
 	@Override
-	public void compensate() throws ClassNotFoundException, NoSuchMethodException, SecurityException, IOException, InterruptedException {
-		List<Transaction> failedTransactions = transactionService.findFailedTransactions(applicationName, null);
-		this.compensate(failedTransactions);
+	public void resume() throws ClassNotFoundException, NoSuchMethodException, SecurityException, IOException, InterruptedException {
+		this.resume(null);
 	}
 
 	@Override
-	public void compensate(String frequencyBatch) throws ClassNotFoundException, NoSuchMethodException, IOException, InterruptedException {
+	public void resume(String frequencyBatch) throws ClassNotFoundException, NoSuchMethodException, IOException, InterruptedException {
 		List<Transaction> failedTransactions = transactionService.findFailedTransactions(applicationName, CommonHelper.trim(frequencyBatch));
 		this.compensate(failedTransactions);
 	}
