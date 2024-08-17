@@ -95,7 +95,7 @@ public class DistributedTransactionAop implements DTransactionContext {
 		tx.setBeanName(AopHelper.extractBeanName(clazz));
 		tx.setMethodName(methodSignature.getName());
 		tx.setParameterTypes(methodSignature.getParameterTypes());
-		String frequencyBatch = CommonHelper.trim(annotation.frequencyBatch());
+		String frequencyBatch = CommonHelper.trim(annotation.flagForCronJob());
 		if(frequencyBatch!=null)
 			tx.setFrequencyBatch(frequencyBatch);
 		tx.setInOrder(annotation.inOrder());

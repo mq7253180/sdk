@@ -10,6 +10,6 @@ import java.lang.annotation.Target;
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(value = {ElementType.METHOD})
 public @interface DTransactional {
-	public String frequencyBatch() default "";
+	public String flagForCronJob() default "";
 	public boolean inOrder() default true;
 }
