@@ -11,5 +11,5 @@ import com.quincy.core.entity.Transaction;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long>, JpaSpecificationExecutor<Transaction> {
 	public List<Transaction> findByApplicationNameAndStatus(String applicationName, int status);
-	public List<Transaction> findByApplicationNameAndStatusAndFrequencyBatch(String applicationName, int status, String frequencyBatch);
+	public List<Transaction> findByApplicationNameAndStatusAndFrequencyBatch(String applicationName, int status, String flagForCronJob);
 }

@@ -148,8 +148,8 @@ public class TransactionServiceImpl implements TransactionService {
 		coreMapper.deleteTransaction(id);
 	}
 
-	public List<Transaction> findFailedTransactions(String applicationName, String frequencyBatch) {
-		return frequencyBatch==null?transactionRepository.findByApplicationNameAndStatus(applicationName, DTransactionConstants.TX_STATUS_ED):transactionRepository.findByApplicationNameAndStatusAndFrequencyBatch(applicationName, DTransactionConstants.TX_STATUS_ED, frequencyBatch);
+	public List<Transaction> findFailedTransactions(String applicationName, String flagForCronJob) {
+		return flagForCronJob==null?transactionRepository.findByApplicationNameAndStatus(applicationName, DTransactionConstants.TX_STATUS_ED):transactionRepository.findByApplicationNameAndStatusAndFrequencyBatch(applicationName, DTransactionConstants.TX_STATUS_ED, flagForCronJob);
 	}
 
 	public int updateTransactionVersion(Long id, Integer version) {

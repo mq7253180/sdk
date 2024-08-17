@@ -42,8 +42,8 @@ public class Transaction {
 	private Integer status;//0正在执行; 1执行结束
 	@Column(name="version")
 	private Integer version;
-	@Column(name="frequency_batch")
-	private String frequencyBatch;//频率批次名称
+	@Column(name="flag_for_cron_job")
+	private String flagForCronJob;//频率批次名称
 	@Column(name="in_order")
 	private Boolean inOrder;//是否有顺序
 	@Transient

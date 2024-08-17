@@ -95,9 +95,9 @@ public class DistributedTransactionAop implements DTransactionContext {
 		tx.setBeanName(AopHelper.extractBeanName(clazz));
 		tx.setMethodName(methodSignature.getName());
 		tx.setParameterTypes(methodSignature.getParameterTypes());
-		String frequencyBatch = CommonHelper.trim(annotation.flagForCronJob());
-		if(frequencyBatch!=null)
-			tx.setFrequencyBatch(frequencyBatch);
+		String flagForCronJob = CommonHelper.trim(annotation.flagForCronJob());
+		if(flagForCronJob!=null)
+			tx.setFlagForCronJob(flagForCronJob);
 		tx.setInOrder(annotation.inOrder());
 		final Transaction permanentTx = transactionService.insertTransaction(tx);
 		atomics = permanentTx.getAtomics();
@@ -181,8 +181,8 @@ public class DistributedTransactionAop implements DTransactionContext {
 	}
 
 	@Override
-	public void resume(String frequencyBatch) throws ClassNotFoundException, NoSuchMethodException, IOException, InterruptedException {
-		List<Transaction> failedTransactions = transactionService.findFailedTransactions(applicationName, CommonHelper.trim(frequencyBatch));
+	public void resume(String flagForCronJob) throws ClassNotFoundException, NoSuchMethodException, IOException, InterruptedException {
+		List<Transaction> failedTransactions = transactionService.findFailedTransactions(applicationName, CommonHelper.trim(flagForCronJob));
 		this.compensate(failedTransactions);
 	}
 
