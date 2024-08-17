@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
-import com.quincy.core.AuthCommonConstants;
+import com.quincy.core.VCodeConstants;
 import com.quincy.core.InnerHelper;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.VCodeCharsFrom;
@@ -49,7 +49,7 @@ public class VCodeController extends HandlerInterceptorAdapter {
 			@PathVariable(required = true, name = "width")int width, 
 			@PathVariable(required = true, name = "height")int height) throws Exception {
 		char[] vcode = vCodeOpsRgistry.generate(VCodeCharsFrom.MIXED, vcodeLength);
-		request.getSession().setAttribute(AuthCommonConstants.ATTR_KEY_VCODE_ROBOT_FORBIDDEN, new String(vcode));
+		request.getSession().setAttribute(VCodeConstants.ATTR_KEY_VCODE_ROBOT_FORBIDDEN, new String(vcode));
 		BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_BGR);
 		Graphics g = image.getGraphics();
 		Graphics2D gg = (Graphics2D)g;
@@ -89,7 +89,7 @@ public class VCodeController extends HandlerInterceptorAdapter {
 			HandlerMethod method = (HandlerMethod)handler;
 			VCodeRequired annotation = method.getMethod().getDeclaredAnnotation(VCodeRequired.class);
 			if(annotation!=null) {
-				Result result = vCodeOpsRgistry.validate(request, annotation.ignoreCase(), AuthCommonConstants.ATTR_KEY_VCODE_ROBOT_FORBIDDEN);
+				Result result = vCodeOpsRgistry.validate(request, annotation.ignoreCase(), VCodeConstants.ATTR_KEY_VCODE_ROBOT_FORBIDDEN);
 				if(result.getStatus()<1) {
 					InnerHelper.outputOrForward(request, response, handler, result, "/failure", false);
 					return false;

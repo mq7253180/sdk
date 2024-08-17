@@ -7,7 +7,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
-import com.quincy.auth.AuthHandler;
 import com.quincy.auth.AuthConstants;
 import com.quincy.auth.annotation.LoginRequired;
 
@@ -18,12 +17,12 @@ import jakarta.servlet.http.HttpServletResponse;
 @RequestMapping("")
 public class RootController {
 	@Autowired(required = false)
-	private AuthHandler authHandler;
+	private RootControllerHandler handler;
 
 	public ModelAndView root(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		ModelAndView mv = new ModelAndView("/index").addObject(AuthConstants.ATTR_SESSION, request.getSession(false).getAttribute(AuthConstants.ATTR_SESSION));
-		if(authHandler!=null) {
-			Map<String, ?> map = authHandler.rootViewObjects(request);
+		if(handler!=null) {
+			Map<String, ?> map = handler.viewObjects(request);
 			if(map!=null&&map.size()>0)
 				mv.addAllObjects(map);
 		}

@@ -21,7 +21,7 @@ import com.quincy.auth.TempPwdLoginEmailInfo;
 import com.quincy.auth.o.XSession;
 import com.quincy.auth.o.User;
 import com.quincy.auth.service.XSessionService;
-import com.quincy.core.AuthCommonConstants;
+import com.quincy.core.VCodeConstants;
 import com.quincy.core.InnerConstants;
 import com.quincy.core.InnerHelper;
 import com.quincy.core.SessionInvalidation;
@@ -49,6 +49,8 @@ public class AuthorizationServerController {
 	private String mobileSessionTimeout;
 	@Value("${server.servlet.session.timeout.app:#{null}}")
 	private String appSessionTimeout;
+	private final static int LOGIN_STATUS_PWD_INCORRECT = -3;
+	private final static String PARA_NAME_USERNAME = "username";
 	private final static String AUTH_ACTIONS_NULL_MSG = "没有设置回调动作";
 	/**
 	 * 进登录页
@@ -96,7 +98,7 @@ public class AuthorizationServerController {
 			return result;
 		}
 		if(password!=null&&!password.equalsIgnoreCase(user.getPassword())) {
-			result.setStatus(AuthCommonConstants.LOGIN_STATUS_PWD_INCORRECT);
+			result.setStatus(LOGIN_STATUS_PWD_INCORRECT);
 			result.setMsg(requestContext.getMessage("auth.account.pwd_incorrect"));
 			return result;
 		}
@@ -106,7 +108,7 @@ public class AuthorizationServerController {
 		} else if(mobileSessionTimeout!=null&&client.isMobile()) {//移动设置网页设置超时时间
 			session.setMaxInactiveInterval(Integer.parseInt(String.valueOf(Duration.parse(mobileSessionTimeout).getSeconds())));
 		} else {//网页端，验证码登录临时保存验证码时会给session设置一个较短的超时时间，登录成功后在这里给恢复回来
-			Object maxInactiveInterval = session.getAttribute(AuthCommonConstants.ATTR_KEY_VCODE_ORIGINAL_MXA_INACTIVE_INTERVAL);
+			Object maxInactiveInterval = session.getAttribute(VCodeConstants.ATTR_KEY_VCODE_ORIGINAL_MAX_INACTIVE_INTERVAL);
 			if(maxInactiveInterval!=null)
 				session.setMaxInactiveInterval(Integer.parseInt(maxInactiveInterval.toString()));
 		}
@@ -174,9 +176,9 @@ public class AuthorizationServerController {
 	 */
 	@PostMapping("/signin/pwd")
 	public ModelAndView doLogin(HttpServletRequest request, 
-			@RequestParam(required = false, value = AuthCommonConstants.PARA_NAME_USERNAME)String username, 
-			@RequestParam(required = false, value = AuthCommonConstants.PARA_NAME_PASSWORD)String password, 
-			@RequestParam(required = false, value = AuthCommonConstants.PARA_NAME_VCODE)String vcode, 
+			@RequestParam(required = false, value = PARA_NAME_USERNAME)String username, 
+			@RequestParam(required = false, value = "password")String password, 
+			@RequestParam(required = false, value = VCodeConstants.PARA_NAME_VCODE)String vcode, 
 			@RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo
 			) throws Exception {
 		Result result = null;
@@ -187,7 +189,7 @@ public class AuthorizationServerController {
 			if(failures<failuresThresholdForVCode) {//小于失败次数
 				result = pwdLogin(request, username, password);
 			} else {//失败次数满，需要验证码
-				result = vCodeOpsRgistry.validate(request, true, AuthCommonConstants.ATTR_KEY_VCODE_ROBOT_FORBIDDEN);
+				result = vCodeOpsRgistry.validate(request, true, VCodeConstants.ATTR_KEY_VCODE_ROBOT_FORBIDDEN);
 				if(result.getStatus()==1)
 					result = pwdLogin(request, username, password);
 			}
@@ -200,11 +202,11 @@ public class AuthorizationServerController {
 		String password = CommonHelper.trim(_password);
 		Result result = password!=null?login(request, username, password):new Result(0, new RequestContext(request).getMessage("auth.null.password"));
 		HttpSession session = request.getSession();//如果doPwdLogin没登录成功，session是空的，需要创建session用来保存失败次数，但是session失效后失败次数也随之消失，还是可以继续重试
-		if(result.getStatus()==AuthCommonConstants.LOGIN_STATUS_PWD_INCORRECT) {
+		if(result.getStatus()==LOGIN_STATUS_PWD_INCORRECT) {
 			int failuresPp = this.getFailures(request)+1;
 			session.setAttribute(LOGIN_FAILURES_HOLDER_KEY, failuresPp);
 			if(failuresPp>=failuresThresholdForVCode)
-				result.setStatus(AuthCommonConstants.LOGIN_STATUS_PWD_INCORRECT-1);
+				result.setStatus(LOGIN_STATUS_PWD_INCORRECT-1);
 		} else if(result.getStatus()==1)
 			session.removeAttribute(LOGIN_FAILURES_HOLDER_KEY);
 		return result;
@@ -214,10 +216,10 @@ public class AuthorizationServerController {
 	 */
 	@RequestMapping("/signin/vcode")
 	public ModelAndView vcodeLogin(HttpServletRequest request, @RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String redirectTo) throws Exception {
-		Result result = vCodeOpsRgistry.validate(request, true, AuthCommonConstants.ATTR_KEY_VCODE_LOGIN);
+		Result result = vCodeOpsRgistry.validate(request, true, VCodeConstants.ATTR_KEY_VCODE_LOGIN);
 		if(result.getStatus()==1) {
 			HttpSession session = request.getSession(false);
-			result = login(request, session.getAttribute(AuthCommonConstants.ATTR_KEY_USERNAME).toString(), null);
+			result = login(request, session.getAttribute(PARA_NAME_USERNAME).toString(), null);
 		}
 		return createModelAndView(request, result, redirectTo);
 	}
@@ -225,7 +227,7 @@ public class AuthorizationServerController {
 	 * 生成临时密码并发送至邮箱
 	 */
 	@RequestMapping("/vcode/email")
-	public ModelAndView vcodeToEmail(HttpServletRequest request, @RequestParam(required = true, name = AuthCommonConstants.PARA_NAME_USERNAME)String _email) throws Exception {
+	public ModelAndView vcodeToEmail(HttpServletRequest request, @RequestParam(required = true, name = PARA_NAME_USERNAME)String _email) throws Exception {
 		Assert.notNull(tempPwdLoginEmailInfo, "没有设置邮件标题和内容模板");
 		Integer status = null;
 		String msgI18N = null;

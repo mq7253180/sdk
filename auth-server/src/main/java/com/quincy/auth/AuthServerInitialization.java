@@ -18,9 +18,9 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import com.quincy.auth.controller.RootController;
+import com.quincy.auth.controller.RootControllerHandler;
 import com.quincy.auth.dao.PermissionRepository;
 import com.quincy.auth.entity.Permission;
-import com.quincy.core.AuthCommonConstants;
 import com.quincy.sdk.helper.RSASecurityHelper;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,22 +32,24 @@ public class AuthServerInitialization {//implements BeanDefinitionRegistryPostPr
     private RequestMappingHandlerMapping requestMappingHandlerMapping;
 	@Autowired
 	private RootController rootController;
-	@Value("${auth.loginRequired.root:false}")
-	private boolean loginRequiredForRoot;
+	@Autowired(required = false)
+	private RootControllerHandler rootControllerHandler;
 	@Value("${secret.rsa.privateKey}")
 	private String privateKeyStr;
 
 	@PostConstruct
 	public void init() throws NoSuchMethodException, SecurityException {
 		this.loadPermissions();
-		RequestMappingInfo.BuilderConfiguration config = new RequestMappingInfo.BuilderConfiguration();
-        config.setPatternParser(requestMappingHandlerMapping.getPatternParser());
-		RequestMappingInfo requestMappingInfo = RequestMappingInfo
-				.paths("/")
-                .methods(RequestMethod.GET)
-                .options(config)
-                .build();
-		requestMappingHandlerMapping.registerMapping(requestMappingInfo, rootController, RootController.class.getMethod(loginRequiredForRoot?"rootWithLogin":"root", HttpServletRequest.class, HttpServletResponse.class));
+		if(rootControllerHandler!=null) {
+			RequestMappingInfo.BuilderConfiguration config = new RequestMappingInfo.BuilderConfiguration();
+	        config.setPatternParser(requestMappingHandlerMapping.getPatternParser());
+			RequestMappingInfo requestMappingInfo = RequestMappingInfo
+					.paths("/")
+	                .methods(RequestMethod.GET)
+	                .options(config)
+	                .build();
+			requestMappingHandlerMapping.registerMapping(requestMappingInfo, rootController, RootController.class.getMethod(rootControllerHandler.loginRequired()?"rootWithLogin":"root", HttpServletRequest.class, HttpServletResponse.class));
+		}
 	}
 
 	@PreDestroy
@@ -60,9 +62,9 @@ public class AuthServerInitialization {//implements BeanDefinitionRegistryPostPr
 
 	private void loadPermissions() {
 		List<Permission> permissoins = permissionRepository.findAll();
-		AuthCommonConstants.PERMISSIONS = new HashMap<String, String>(permissoins.size());
+		AuthConstants.PERMISSIONS = new HashMap<String, String>(permissoins.size());
 		for(Permission permission:permissoins) {
-			AuthCommonConstants.PERMISSIONS.put(permission.getName(), permission.getDes());
+			AuthConstants.PERMISSIONS.put(permission.getName(), permission.getDes());
 		}
 	}
 

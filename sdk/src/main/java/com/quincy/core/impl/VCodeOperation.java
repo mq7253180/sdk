@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.support.RequestContext;
 
-import com.quincy.core.AuthCommonConstants;
+import com.quincy.core.VCodeConstants;
 import com.quincy.sdk.EmailService;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.VCodeCharsFrom;
@@ -26,9 +26,10 @@ public class VCodeOperation implements VCodeOpsRgistry {
 	@Value("${auth.vcode.timeout:120}")
 	private int vcodeTimeoutSeconds;
 	private static final Map<String, String> I18N_KEYS_HOLDER = new HashMap<String, String>(2);
+	private final static String ATTR_KEY_USERNAME = "username";
 	static {
-		I18N_KEYS_HOLDER.put(AuthCommonConstants.ATTR_KEY_VCODE_ROBOT_FORBIDDEN, "vcode.name.vcode");
-		I18N_KEYS_HOLDER.put(AuthCommonConstants.ATTR_KEY_VCODE_LOGIN, "vcode.name.password");
+		I18N_KEYS_HOLDER.put(VCodeConstants.ATTR_KEY_VCODE_ROBOT_FORBIDDEN, "vcode.name.vcode");
+		I18N_KEYS_HOLDER.put(VCodeConstants.ATTR_KEY_VCODE_LOGIN, "vcode.name.password");
 	}
 
 	public char[] generate(VCodeCharsFrom _charsFrom, int length) {
@@ -46,7 +47,7 @@ public class VCodeOperation implements VCodeOpsRgistry {
 
 	public Result validate(HttpServletRequest request, boolean ignoreCase, String attrKey) throws Exception {
 		HttpSession session = request.getSession(false);
-		String inputedVCode = CommonHelper.trim(request.getParameter(AuthCommonConstants.PARA_NAME_VCODE));
+		String inputedVCode = CommonHelper.trim(request.getParameter(VCodeConstants.PARA_NAME_VCODE));
 		Integer status = null;
 		String msgI18NKey = null;
 		String msg = null;
@@ -84,9 +85,9 @@ public class VCodeOperation implements VCodeOpsRgistry {
 	public String genAndSend(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, VCodeSender sender) throws Exception {
 		char[] vcode = this.generate(charsFrom, length);
 		HttpSession session = request.getSession();
-		session.setAttribute(AuthCommonConstants.ATTR_KEY_USERNAME, request.getParameter(AuthCommonConstants.PARA_NAME_USERNAME));
-		session.setAttribute(AuthCommonConstants.ATTR_KEY_VCODE_LOGIN, new String(vcode));
-		session.setAttribute(AuthCommonConstants.ATTR_KEY_VCODE_ORIGINAL_MXA_INACTIVE_INTERVAL, session.getMaxInactiveInterval());
+		session.setAttribute(ATTR_KEY_USERNAME, request.getParameter(ATTR_KEY_USERNAME));
+		session.setAttribute(VCodeConstants.ATTR_KEY_VCODE_LOGIN, new String(vcode));
+		session.setAttribute(VCodeConstants.ATTR_KEY_VCODE_ORIGINAL_MAX_INACTIVE_INTERVAL, session.getMaxInactiveInterval());
 		session.setMaxInactiveInterval(vcodeTimeoutSeconds);
 		sender.send(vcode, vcodeTimeoutSeconds/60);
 		return session.getId();

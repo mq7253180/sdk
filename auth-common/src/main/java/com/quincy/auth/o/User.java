@@ -24,6 +24,7 @@ public class User implements Serializable {
 	private String lastName;
 	private String firstName;
 	private String nickName;
+	private Integer gender;
 	private Map<String, BigDecimal> currencyAccounts;
 	private Map<String, Serializable> attributes;
 }
