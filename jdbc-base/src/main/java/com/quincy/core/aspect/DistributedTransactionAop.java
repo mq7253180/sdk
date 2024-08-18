@@ -324,8 +324,7 @@ public class DistributedTransactionAop implements DTransactionOptRegistry {
 		try {
 			Object retVal = method.invoke(bean, atomic.getArgs());
 			toUpdate.setStatus(statusTo);
-			toUpdate.setMsg("");
-			toUpdate.setRetValue(mapper.writeValueAsString(retVal==null?"null":retVal));
+			toUpdate.setRetValue(mapper.writeValueAsString(retVal));
 			atomic.setRetValue(toUpdate.getRetValue());
 			boolean referenced = false;
 			for(int j=i+1;j<atomics.size();j++) {//在内存中更新后续输入参数依赖此操作输出的操作的输入参数
