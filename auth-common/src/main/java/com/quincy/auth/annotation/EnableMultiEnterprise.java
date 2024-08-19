@@ -8,11 +8,11 @@ import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Import;
 
-import com.quincy.auth.interceptor.MultiEnterpriseInterceptor;
+import com.quincy.auth.MultiEnterpriseConfiguration;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Documented
-@Import(MultiEnterpriseInterceptor.class)
+@Import(MultiEnterpriseConfiguration.class)
 public @interface EnableMultiEnterprise {	
 }
