@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,11 +49,6 @@ public class AuthServerInitialization {//implements BeanDefinitionRegistryPostPr
 	                .build();
 			requestMappingHandlerMapping.registerMapping(requestMappingInfo, rootController, RootController.class.getMethod(rootControllerHandler.loginRequired()?"rootWithLogin":"root", HttpServletRequest.class, HttpServletResponse.class));
 		}
-	}
-
-	@PreDestroy
-	private void destroy() {
-		
 	}
 
 	@Autowired
