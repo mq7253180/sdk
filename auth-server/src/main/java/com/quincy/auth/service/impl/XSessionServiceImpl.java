@@ -24,8 +24,9 @@ public class XSessionServiceImpl implements XSessionService {
 	@Override
 	public XSession create(User user) {
 		XSession session = new XSession();
+		Long enterpriseId = user.getCurrentEnterprise()==null?null:user.getCurrentEnterprise().getId();
 		//角色
-		List<Role> roleList = authMapper.findRolesByUserIdAndEnterpriseId(user.getId(), user.getEnterpriseId());
+		List<Role> roleList = authMapper.findRolesByUserIdAndEnterpriseId(user.getId(), enterpriseId);
 		Map<Long, String> roleMap = new HashMap<Long, String>(roleList.size());
 		for(Role role:roleList)//去重
 			roleMap.put(role.getId(), role.getName());
@@ -33,7 +34,7 @@ public class XSessionServiceImpl implements XSessionService {
 		roles.addAll(roleMap.values());
 		session.setRoles(roles);
 		//权限
-		List<Permission> permissionList = authMapper.findPermissionsByUserIdAndEnterpriseId(user.getId(), user.getEnterpriseId());
+		List<Permission> permissionList = authMapper.findPermissionsByUserIdAndEnterpriseId(user.getId(), enterpriseId);
 		Map<Long, String> permissionMap = new HashMap<Long, String>(permissionList.size());
 		for(Permission permission:permissionList)//去重
 			permissionMap.put(permission.getId(), permission.getName());
@@ -41,7 +42,7 @@ public class XSessionServiceImpl implements XSessionService {
 		permissions.addAll(permissionMap.values());
 		session.setPermissions(permissions);
 		//菜单
-		List<Menu> rootMenus = this.findMenusByUserIdAndEnterpriseId(user.getId(), user.getEnterpriseId());
+		List<Menu> rootMenus = this.findMenusByUserIdAndEnterpriseId(user.getId(), enterpriseId);
 		session.setMenus(rootMenus);
 		return session;
 	}
