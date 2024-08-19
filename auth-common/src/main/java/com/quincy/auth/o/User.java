@@ -3,6 +3,7 @@ package com.quincy.auth.o;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import lombok.Data;
@@ -11,7 +12,6 @@ import lombok.Data;
 public class User implements Serializable {
 	private static final long serialVersionUID = 3068671906589197352L;
 	private Long id;
-	private Long enterpriseId;
 	private Integer shardingKey;
 	private String username;
 	private String email;
@@ -25,6 +25,8 @@ public class User implements Serializable {
 	private String firstName;
 	private String nickName;
 	private Integer gender;
+	private Enterprise currentEnterprise;//当前已选租户
+	private List<Enterprise> enterprises;//多租户
 	private Map<String, BigDecimal> currencyAccounts;
 	private Map<String, Serializable> attributes;
 }
