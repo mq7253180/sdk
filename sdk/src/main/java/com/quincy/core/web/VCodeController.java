@@ -36,6 +36,8 @@ public class VCodeController extends HandlerInterceptorAdapter {
 	private int vcodeLength;
 	@Value("${vcode.lines}")
 	private int vcodeLines;
+	@Value("${auth.center:}")
+	private String authCenter;
 	@Autowired
 	private VCodeOpsRgistry vCodeOpsRgistry;
 	/**
@@ -91,7 +93,7 @@ public class VCodeController extends HandlerInterceptorAdapter {
 			if(annotation!=null) {
 				Result result = vCodeOpsRgistry.validate(request, annotation.ignoreCase(), VCodeConstants.ATTR_KEY_VCODE_ROBOT_FORBIDDEN);
 				if(result.getStatus()<1) {
-					InnerHelper.outputOrForward(request, response, handler, result, "/failure", false);
+					InnerHelper.outputOrForward(request, response, handler, result, authCenter+"/failure", false);
 					return false;
 				}
 			}

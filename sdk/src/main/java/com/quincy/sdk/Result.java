@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 public class Result implements Serializable {
 	private static final long serialVersionUID = 1L;
-	private int status;//1成功, 0会话超时, -1无权限, -2签名传空, -3签名验证失败, -4抛异常, -5验证码输入为空，-6验证码过期, -7验证码输入有误
+	private int status;//1成功, 0会话超时, -1无权限, -2签名传空, -3签名验证失败, -4抛异常, -5验证码输入为空，-6验证码过期, -7验证码输入有误, -8多租户模式下没有选择租户
 	private String msg;
 	private Object data;
 	private Object accsessToken;

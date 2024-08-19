@@ -1,11 +1,15 @@
 package com.quincy.sdk;
 
+import java.util.Map;
+
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -20,6 +24,7 @@ import com.quincy.core.web.freemarker.AttributeTemplateDirectiveModelBean;
 import com.quincy.core.web.freemarker.I18NTemplateDirectiveModelBean;
 import com.quincy.core.web.freemarker.LocaleTemplateDirectiveModelBean;
 import com.quincy.core.web.freemarker.PropertiesTemplateDirectiveModelBean;
+import com.quincy.sdk.annotation.CustomizedInterceptor;
 
 @Configuration
 public class WebMvcConfiguration extends WebMvcConfigurationSupport {
@@ -39,12 +44,23 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
 		if(Constants.ENV_DEV.equals(env))
 			registry.addInterceptor(new StaticInterceptor()).addPathPatterns("/static/**");
 		registry.addInterceptor(new GeneralInterceptor()).addPathPatterns("/**");
+		registry.addInterceptor(new SignatureInterceptor(publicKeyGetter)).addPathPatterns("/**");
+		registry.addInterceptor(vCodeInterceptor).addPathPatterns("/**");
 		if(quincyAuthInterceptor!=null) {
 			HandlerInterceptorAdapter handlerInterceptorAdapter = (HandlerInterceptorAdapter)quincyAuthInterceptor;
 			registry.addInterceptor(handlerInterceptorAdapter).addPathPatterns("/**");
 		}
-		registry.addInterceptor(new SignatureInterceptor(publicKeyGetter)).addPathPatterns("/**");
-		registry.addInterceptor(vCodeInterceptor).addPathPatterns("/**");
+		Map<String, Object> map = applicationContext.getBeansWithAnnotation(CustomizedInterceptor.class);
+		for(Object interceptor:map.values()) {
+			CustomizedInterceptor annotation = interceptor.getClass().getAnnotation(CustomizedInterceptor.class);
+			InterceptorRegistration registration = registry.addInterceptor((HandlerInterceptor)interceptor)
+					.addPathPatterns(annotation.pathPatterns())
+					.excludePathPatterns(new String[] {"/static/**", "/vcode/**", "/auth/**", "/failure", "/success"})
+					.order(annotation.order());
+			String[] excludePathPatterns = annotation.excludePathPatterns();
+			if(excludePathPatterns!=null&&excludePathPatterns.length>0)
+				registration.excludePathPatterns(excludePathPatterns);
+		}
 	}
 
     @Autowired
