@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContext;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quincy.sdk.Client;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.helper.CommonHelper;
@@ -20,14 +21,19 @@ import jakarta.servlet.http.HttpSession;
 
 public class InnerHelper {
 	public static void outputOrForward(HttpServletRequest request, HttpServletResponse response, Object handler, Result result, String redirectTo, boolean appendBackTo) throws IOException, ServletException {
-		outputOrRedirect(request, response, handler, result.getStatus(), result.getMsg(), redirectTo, appendBackTo);
+		outputOrRedirect(request, response, handler, result.getStatus(), result.getMsg(), result.getData(), redirectTo, appendBackTo);
 	}
 
-	public static void outputOrRedirect(HttpServletRequest request, HttpServletResponse response, Object handler, int status, String msg, String redirectTo, boolean appendBackTo) throws IOException, ServletException {
+	public static void outputOrRedirect(HttpServletRequest request, HttpServletResponse response, Object handler, int status, String msg, Object data, String redirectTo, boolean appendBackTo) throws IOException, ServletException {
 		Client client = Client.get(request, handler);
 		boolean clientSys = redirectTo.startsWith("http");
 		if(client.isJson()) {
-			String outputContent = "{\"status\":"+status+", \"msg\":\""+msg+"\"}";
+			String outputContent = "{\"status\":"+status+", \"msg\":\""+msg+"\"";
+			if(data!=null) {
+				outputContent += ", \"data\": ";
+				outputContent += new ObjectMapper().writeValueAsString(data);
+			}
+			outputContent += "}";
 			HttpClientHelper.outputJson(response, outputContent);
 		} else {
 			StringBuilder location = new StringBuilder(280).append(redirectTo);
@@ -68,6 +74,7 @@ public class InnerHelper {
 				HttpSession session = request.getSession();
 				session.setAttribute("status", status);
 				session.setAttribute("msg", msg);
+				session.setAttribute("data", data);
 				Iterator<Entry<String, String[]>> it = request.getParameterMap().entrySet().iterator();
 				while(it.hasNext()) {
 					Entry<String, String[]> e = it.next();

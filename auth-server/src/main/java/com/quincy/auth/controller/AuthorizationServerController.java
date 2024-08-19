@@ -130,7 +130,7 @@ public class AuthorizationServerController {
 		authActions.updateLastLogin(user, session.getId(), client);//互踢还需要应用层配合更新数据库里的jsessionid
 		result.setStatus(1);
 		result.setMsg(requestContext.getMessage("auth.success"));
-		result.setData(xsession);
+		result.setData(client.isJson()?new ObjectMapper().writeValueAsString(xsession):xsession);
 		return result;
 	}
 
@@ -150,14 +150,13 @@ public class AuthorizationServerController {
 	}
 
 	private ModelAndView createModelAndView(HttpSession session, Result result) throws JsonProcessingException {
-		String data = new ObjectMapper().writeValueAsString(result.getData());
 		session.setAttribute("status", result.getStatus());
 		session.setAttribute("msg", result.getMsg());
-		session.setAttribute("data", data);
+		session.setAttribute("data", result.getData());
 		return new ModelAndView("/result_login")
 				.addObject("status", result.getStatus())
 				.addObject("msg", result.getMsg())
-				.addObject("data", data);
+				.addObject("data", result.getData());
 	}
 
 	private int getFailures(HttpServletRequest request) {
