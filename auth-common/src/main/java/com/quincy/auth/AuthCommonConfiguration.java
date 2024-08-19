@@ -3,7 +3,6 @@ package com.quincy.auth;
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
@@ -19,9 +18,9 @@ public class AuthCommonConfiguration {
 	@Autowired
     private freemarker.template.Configuration configuration;
 	@Autowired
-	private ApplicationContext applicationContext;
-	@Autowired
 	private RequestMappingHandlerMapping requestMappingHandlerMapping;
+	@Autowired(required = false)
+	private MultiEnterpriseConfiguration multiEnterpriseConfiguration;
 
 	@PostConstruct
 	public void init() throws NoSuchMethodException, SecurityException {
@@ -29,8 +28,7 @@ public class AuthCommonConfiguration {
     	configuration.setSharedVariable("a", new HyperlinkTemplateDirectiveModelBean());
     	configuration.setSharedVariable("button", new ButtonTemplateDirectiveModelBean());
     	configuration.setSharedVariable("div", new DivTemplateDirectiveModelBean());
-    	MultiEnterpriseConfiguration c = applicationContext.getBean(MultiEnterpriseConfiguration.class);
-    	if(c!=null) {
+    	if(multiEnterpriseConfiguration!=null) {
     		RequestMappingInfo.BuilderConfiguration config = new RequestMappingInfo.BuilderConfiguration();
             config.setPatternParser(requestMappingHandlerMapping.getPatternParser());
     		RequestMappingInfo requestMappingInfo = RequestMappingInfo
@@ -38,7 +36,7 @@ public class AuthCommonConfiguration {
                     .methods(RequestMethod.GET)
                     .options(config)
                     .build();
-    		requestMappingHandlerMapping.registerMapping(requestMappingInfo, c, MultiEnterpriseConfiguration.class.getMethod("toEnterpriseSelection"));
+    		requestMappingHandlerMapping.registerMapping(requestMappingInfo, multiEnterpriseConfiguration, MultiEnterpriseConfiguration.class.getMethod("toEnterpriseSelection"));
     	}
 	}
 }

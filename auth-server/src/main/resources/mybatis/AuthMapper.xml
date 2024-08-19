@@ -21,9 +21,11 @@
 	<select id="findRolesByUserIdAndEnterpriseId" resultMap="roleResultMap">
 		SELECT role.* FROM s_role role 
 		INNER JOIN s_role_user_rel rel ON role.id=rel.role_id 
-		INNER JOIN s_user_enterprise_rel r3 ON rel.user_id=r3.user_id 
+		<if test="enterpriseId!=null">
+			INNER JOIN s_user_enterprise_rel r3 ON rel.user_id=r3.user_id 
+		</if>
 		<where>
-			r3.user_id=#{userId, jdbcType=INTEGER} 
+			rel.user_id=#{userId, jdbcType=INTEGER} 
 			<if test="enterpriseId!=null">
 				AND r3.enterprise_id=#{enterpriseId, jdbcType=INTEGER}
 			</if>
@@ -33,9 +35,11 @@
 		SELECT m.* FROM s_menu m 
 		INNER JOIN s_role_menu_rel r1 ON m.id=r1.menu_id 
 		INNER JOIN s_role_user_rel r2 ON r1.role_id=r2.role_id 
-		INNER JOIN s_user_enterprise_rel r3 ON r2.user_id=r3.user_id 
+		<if test="enterpriseId!=null">
+			INNER JOIN s_user_enterprise_rel r3 ON r2.user_id=r3.user_id 
+		</if>
 		<where>
-			r3.user_id=#{userId, jdbcType=INTEGER} 
+			r2.user_id=#{userId, jdbcType=INTEGER} 
 			<if test="enterpriseId!=null">
 				AND r3.enterprise_id=#{enterpriseId, jdbcType=INTEGER}
 			</if>
@@ -45,9 +49,11 @@
 		SELECT p.* FROM s_permission p 
 		INNER JOIN s_permission_role_rel r1 ON p.id=r1.permission_id 
 		INNER JOIN s_role_user_rel r2 ON r1.role_id=r2.role_id 
-		INNER JOIN s_user_enterprise_rel r3 ON r2.user_id=r3.user_id 
+		<if test="enterpriseId!=null">
+			INNER JOIN s_user_enterprise_rel r3 ON r2.user_id=r3.user_id 
+		</if>
 		<where>
-			r3.user_id=#{userId, jdbcType=INTEGER} 
+			r2.user_id=#{userId, jdbcType=INTEGER} 
 			<if test="enterpriseId!=null">
 				AND r3.enterprise_id=#{enterpriseId, jdbcType=INTEGER}
 			</if>
