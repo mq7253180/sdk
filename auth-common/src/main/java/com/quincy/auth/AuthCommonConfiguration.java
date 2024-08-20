@@ -39,7 +39,7 @@ public class AuthCommonConfiguration {
                     .options(config)
                     .build(), multiEnterpriseConfiguration, MultiEnterpriseConfiguration.class.getMethod("toEnterpriseSelection"));
     		requestMappingHandlerMapping.registerMapping(RequestMappingInfo
-    				.paths("/user/enterprise/select")
+    				.paths("/auth/enterprise/select")
                     .options(config)
                     .build(), multiEnterpriseConfiguration, MultiEnterpriseConfiguration.class.getMethod("selectEnterprise", HttpServletRequest.class, Long.class));
     	}
