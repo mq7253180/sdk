@@ -1,4 +1,4 @@
-package com.quincy.sdk;
+package com.quincy.core;
 
 import java.util.Map;
 
@@ -14,7 +14,6 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
-import com.quincy.core.QuincyAuthInterceptor;
 import com.quincy.core.web.GeneralInterceptor;
 import com.quincy.core.web.PublicKeyGetter;
 import com.quincy.core.web.SignatureInterceptor;
@@ -24,6 +23,7 @@ import com.quincy.core.web.freemarker.AttributeTemplateDirectiveModelBean;
 import com.quincy.core.web.freemarker.I18NTemplateDirectiveModelBean;
 import com.quincy.core.web.freemarker.LocaleTemplateDirectiveModelBean;
 import com.quincy.core.web.freemarker.PropertiesTemplateDirectiveModelBean;
+import com.quincy.sdk.Constants;
 import com.quincy.sdk.annotation.CustomizedInterceptor;
 
 @Configuration
