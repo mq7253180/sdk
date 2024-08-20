@@ -38,24 +38,25 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
 	private PublicKeyGetter publicKeyGetter;
 	@Autowired
 	private VCodeController vCodeInterceptor;
+	private final static String[] EXCLUDE_PATH_PATTERNS = new String[] {"/static/**", "/vcode/**", "/auth/**", "/failure", "/success"};
 
 	@Override
 	protected void addInterceptors(InterceptorRegistry registry) {
 		if(Constants.ENV_DEV.equals(env))
 			registry.addInterceptor(new StaticInterceptor()).addPathPatterns("/static/**");
 		registry.addInterceptor(new GeneralInterceptor()).addPathPatterns("/**");
-		registry.addInterceptor(new SignatureInterceptor(publicKeyGetter)).addPathPatterns("/**");
-		registry.addInterceptor(vCodeInterceptor).addPathPatterns("/**");
+		registry.addInterceptor(new SignatureInterceptor(publicKeyGetter)).addPathPatterns("/**").excludePathPatterns(EXCLUDE_PATH_PATTERNS);
+		registry.addInterceptor(vCodeInterceptor).addPathPatterns("/**").excludePathPatterns(EXCLUDE_PATH_PATTERNS);
 		if(quincyAuthInterceptor!=null) {
 			HandlerInterceptorAdapter handlerInterceptorAdapter = (HandlerInterceptorAdapter)quincyAuthInterceptor;
-			registry.addInterceptor(handlerInterceptorAdapter).addPathPatterns("/**");
+			registry.addInterceptor(handlerInterceptorAdapter).addPathPatterns("/**").excludePathPatterns(EXCLUDE_PATH_PATTERNS);
 		}
 		Map<String, Object> map = applicationContext.getBeansWithAnnotation(CustomizedInterceptor.class);
 		for(Object interceptor:map.values()) {
 			CustomizedInterceptor annotation = interceptor.getClass().getAnnotation(CustomizedInterceptor.class);
 			InterceptorRegistration registration = registry.addInterceptor((HandlerInterceptor)interceptor)
 					.addPathPatterns(annotation.pathPatterns())
-					.excludePathPatterns(new String[] {"/static/**", "/vcode/**", "/auth/**", "/failure", "/success"})
+					.excludePathPatterns(EXCLUDE_PATH_PATTERNS)
 					.order(annotation.order());
 			String[] excludePathPatterns = annotation.excludePathPatterns();
 			if(excludePathPatterns!=null&&excludePathPatterns.length>0)
