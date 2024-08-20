@@ -53,7 +53,7 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
 		}
 		Map<String, Object> map = applicationContext.getBeansWithAnnotation(CustomizedInterceptor.class);
 		for(Object interceptor:map.values()) {
-			CustomizedInterceptor annotation = interceptor.getClass().getAnnotation(CustomizedInterceptor.class);
+			CustomizedInterceptor annotation = interceptor.getClass().getDeclaredAnnotation(CustomizedInterceptor.class);
 			InterceptorRegistration registration = registry.addInterceptor((HandlerInterceptor)interceptor)
 					.addPathPatterns(annotation.pathPatterns())
 					.excludePathPatterns(EXCLUDE_PATH_PATTERNS)

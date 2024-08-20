@@ -13,6 +13,8 @@ import com.quincy.auth.freemarker.DivTemplateDirectiveModelBean;
 import com.quincy.auth.freemarker.HyperlinkTemplateDirectiveModelBean;
 import com.quincy.auth.freemarker.InputTemplateDirectiveModelBean;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @Configuration
 public class AuthCommonConfiguration {
 	@Autowired
@@ -31,12 +33,15 @@ public class AuthCommonConfiguration {
     	if(multiEnterpriseConfiguration!=null) {
     		RequestMappingInfo.BuilderConfiguration config = new RequestMappingInfo.BuilderConfiguration();
             config.setPatternParser(requestMappingHandlerMapping.getPatternParser());
-    		RequestMappingInfo requestMappingInfo = RequestMappingInfo
+            requestMappingHandlerMapping.registerMapping(RequestMappingInfo
     				.paths(AuthConstants.URI_TO_ENTERPRISE_SELECTION)
                     .methods(RequestMethod.GET)
                     .options(config)
-                    .build();
-    		requestMappingHandlerMapping.registerMapping(requestMappingInfo, multiEnterpriseConfiguration, MultiEnterpriseConfiguration.class.getMethod("toEnterpriseSelection"));
+                    .build(), multiEnterpriseConfiguration, MultiEnterpriseConfiguration.class.getMethod("toEnterpriseSelection"));
+    		requestMappingHandlerMapping.registerMapping(RequestMappingInfo
+    				.paths("/user/enterprise/select")
+                    .options(config)
+                    .build(), multiEnterpriseConfiguration, MultiEnterpriseConfiguration.class.getMethod("selectEnterprise", HttpServletRequest.class, Long.class));
     	}
 	}
 }

@@ -17,4 +17,14 @@ public class AuthHelper {
 		HttpServletRequest request = CommonHelper.getRequest();
 		return getSession(request);
 	}
+
+	public static void setSession(HttpServletRequest request, XSession xsession) {
+		HttpSession session = request.getSession(false);
+		session.setAttribute(AuthConstants.ATTR_SESSION, xsession);
+	}
+
+	public static void setSession(XSession xsession) {
+		HttpServletRequest request = CommonHelper.getRequest();
+		setSession(request, xsession);
+	}
 }

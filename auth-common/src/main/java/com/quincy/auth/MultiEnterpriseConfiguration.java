@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.support.RequestContext;
 
+import com.quincy.auth.annotation.LoginRequired;
 import com.quincy.auth.o.Enterprise;
 import com.quincy.auth.o.XSession;
 import com.quincy.core.InnerHelper;
@@ -46,7 +47,21 @@ public class MultiEnterpriseConfiguration extends HandlerInterceptorAdapter {
 			return true;
 	}
 
+	@LoginRequired
 	public String toEnterpriseSelection() {
 		return "/enterprise_selection";
+	}
+
+	@LoginRequired
+	public void selectEnterprise(HttpServletRequest request, Long enterpriseId) {
+		XSession xsession = AuthHelper.getSession(request);
+		List<Enterprise> list = xsession.getUser().getEnterprises();
+		for(Enterprise e:list) {
+			if(e.getId().equals(enterpriseId)) {
+				xsession.getUser().setCurrentEnterprise(e);
+				AuthHelper.setSession(request, xsession);
+				break;
+			}
+		}
 	}
 }

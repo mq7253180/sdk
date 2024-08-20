@@ -19,11 +19,11 @@ import com.quincy.sdk.helper.AopHelper;
 @Order(10)
 @Component
 public class SessionInjectorAop {
-	@Pointcut("@annotation(com.quincy.auth.annotation.LoginRequired)")
-    public void loginRequiredPointCut() {}
+	@Pointcut("@annotation(com.quincy.auth.annotation.XSessionInject)")
+	public void xSessionInjectPointCut() {}
 
-	@Around("loginRequiredPointCut()")
-    public Object loginRequiredAround(ProceedingJoinPoint joinPoint) throws Throwable {
+	@Around("xSessionInjectPointCut()")
+    public Object xSessionInjectAround(ProceedingJoinPoint joinPoint) throws Throwable {
 		return this.doAround(joinPoint);
 	}
 
