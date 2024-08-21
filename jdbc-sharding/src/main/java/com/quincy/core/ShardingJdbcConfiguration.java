@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 
+import com.quincy.core.db.RoutingDataSource;
 import com.quincy.sdk.MasterOrSlave;
 
 @Configuration

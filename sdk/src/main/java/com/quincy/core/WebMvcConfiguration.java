@@ -34,7 +34,7 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
 	private String env;
 	@Autowired(required = false)
 	private QuincyAuthInterceptor quincyAuthInterceptor;
-	@Autowired
+	@Autowired(required = false)
 	private PublicKeyGetter publicKeyGetter;
 	@Autowired
 	private VCodeController vCodeInterceptor;
@@ -45,7 +45,8 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
 		if(Constants.ENV_DEV.equals(env))
 			registry.addInterceptor(new StaticInterceptor()).addPathPatterns("/static/**");
 		registry.addInterceptor(new GeneralInterceptor()).addPathPatterns("/**");
-		registry.addInterceptor(new SignatureInterceptor(publicKeyGetter)).addPathPatterns("/**").excludePathPatterns(EXCLUDE_PATH_PATTERNS);
+		if(publicKeyGetter!=null)
+			registry.addInterceptor(new SignatureInterceptor(publicKeyGetter)).addPathPatterns("/**").excludePathPatterns(EXCLUDE_PATH_PATTERNS);
 		registry.addInterceptor(vCodeInterceptor).addPathPatterns("/**").excludePathPatterns(EXCLUDE_PATH_PATTERNS);
 		if(quincyAuthInterceptor!=null) {
 			HandlerInterceptorAdapter handlerInterceptorAdapter = (HandlerInterceptorAdapter)quincyAuthInterceptor;

@@ -1,4 +1,4 @@
-package com.quincy.core;
+package com.quincy.core.db;
 
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 

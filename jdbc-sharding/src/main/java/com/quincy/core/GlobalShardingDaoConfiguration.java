@@ -35,6 +35,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 
 import com.quincy.sdk.ShardingJdbcDao;
+import com.quincy.core.db.RoutingDataSource;
 import com.quincy.sdk.MasterOrSlave;
 import com.quincy.sdk.annotation.sharding.AllShardsJDBCDao;
 import com.quincy.sdk.annotation.sharding.ExecuteQuery;
