@@ -286,9 +286,4 @@ public class AuthorizationServerController {
 		}
 		return InnerHelper.modelAndViewI18N(request, status, msgI18N);
 	}
-
-	@RequestMapping(AuthConstants.URI_VCODE_PWDSET_TIMEOUT)
-	public String pwdResetTimeout() {
-		return "/pwdset_timeout";
-	}
 }
