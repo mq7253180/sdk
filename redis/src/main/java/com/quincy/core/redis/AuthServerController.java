@@ -69,7 +69,7 @@ public class AuthServerController {
 						.append("&vcode=")
 						.append(vcode)
 						.toString();
-				String key = keyPrefix+token;
+				String key = keyPrefix+"tmppwd:"+token;
 				Jedis jedis = null;
 		    	try {
 		    		jedis = jedisSource.get();
