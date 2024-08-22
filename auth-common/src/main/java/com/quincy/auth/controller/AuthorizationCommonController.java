@@ -18,9 +18,8 @@ public class AuthorizationCommonController {
 	@RequestMapping("/signout")
 	public String logout(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		HttpSession session = request.getSession(false);
-		if(session!=null) {
+		if(session!=null)
 			session.invalidate();
-		}
 		return InnerConstants.VIEW_PATH_SUCCESS;
 	}
 	/**

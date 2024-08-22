@@ -147,11 +147,11 @@
 		<module>jdbc</module>
 		<module>jdbc-sharding</module>
 		<module>redis</module>
-		<module>redis-session</module>
 		<module>zookeeper</module>
 		<module>sftp</module>
 		<module>auth-common</module>
 		<module>auth-server</module>
+		<module>auth-server-redis</module>
 		<module>auth-server-sharding</module>
 	</modules>
 </project>

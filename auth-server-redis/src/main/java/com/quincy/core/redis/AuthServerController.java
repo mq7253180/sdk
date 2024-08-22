@@ -10,7 +10,9 @@ import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.support.RequestContext;
 
+import com.quincy.auth.controller.BaseAuthServerController;
 import com.quincy.core.InnerHelper;
 import com.quincy.sdk.EmailService;
 import com.quincy.sdk.PwdRestEmailInfo;
@@ -25,7 +27,7 @@ import redis.clients.jedis.Transaction;
 
 @Controller
 @RequestMapping("/auth")
-public class AuthServerController {
+public class AuthServerController extends BaseAuthServerController {
 	@Value("${auth.center:}")
 	private String authCenter;
 	@Value("${spring.redis.key.prefix}")
@@ -96,7 +98,31 @@ public class AuthServerController {
 	}
 
 	@RequestMapping(URI_VCODE_PWDSET_SIGNIN)
-	public ModelAndView signin() {
-		return null;
+	public ModelAndView signin(HttpServletRequest request, @RequestParam(required = true, name = "token")String token, @RequestParam(required = true, name = "vcode")String vcode) throws Exception {
+		String key = keyPrefix+"tmppwd:"+token;
+		Jedis jedis = null;
+		String email = null;
+		String password = null;
+    	try {
+    		jedis = jedisSource.get();
+    		email = jedis.hget(key, "email");
+    		password = jedis.hget(key, "vcode");
+    		jedis.del(key);
+    	} finally {
+    		if(jedis!=null)
+    			jedis.close();
+    	}
+    	Integer status = null;
+    	String i18nKey = null;
+    	if(email==null||password==null) {
+    		status = -9;
+    		i18nKey = "auth.pwdreset.link.timeout";
+    	} else if(!password.equals(vcode)) {
+    		status = -10;
+    		i18nKey = "auth.pwdreset.link.invalid";
+    	} else
+    		return this.createModelAndView(request, this.login(request, email), "");
+    	RequestContext requestContext = new RequestContext(request);
+    	return this.createModelAndView(request, new Result(status, requestContext.getMessage(i18nKey)), "");
 	}
 }

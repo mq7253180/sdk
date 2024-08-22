@@ -3,11 +3,10 @@ package com.quincy.core.redis;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.session.data.redis.RedisSessionRepository;
 
-import com.quincy.core.BaseSessionDestroyedConfiguration;
-import com.quincy.core.SessionInvalidation;
+import com.quincy.auth.BaseSessionDestroyedConfiguration;
 import com.quincy.sdk.annotation.EnableRedisSessionEviction;
 
-public class SessionDestroyedRedisConfiguration extends BaseSessionDestroyedConfiguration implements SessionInvalidation {
+public class SessionDestroyedRedisConfiguration extends BaseSessionDestroyedConfiguration {
 	@Autowired
 	private RedisSessionRepository redisSessionRepository;
 

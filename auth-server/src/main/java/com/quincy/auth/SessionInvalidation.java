@@ -1,4 +1,4 @@
-package com.quincy.core;
+package com.quincy.auth;
 
 public interface SessionInvalidation {
 	public void invalidate(String jsessionid);

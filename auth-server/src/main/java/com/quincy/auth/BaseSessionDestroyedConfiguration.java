@@ -1,10 +1,10 @@
-package com.quincy.core;
+package com.quincy.auth;
 
 import org.springframework.context.annotation.ImportAware;
 import org.springframework.core.annotation.AnnotationAttributes;
 import org.springframework.core.type.AnnotationMetadata;
 
-public abstract class BaseSessionDestroyedConfiguration implements ImportAware {
+public abstract class BaseSessionDestroyedConfiguration implements ImportAware, SessionInvalidation {
 	private Boolean pcBrowserEvict;
 	private Boolean mobileBrowserEvict;
 	private Boolean appEvict;

@@ -6,14 +6,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.context.annotation.Bean;
 
 import com.quincy.auth.annotation.EnableOriginalSessionEviction;
-import com.quincy.core.BaseSessionDestroyedConfiguration;
-import com.quincy.core.SessionInvalidation;
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpSessionEvent;
 import jakarta.servlet.http.HttpSessionListener;
 
-public class SessionDestroyedOriginalConfiguration extends BaseSessionDestroyedConfiguration implements SessionInvalidation {
+public class SessionDestroyedOriginalConfiguration extends BaseSessionDestroyedConfiguration {
 	public final static Map<String, HttpSession> SESSIONS = new ConcurrentHashMap<String, HttpSession>(1024);
 
 	@Bean
