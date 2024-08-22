@@ -252,7 +252,11 @@ public class AuthorizationServerController {
 	@Autowired(required = false)
 	private PwdRestEmailInfo pwdRestEmailInfo;
 	private final static String PWDSET_CLIENT_TOKEN_NAME = "email";
-
+	/**
+	 * 发url到邮箱，打开邮箱直接点击链接打开密码重置页
+	 * 此功能需要转移至redis模块中实现，因为使用场景有可能是在Firefox中发送，再从Foxmail等邮件客户端中打开链接，而默认浏览器可能是Edge，导致cookie不一致
+	 * 生成临时token，作为key存hset，子key为email、password，将token拼成url发送至邮箱
+	 */
 	@RequestMapping("/vcode/pwdset")
 	public ModelAndView vcode(HttpServletRequest request, @RequestParam(required = true, name = "email")String _email) throws Exception {
 		Assert.notNull(pwdRestEmailInfo, "没有设置邮件标题和内容模板");
