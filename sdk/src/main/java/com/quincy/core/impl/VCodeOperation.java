@@ -23,7 +23,7 @@ import jakarta.servlet.http.HttpSession;
 
 @Component
 public class VCodeOperation implements VCodeOpsRgistry {
-	@Value("${auth.vcode.timeout:120}")
+	@Value("${auth.vcode.timeout:180}")
 	private int vcodeTimeoutSeconds;
 	private static final Map<String, String> I18N_KEYS_HOLDER = new HashMap<String, String>(2);
 	private final static String ATTR_KEY_USERNAME = "username";
