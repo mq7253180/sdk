@@ -1,6 +1,5 @@
 package com.quincy.auth.controller;
 
-import java.net.URLEncoder;
 import java.time.Duration;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +15,6 @@ import org.springframework.web.servlet.support.RequestContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quincy.auth.AuthConstants;
-import com.quincy.auth.PwdRestEmailInfo;
 import com.quincy.auth.TempPwdLoginEmailInfo;
 import com.quincy.auth.o.XSession;
 import com.quincy.auth.o.User;
@@ -45,6 +43,8 @@ public class AuthorizationServerController {
 	private SessionInvalidation sessionInvalidation;
 	@Autowired
 	private VCodeOpsRgistry vCodeOpsRgistry;
+	@Autowired(required = false)
+	private TempPwdLoginEmailInfo tempPwdLoginEmailInfo;
 	@Value("${server.servlet.session.timeout.mobile:#{null}}")
 	private String mobileSessionTimeout;
 	@Value("${server.servlet.session.timeout.app:#{null}}")
@@ -242,50 +242,6 @@ public class AuthorizationServerController {
 				status = 1;
 				msgI18N = Result.I18N_KEY_SUCCESS;
 				vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.MIXED, 32, email, tempPwdLoginEmailInfo.getSubject(), tempPwdLoginEmailInfo.getContent());
-			}
-		}
-		return InnerHelper.modelAndViewI18N(request, status, msgI18N);
-	}
-
-	@Autowired(required = false)
-	private TempPwdLoginEmailInfo tempPwdLoginEmailInfo;
-	@Autowired(required = false)
-	private PwdRestEmailInfo pwdRestEmailInfo;
-	private final static String PWDSET_CLIENT_TOKEN_NAME = "email";
-	/**
-	 * 发url到邮箱，打开邮箱直接点击链接打开密码重置页
-	 * 此功能需要转移至redis模块中实现，因为使用场景有可能是在Firefox中发送，再从Foxmail等邮件客户端中打开链接，而默认浏览器可能是Edge，导致cookie不一致
-	 * 生成临时token，作为key存hset，子key为email、password，将token拼成url发送至邮箱
-	 */
-	@RequestMapping("/vcode/pwdset")
-	public ModelAndView vcode(HttpServletRequest request, @RequestParam(required = true, name = "email")String _email) throws Exception {
-		Assert.notNull(pwdRestEmailInfo, "没有设置邮件标题和内容模板");
-		Integer status = null;
-		String msgI18N = null;
-		String email = CommonHelper.trim(_email);
-		if(email==null) {
-			status = 0;
-			msgI18N = "email.null";
-		} else {
-			if(!CommonHelper.isEmail(email)) {
-				status = -1;
-				msgI18N = "email.illegal";
-			} else {
-				status = 1;
-				msgI18N = Result.I18N_KEY_SUCCESS;
-				String uri = new StringBuilder(100)
-						.append("/auth")
-						.append(AuthConstants.URI_VCODE_PWDSET_SIGNIN)
-						.append("?")
-						.append(PWDSET_CLIENT_TOKEN_NAME)
-						.append("=")
-						.append(URLEncoder.encode(email, "UTF-8"))
-						.append("&vcode={0}&")
-						.append(InnerConstants.PARAM_REDIRECT_TO)
-						.append("=")
-						.append(URLEncoder.encode(AuthConstants.URI_PWD_SET, "UTF-8"))
-						.toString();
-				vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.MIXED, 32, email, pwdRestEmailInfo.getSubject(), pwdRestEmailInfo.getContent(uri));
 			}
 		}
 		return InnerHelper.modelAndViewI18N(request, status, msgI18N);

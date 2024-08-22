@@ -8,6 +8,7 @@ import java.util.HashMap;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 
 import com.quincy.sdk.AbstractAliveThread;
@@ -23,12 +24,14 @@ import redis.clients.jedis.JedisPubSub;
 @Order(2)
 @Component
 public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> {
-	private final static String KEY_PREFIX = "SYNCHRONIZATION:";
-	private final static String LOCK_KEY_PREFIX = KEY_PREFIX+"LOCK:";
-	private final static String TOPIC_KEY_PREFIX = KEY_PREFIX+"TOPIC:";
+	private final static String KEY_PREFIX = "synchronization:";
+	private final static String LOCK_KEY_PREFIX = KEY_PREFIX+"lock:";
+	private final static String TOPIC_KEY_PREFIX = KEY_PREFIX+"topic:";
 	private final static String LOCK_MAP_KEY = "lockKey";
 	private final static String TOPIC_MAP_KEY = "topicKey:";
 	private final static String WATCH_DOG_KEY = "watchDog";
+	@Value("${spring.redis.key.prefix}")
+	private String keyPrefix;
 
 	@Pointcut("@annotation(com.quincy.sdk.annotation.Synchronized)")
     public void pointCut() {}
@@ -44,8 +47,8 @@ public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> {
 	}
 
 	protected Map<String, ?> tryLock(String name, Jedis jedis) throws UnknownHostException {
-		String lockKey = LOCK_KEY_PREFIX+name;
-		String topicKey = TOPIC_KEY_PREFIX+name;
+		String lockKey = keyPrefix+LOCK_KEY_PREFIX+name;
+		String topicKey = keyPrefix+TOPIC_KEY_PREFIX+name;
 		String value = InetAddress.getLocalHost().getHostAddress()+"-"+Thread.currentThread().threadId();
 		String cachedValue = jedis.get(lockKey);
 		Map<String, ?> passToUnlock = null;

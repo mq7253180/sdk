@@ -36,8 +36,14 @@ public class EmailServiceImpl implements EmailService {
 	@Qualifier(InnerConstants.BEAN_NAME_SYS_THREAD_POOL)
 	private ThreadPoolExecutor threadPoolExecutor;
 
+	@Override
 	public void send(String to, String subject, String content, String attachment, String fileName, String charset, String ccTo, String bccTo) {
 		this.send(to, subject, content, attachment!=null&&attachment.length()>0?new File(attachment):null, fileName, charset, ccTo, bccTo);
+	}
+
+	@Override
+	public void send(String to, String subject, String content) {
+		this.send(to, subject, content, "", null, null, null, null);
 	}
 
 	@Value("${mail.username}")
@@ -49,6 +55,7 @@ public class EmailServiceImpl implements EmailService {
 	@Qualifier(InnerConstants.BEAN_NAME_PROPERTIES)
 	private Properties properties;
 
+	@Override
 	public void send(String to, String subject, String content, File attachment, String fileName, String _charset, String ccTo, String bccTo) {
 		threadPoolExecutor.execute(new Runnable() {
 			@Override

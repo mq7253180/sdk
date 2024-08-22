@@ -104,7 +104,7 @@ public class VCodeOperation implements VCodeOpsRgistry {
 			public void send(char[] _vcode, int expireMinuts) {
 				String vcode = new String(_vcode);
 				String content = MessageFormat.format(_content, vcode, expireMinuts);
-				emailService.send(emailTo, subject, content, "", null, null, null, null);
+				emailService.send(emailTo, subject, content);
 			}
 		});
 	}

@@ -1,10 +1,16 @@
 package com.quincy.sdk;
 
-public class DynamicField {
+import java.io.Serializable;
+
+public class DynamicField implements Serializable {
+	private static final long serialVersionUID = -5958162058880251653L;
 	private Integer id;
 	private String name;
 	private int sort;
 
+	public DynamicField() {
+		
+	}
 	public DynamicField(Integer id, String name, int sort) {
 		this.id = id;
 		this.name = name;

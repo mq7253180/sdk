@@ -1,8 +1,14 @@
 package com.quincy.sdk;
 
-public class DynamicColumn extends DynamicField implements Cloneable {
+import java.io.Serializable;
+
+public class DynamicColumn extends DynamicField implements Cloneable, Serializable {
+	private static final long serialVersionUID = 7905601732483586056L;
 	private Object value;
 
+	public DynamicColumn() {
+		super();
+	}
 	public DynamicColumn(Integer id, String name, int sort) {
 		super(id, name, sort);
 	}

@@ -10,6 +10,7 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -19,17 +20,14 @@ import com.quincy.sdk.RedisProcessor;
 import com.quincy.sdk.annotation.Cache;
 import com.quincy.sdk.helper.CommonHelper;
 
-import lombok.extern.slf4j.Slf4j;
 import redis.clients.jedis.Jedis;
 
-@Slf4j
 @Aspect
 @Order(1)
 @Component
 public class CacheAop {
-	@Autowired
-	@Qualifier("cacheKeyPrefix")
-	private String cacheKeyPrefix;
+	@Value("${spring.redis.key.prefix}")
+	private String keyPrefix;
 	@Autowired
 	@Qualifier(RedisConstants.BEAN_NAME_SYS_JEDIS_SOURCE)
 	private JedisSource jedisSource;
@@ -46,8 +44,7 @@ public class CacheAop {
     	Method method = clazz.getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
     	Cache annotation = method.getAnnotation(Cache.class);
     	String keyStr = annotation.key().trim();
-    	String _key = cacheKeyPrefix+(keyStr.length()>0?keyStr:CommonHelper.fullMethodPath(clazz, methodSignature, method, joinPoint.getArgs(), ".", "_", "#"));
-    	log.info("CACHE_KEY============================={}", _key);
+    	String _key = keyPrefix+"cache:"+(keyStr.length()>0?keyStr:CommonHelper.fullMethodPath(clazz, methodSignature, method, joinPoint.getArgs(), ".", "_", "#"));
     	byte[] key = (_key+":VALUE").getBytes();
     	Jedis jedis = null;
     	try {

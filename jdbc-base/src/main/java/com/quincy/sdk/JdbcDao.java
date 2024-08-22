@@ -10,7 +10,7 @@ public interface JdbcDao {
 	/**
 	 * f.name,f.sort,v.value_decimal and primary key as id must be presented in sqlFrontHalf.
 	 */
-	public Object executeQueryWithDynamicColumns(String sqlFronHalf, String tableName, Class<?> returnType, Class<?> returnItemType, Object... args) throws SQLException, IOException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, CloneNotSupportedException;
+	public Object executeQueryWithDynamicColumns(String sqlFronHalf, String tableName, Class<?> returnItemType, Class<?> returnType, Object... args) throws SQLException, IOException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, CloneNotSupportedException;
 	public List<DynamicField> findDynamicFields(String tableName) throws SQLException;
 	public int executeUpdate(String sql, Object... args) throws SQLException;
 	public int executeUpdateWithHistory(String sql, Object... args) throws SQLException;
