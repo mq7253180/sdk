@@ -21,6 +21,7 @@ import com.quincy.sdk.helper.CommonHelper;
 
 import jakarta.servlet.http.HttpServletRequest;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.Transaction;
 
 @Controller
 @RequestMapping("/auth")
@@ -71,12 +72,20 @@ public class AuthServerController {
 						.toString();
 				String key = keyPrefix+"tmppwd:"+token;
 				Jedis jedis = null;
+				Transaction tx = null;
 		    	try {
 		    		jedis = jedisSource.get();
-		    		jedis.hset(key, "email", email);
-		    		jedis.hset(key, "vcode", vcode);
-		    		jedis.expire(key, vcodeTimeoutSeconds);
+		    		tx = jedis.multi();
+		    		tx.hset(key, "email", email);
+		    		tx.hset(key, "vcode", vcode);
+		    		tx.expire(key, vcodeTimeoutSeconds);
+		    		tx.exec();
+		    	} catch(Exception e) {
+		    		tx.discard();
+		    		throw e;
 		    	} finally {
+		    		if(tx!=null)
+		    			tx.close();
 		    		if(jedis!=null)
 		    			jedis.close();
 		    	}
