@@ -45,7 +45,7 @@ public class AuthServerController extends BaseAuthServerController {
 	private JedisSource jedisSource;
 	@Autowired(required = false)
 	private PwdRestEmailInfo pwdRestEmailInfo;
-	private final static String URI_VCODE_PWDSET_SIGNIN = "/pwdset/signin";
+	private final static String URI_VCODE_PWDSET_SIGNIN = "/pwdset";
 
 	@RequestMapping("/pwdset/vcode")
 	public ModelAndView vcode(HttpServletRequest request, @RequestParam(required = true, name = "email")String _email) throws Exception {
@@ -115,19 +115,13 @@ public class AuthServerController extends BaseAuthServerController {
     	}
     	Integer status = null;
     	String i18nKey = null;
-    	Result result = null;
     	if(email==null||password==null) {
     		status = -9;
     		i18nKey = "auth.pwdreset.link.timeout";
     	} else if(!password.equals(vcode)) {
     		status = -10;
     		i18nKey = "auth.pwdreset.link.invalid";
-    	} else
-    		result = this.login(request, email);
-    	if(result==null) {
-    		RequestContext requestContext = new RequestContext(request);
-    		result = new Result(status, requestContext.getMessage(i18nKey));
     	}
-    	return InnerHelper.modelAndViewMsg(request, result, "redirect:"+authCenter+"/user/pwdset");
+    	return status==null?new ModelAndView("/password"):InnerHelper.modelAndViewMsg(request, new Result(status, new RequestContext(request).getMessage(i18nKey)));
 	}
 }
