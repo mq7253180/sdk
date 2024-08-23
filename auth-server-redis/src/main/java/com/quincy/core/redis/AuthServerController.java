@@ -129,6 +129,6 @@ public class AuthServerController extends BaseAuthServerController {
     		RequestContext requestContext = new RequestContext(request);
     		result = new Result(status, requestContext.getMessage(i18nKey));
     	}
-    	return InnerHelper.modelAndViewMsg(request, result, authCenter+"/user/pwdset");
+    	return InnerHelper.modelAndViewMsg(request, result, authCenter+"/user/pwdset", true);
 	}
 }
