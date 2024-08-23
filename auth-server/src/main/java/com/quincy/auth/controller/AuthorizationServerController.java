@@ -96,7 +96,7 @@ public class AuthorizationServerController extends BaseAuthServerController {
 					result = pwdLogin(request, username, password);
 			}
 		}
-		return InnerHelper.modelAndViewMsg(request, result, redirectTo, true);
+		return InnerHelper.modelAndViewMsg(request, result, redirectTo!=null?"redirect:"+redirectTo:null);
 	}
 
 	private Result pwdLogin(HttpServletRequest request, String username, String _password) throws Exception {
@@ -122,7 +122,7 @@ public class AuthorizationServerController extends BaseAuthServerController {
 			HttpSession session = request.getSession(false);
 			result = login(request, session.getAttribute(PARA_NAME_USERNAME).toString());
 		}
-		return InnerHelper.modelAndViewMsg(request, result, redirectTo, true);
+		return InnerHelper.modelAndViewMsg(request, result, redirectTo!=null?"redirect:"+redirectTo:null);
 	}
 	/**
 	 * 生成临时密码并发送至邮箱

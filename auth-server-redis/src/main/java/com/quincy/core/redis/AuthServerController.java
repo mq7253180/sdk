@@ -109,7 +109,6 @@ public class AuthServerController extends BaseAuthServerController {
     		jedis = jedisSource.get();
     		email = jedis.hget(key, "email");
     		password = jedis.hget(key, "vcode");
-    		jedis.del(key);
     	} finally {
     		if(jedis!=null)
     			jedis.close();
@@ -129,6 +128,6 @@ public class AuthServerController extends BaseAuthServerController {
     		RequestContext requestContext = new RequestContext(request);
     		result = new Result(status, requestContext.getMessage(i18nKey));
     	}
-    	return InnerHelper.modelAndViewMsg(request, result, authCenter+"/user/pwdset", true);
+    	return InnerHelper.modelAndViewMsg(request, result, "redirect:"+authCenter+"/user/pwdset");
 	}
 }

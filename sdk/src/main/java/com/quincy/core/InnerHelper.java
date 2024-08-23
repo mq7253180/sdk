@@ -93,7 +93,7 @@ public class InnerHelper {
 		return uri.indexOf("?")>=0?'&':'?';
 	}
 
-	public static ModelAndView modelAndViewMsg(HttpServletRequest request, int status, String msg, Object data, String destination, boolean redirect) {
+	public static ModelAndView modelAndViewMsg(HttpServletRequest request, int status, String msg, Object data, String sucessDestination) {
 		HttpSession session = request.getSession(false);
 		if(session!=null) {
 			session.removeAttribute("status");
@@ -102,14 +102,7 @@ public class InnerHelper {
 		}
 		String viewName = null;
 		if(status==1) {
-			if(destination!=null&&!Client.get(request).isJson()) {
-				if(redirect) {
-					viewName = "redirect:"+destination;
-				} else
-					viewName = destination;
-			}
-			if(viewName==null)
-				viewName = InnerConstants.VIEW_PATH_SUCCESS;
+			viewName = sucessDestination==null?InnerConstants.VIEW_PATH_SUCCESS:sucessDestination.trim();
 		} else
 			viewName = InnerConstants.VIEW_PATH_FAILURE;
 		return new ModelAndView(viewName)
@@ -118,19 +111,19 @@ public class InnerHelper {
 				.addObject("data", data);
 	}
 
-	public static ModelAndView modelAndViewMsg(HttpServletRequest request, Result result, String destination, boolean redirect) {
-		return modelAndViewMsg(request, result.getStatus(), result.getMsg(), result.getData(), destination, redirect);
+	public static ModelAndView modelAndViewMsg(HttpServletRequest request, Result result, String sucessDestination) {
+		return modelAndViewMsg(request, result.getStatus(), result.getMsg(), result.getData(), sucessDestination);
 	}
 
 	public static ModelAndView modelAndViewMsg(HttpServletRequest request, Result result) {
-		return modelAndViewMsg(request, result, null, false);
+		return modelAndViewMsg(request, result, null);
 	}
 
-	public static ModelAndView modelAndViewI18N(HttpServletRequest request, int status, String i18NKey, String destination, boolean redirect) {
-		return modelAndViewMsg(request, status, new RequestContext(request).getMessage(i18NKey), null, destination, redirect);
+	public static ModelAndView modelAndViewI18N(HttpServletRequest request, int status, String i18NKey, String sucessDestination) {
+		return modelAndViewMsg(request, status, new RequestContext(request).getMessage(i18NKey), null, sucessDestination);
 	}
 
 	public static ModelAndView modelAndViewI18N(HttpServletRequest request, int status, String i18NKey) {
-		return modelAndViewI18N(request, status, i18NKey, null, false);
+		return modelAndViewI18N(request, status, i18NKey, null);
 	}
 }
