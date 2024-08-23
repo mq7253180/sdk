@@ -100,6 +100,10 @@ public class AuthServerController {
 
 	@RequestMapping(URI_VCODE_PWDSET_SIGNIN)
 	public ModelAndView signin(HttpServletRequest request, @RequestParam(required = true, name = "token")String token, @RequestParam(required = true, name = "vcode")String vcode) throws Exception {
+    	return InnerHelper.modelAndViewMsg(request, this.validate(request, token, vcode), "/password");
+	}
+
+	private Result validate(HttpServletRequest request, String token, String vcode) {
 		String key = keyPrefix+"tmppwd:"+token;
 		Jedis jedis = null;
 		String email = null;
@@ -120,7 +124,10 @@ public class AuthServerController {
     	} else if(!password.equals(vcode)) {
     		status = -10;
     		i18nKey = "auth.pwdreset.link.invalid";
+    	} else {
+    		status = 1;
+    		i18nKey = Result.I18N_KEY_SUCCESS;
     	}
-    	return status==null?new ModelAndView("/password"):InnerHelper.modelAndViewMsg(request, new Result(status, new RequestContext(request).getMessage(i18nKey)));
+    	return new Result(status, new RequestContext(request).getMessage(i18nKey));
 	}
 }
