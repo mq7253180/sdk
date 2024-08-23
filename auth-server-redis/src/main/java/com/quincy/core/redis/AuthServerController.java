@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContext;
 
-import com.quincy.auth.controller.BaseAuthServerController;
 import com.quincy.core.InnerHelper;
 import com.quincy.sdk.EmailService;
 import com.quincy.sdk.PwdRestEmailInfo;
@@ -27,7 +26,7 @@ import redis.clients.jedis.Transaction;
 
 @Controller
 @RequestMapping("/auth")
-public class AuthServerController extends BaseAuthServerController {
+public class AuthServerController {
 	@Value("${auth.center:}")
 	private String authCenter;
 	@Value("${spring.redis.key.prefix}")
