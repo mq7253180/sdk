@@ -93,19 +93,37 @@ public class InnerHelper {
 		return uri.indexOf("?")>=0?'&':'?';
 	}
 
-	public static ModelAndView modelAndViewMsg(HttpServletRequest request, int status, String msg) {
+	public static ModelAndView modelAndViewMsg(HttpServletRequest request, int status, String msg, Object data, String redirectTo) {
 		HttpSession session = request.getSession(false);
 		if(session!=null) {
 			session.removeAttribute("status");
 			session.removeAttribute("msg");
 			session.removeAttribute("data");
 		}
-		return new ModelAndView(status==1?InnerConstants.VIEW_PATH_SUCCESS:InnerConstants.VIEW_PATH_FAILURE)
+		String viewName = null;
+		if(status==1) {
+			viewName = Client.get(request).isJson()?InnerConstants.VIEW_PATH_SUCCESS:"redirect:"+redirectTo;
+		} else
+			viewName = InnerConstants.VIEW_PATH_FAILURE;
+		return new ModelAndView(viewName)
 				.addObject("status", status)
-				.addObject("msg", msg);
+				.addObject("msg", msg)
+				.addObject("data", data);
+	}
+
+	public static ModelAndView modelAndViewMsg(HttpServletRequest request, Result result, String redirectTo) {
+		return modelAndViewMsg(request, result.getStatus(), result.getMsg(), result.getData(), redirectTo);
+	}
+
+	public static ModelAndView modelAndViewMsg(HttpServletRequest request, Result result) {
+		return modelAndViewMsg(request, result, null);
+	}
+
+	public static ModelAndView modelAndViewI18N(HttpServletRequest request, int status, String i18NKey, String redirectTo) {
+		return modelAndViewMsg(request, status, new RequestContext(request).getMessage(i18NKey), null, redirectTo);
 	}
 
 	public static ModelAndView modelAndViewI18N(HttpServletRequest request, int status, String i18NKey) {
-		return modelAndViewMsg(request, status, new RequestContext(request).getMessage(i18NKey));
+		return modelAndViewI18N(request, status, i18NKey, null);
 	}
 }

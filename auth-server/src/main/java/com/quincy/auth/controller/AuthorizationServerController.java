@@ -31,6 +31,8 @@ public class AuthorizationServerController extends BaseAuthServerController {
 	private VCodeOpsRgistry vCodeOpsRgistry;
 	@Autowired(required = false)
 	private TempPwdLoginEmailInfo tempPwdLoginEmailInfo;
+	@Value("${auth.tmppwd.length:32}")
+	private int tmppwdLength;
 	private final static String PARA_NAME_USERNAME = "username";
 	/**
 	 * 进登录页
@@ -94,7 +96,7 @@ public class AuthorizationServerController extends BaseAuthServerController {
 					result = pwdLogin(request, username, password);
 			}
 		}
-		return createModelAndView(request, result, redirectTo);
+		return InnerHelper.modelAndViewMsg(request, result, redirectTo);
 	}
 
 	private Result pwdLogin(HttpServletRequest request, String username, String _password) throws Exception {
@@ -120,7 +122,7 @@ public class AuthorizationServerController extends BaseAuthServerController {
 			HttpSession session = request.getSession(false);
 			result = login(request, session.getAttribute(PARA_NAME_USERNAME).toString());
 		}
-		return createModelAndView(request, result, redirectTo);
+		return InnerHelper.modelAndViewMsg(request, result, redirectTo);
 	}
 	/**
 	 * 生成临时密码并发送至邮箱
@@ -141,7 +143,7 @@ public class AuthorizationServerController extends BaseAuthServerController {
 			} else {
 				status = 1;
 				msgI18N = Result.I18N_KEY_SUCCESS;
-				vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.MIXED, 32, email, tempPwdLoginEmailInfo.getSubject(), tempPwdLoginEmailInfo.getContent());
+				vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.MIXED, tmppwdLength, email, tempPwdLoginEmailInfo.getSubject(), tempPwdLoginEmailInfo.getContent());
 			}
 		}
 		return InnerHelper.modelAndViewI18N(request, status, msgI18N);

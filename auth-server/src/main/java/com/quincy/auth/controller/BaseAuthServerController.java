@@ -5,10 +5,8 @@ import java.time.Duration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.Assert;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContext;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quincy.auth.AuthConstants;
 import com.quincy.auth.SessionInvalidation;
@@ -93,30 +91,5 @@ public class BaseAuthServerController {
 		result.setMsg(requestContext.getMessage("auth.success"));
 		result.setData(client.isJson()?new ObjectMapper().writeValueAsString(xsession):xsession);
 		return result;
-	}
-
-	private ModelAndView createModelAndView(HttpSession session, Result result) throws JsonProcessingException {
-		session.setAttribute("status", result.getStatus());
-		session.setAttribute("msg", result.getMsg());
-		session.setAttribute("data", result.getData());
-		return new ModelAndView("/result_login")
-				.addObject("status", result.getStatus())
-				.addObject("msg", result.getMsg())
-				.addObject("data", result.getData());
-	}
-
-	protected ModelAndView createModelAndView(HttpServletRequest request, Result result, String _redirectTo) throws JsonProcessingException {
-		Client client = Client.get(request);
-		ModelAndView mv = null;
-		if(client.isJson()) {
-			mv = createModelAndView(request.getSession(), result);
-		} else {
-			if(result.getStatus()==1) {
-				String redirectTo = CommonHelper.trim(_redirectTo);
-				mv = new ModelAndView("redirect:"+(redirectTo!=null?redirectTo:""));
-			} else
-				mv = createModelAndView(request.getSession(), result);
-		}
-		return mv;
 	}
 }

@@ -13,6 +13,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContext;
 
 import com.quincy.auth.controller.BaseAuthServerController;
+import com.quincy.core.InnerConstants;
 import com.quincy.core.InnerHelper;
 import com.quincy.sdk.EmailService;
 import com.quincy.sdk.PwdRestEmailInfo;
@@ -34,6 +35,8 @@ public class AuthServerController extends BaseAuthServerController {
 	private String keyPrefix;
 	@Value("${auth.vcode.timeout:180}")
 	private int vcodeTimeoutSeconds;
+	@Value("${auth.tmppwd.length:32}")
+	private int tmppwdLength;
 	@Autowired
 	private VCodeOpsRgistry vCodeOpsRgistry;
 	@Autowired
@@ -62,7 +65,7 @@ public class AuthServerController extends BaseAuthServerController {
 				status = 1;
 				msgI18N = Result.I18N_KEY_SUCCESS;
 				String token = UUID.randomUUID().toString();
-				String vcode = new String(vCodeOpsRgistry.generate(VCodeCharsFrom.MIXED, 16));
+				String vcode = new String(vCodeOpsRgistry.generate(VCodeCharsFrom.MIXED, tmppwdLength));
 				String uri = new StringBuilder(200)
 						.append(authCenter)
 						.append("/auth")
@@ -114,6 +117,7 @@ public class AuthServerController extends BaseAuthServerController {
     	}
     	Integer status = null;
     	String i18nKey = null;
+    	Result result = null;
     	if(email==null||password==null) {
     		status = -9;
     		i18nKey = "auth.pwdreset.link.timeout";
@@ -121,8 +125,11 @@ public class AuthServerController extends BaseAuthServerController {
     		status = -10;
     		i18nKey = "auth.pwdreset.link.invalid";
     	} else
-    		return this.createModelAndView(request, this.login(request, email), "");
-    	RequestContext requestContext = new RequestContext(request);
-    	return this.createModelAndView(request, new Result(status, requestContext.getMessage(i18nKey)), "");
+    		result = this.login(request, email);
+    	if(result==null) {
+    		RequestContext requestContext = new RequestContext(request);
+    		result = new Result(status, requestContext.getMessage(i18nKey));
+    	}
+    	return InnerHelper.modelAndViewMsg(request, result, authCenter+"/user/pwdset");
 	}
 }
