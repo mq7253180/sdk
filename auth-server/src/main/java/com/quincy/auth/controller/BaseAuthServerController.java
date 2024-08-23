@@ -80,7 +80,7 @@ public class BaseAuthServerController {
 		session.setAttribute(AuthConstants.ATTR_SESSION, xsession);
 		if(sessionInvalidation!=null) {//同一user同一类端之间互踢，清除session
 			originalJsessionid = CommonHelper.trim(originalJsessionid);
-			if(originalJsessionid!=null) {
+			if(originalJsessionid!=null&&!originalJsessionid.equals(session.getId())) {
 				if((client.isPc()&&sessionInvalidation.pcBrowserEvict())//PC浏览器互踢
 						||(client.isMobile()&&sessionInvalidation.mobileBrowserEvict())//移动设备浏览器互踢
 						||(client.isApp()&&sessionInvalidation.appEvict())//APP互踢
