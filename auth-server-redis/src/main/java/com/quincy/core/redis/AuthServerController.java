@@ -78,34 +78,26 @@ public class AuthServerController {
 						.append("&vcode=")
 						.append(vcode)
 						.toString();
-				User user = authActions.findUser(email, Client.get(request));
-				if(user==null) {
-					status = -11;
-					msgI18N = "auth.pwdreset.link.nouser";
-				} else {
-					String key = keyPrefix+"tmppwd:"+token;
-					Jedis jedis = null;
-					Transaction tx = null;
-			    	try {
-			    		jedis = jedisSource.get();
-			    		tx = jedis.multi();
-			    		tx.hset(key, "userId", user.getId().toString());
-			    		tx.hset(key, "vcode", vcode);
-			    		if(user.getShardingKey()!=null)
-			    			tx.hset(key, "shardingKey", user.getShardingKey().toString());
-			    		tx.expire(key, vcodeTimeoutSeconds);
-			    		tx.exec();
-			    	} catch(Exception e) {
-			    		tx.discard();
-			    		throw e;
-			    	} finally {
-			    		if(tx!=null)
-			    			tx.close();
-			    		if(jedis!=null)
-			    			jedis.close();
-			    	}
-					emailService.send(email, pwdRestEmailInfo.getSubject(), pwdRestEmailInfo.getContent(uri, vcodeTimeoutSeconds));
-				}
+				String key = keyPrefix+"tmppwd:"+token;
+				Jedis jedis = null;
+				Transaction tx = null;
+		    	try {
+		    		jedis = jedisSource.get();
+		    		tx = jedis.multi();
+		    		tx.hset(key, "email", email);
+		    		tx.hset(key, "vcode", vcode);
+		    		tx.expire(key, vcodeTimeoutSeconds);
+		    		tx.exec();
+		    	} catch(Exception e) {
+		    		tx.discard();
+		    		throw e;
+		    	} finally {
+		    		if(tx!=null)
+		    			tx.close();
+		    		if(jedis!=null)
+		    			jedis.close();
+		    	}
+				emailService.send(email, pwdRestEmailInfo.getSubject(), pwdRestEmailInfo.getContent(uri, vcodeTimeoutSeconds));
 			}
 		}
 		return InnerHelper.modelAndViewI18N(request, status, msgI18N);
@@ -120,13 +112,18 @@ public class AuthServerController {
 	public ModelAndView update(HttpServletRequest request, @RequestParam(required = true, name = "token")String token, @RequestParam(required = true, name = "vcode")String vcode, @RequestParam(required = true, name = "password")String password) {
 		Result result = this.validate(null, password, password);
 		if(result.getStatus()==1) {
-			String[] data = result.getData().toString().split("_");
-			User user = new User();
-			user.setId(Long.valueOf(data[0]));
-			user.setPassword(password);
-			if(data.length>1)
-				user.setShardingKey(Integer.valueOf(data[1]));
-			authActions.updatePassword(user);
+			User userPo = authActions.findUser(result.getData().toString(), Client.get(request));
+			if(userPo==null) {
+				result = new Result(-11, "auth.pwdreset.link.nouser");
+			} else {
+				User userVo = new User();
+				userVo.setId(userPo.getId());
+				userVo.setShardingKey(userPo.getShardingKey());
+				userVo.setPassword(password);
+				authActions.updatePassword(userVo);
+				result = Result.newSuccess();
+			}
+			result.setMsg(new RequestContext(request).getMessage(result.getMsg()));
 		}
 		return InnerHelper.modelAndViewResult(request, result);
 	}
@@ -134,21 +131,19 @@ public class AuthServerController {
 	private Result validate(HttpServletRequest request, String token, String vcode) {
 		String key = keyPrefix+"tmppwd:"+token;
 		Jedis jedis = null;
-		String userId = null;
+		String email = null;
 		String password = null;
-		String shardingKey = null;
     	try {
     		jedis = jedisSource.get();
-    		userId = jedis.hget(key, "userId");
+    		email = jedis.hget(key, "email");
     		password = jedis.hget(key, "vcode");
-    		shardingKey = jedis.hget(key, "shardingKey");
     	} finally {
     		if(jedis!=null)
     			jedis.close();
     	}
     	Integer status = null;
     	String i18nKey = null;
-    	if(userId==null||password==null) {
+    	if(email==null||password==null) {
     		status = -9;
     		i18nKey = "auth.pwdreset.link.timeout";
     	} else if(!password.equals(vcode)) {
@@ -158,11 +153,6 @@ public class AuthServerController {
     		status = 1;
     		i18nKey = Result.I18N_KEY_SUCCESS;
     	}
-    	String data = userId;
-    	if(shardingKey!=null) {
-    		data += "_";
-    		data += shardingKey;
-    	}
-    	return new Result(status, new RequestContext(request).getMessage(i18nKey), data);
+    	return new Result(status, new RequestContext(request).getMessage(i18nKey), email);
 	}
 }
