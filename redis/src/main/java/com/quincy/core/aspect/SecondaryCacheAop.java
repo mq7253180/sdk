@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 import com.quincy.core.redis.JedisSource;
 import com.quincy.core.redis.RedisConstants;
 import com.quincy.sdk.RedisProcessor;
-import com.quincy.sdk.annotation.Cache;
+import com.quincy.sdk.annotation.SecondaryCache;
 import com.quincy.sdk.helper.CommonHelper;
 
 import redis.clients.jedis.Jedis;
@@ -25,7 +25,7 @@ import redis.clients.jedis.Jedis;
 @Aspect
 @Order(2)
 @Component
-public class CacheAop {
+public class SecondaryCacheAop {
 	@Value("${spring.redis.key.prefix}")
 	private String keyPrefix;
 	@Autowired
@@ -34,7 +34,7 @@ public class CacheAop {
 	@Autowired
 	private RedisProcessor redisProcessor;
 
-	@Pointcut("@annotation(com.quincy.sdk.annotation.Cache)")
+	@Pointcut("@annotation(com.quincy.sdk.annotation.SecondaryCache)")
     public void pointCut() {}
 
     @Around("pointCut()")
@@ -42,7 +42,7 @@ public class CacheAop {
     	Class<?> clazz = joinPoint.getTarget().getClass();
     	MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
     	Method method = clazz.getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
-    	Cache annotation = method.getAnnotation(Cache.class);
+    	SecondaryCache annotation = method.getAnnotation(SecondaryCache.class);
     	String keyStr = annotation.key().trim();
     	String _key = keyPrefix+"cache:"+(keyStr.length()>0?keyStr:CommonHelper.fullMethodPath(clazz, methodSignature, method, joinPoint.getArgs(), ".", "_", "#"));
     	byte[] key = (_key+":VALUE").getBytes();
@@ -59,8 +59,8 @@ public class CacheAop {
     				jedis.del(nxKey);
     				return retVal;
     			} else {
-    				for(int i=0;i<annotation.notExistRetries();i++) {
-    					Thread.sleep(annotation.notExistSleepMillis());
+    				for(int i=0;i<annotation.retries();i++) {
+    					Thread.sleep(annotation.millisBetweenRetries());
     					cache = jedis.get(key);
     					if(cache!=null&&cache.length>0)
     						break;
@@ -79,7 +79,7 @@ public class CacheAop {
     	}
     }
 
-    private Object invokeAndCache(Jedis jedis, ProceedingJoinPoint joinPoint, Cache annotation, byte[] key) throws Throwable {
+    private Object invokeAndCache(Jedis jedis, ProceedingJoinPoint joinPoint, SecondaryCache annotation, byte[] key) throws Throwable {
     	Object toReturn = joinPoint.proceed();
     	if(toReturn!=null) {
     		byte[] valToCache = CommonHelper.serialize(toReturn);
