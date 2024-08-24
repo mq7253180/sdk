@@ -10,6 +10,6 @@ import jakarta.servlet.http.HttpServletRequest;
 public interface AuthActions {
 	public abstract User findUser(String username, Client client);
 	public abstract void updateLastLogin(User user, String jsessionid, Client client);
-	public abstract void updatePassword(Long userId, String password);
+	public abstract void updatePassword(User user);
 	public abstract ModelAndView signinView(HttpServletRequest request);
 }
