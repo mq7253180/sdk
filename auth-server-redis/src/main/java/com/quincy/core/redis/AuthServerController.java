@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContext;
 
+import com.quincy.auth.controller.AuthActions;
 import com.quincy.core.InnerHelper;
 import com.quincy.sdk.EmailService;
 import com.quincy.sdk.PwdRestEmailInfo;
@@ -44,6 +45,8 @@ public class AuthServerController {
 	private JedisSource jedisSource;
 	@Autowired(required = false)
 	private PwdRestEmailInfo pwdRestEmailInfo;
+	@Autowired
+	private AuthActions authActions;
 	private final static String URI_VCODE_PWDSET_SIGNIN = "/pwdset";
 
 	@RequestMapping("/pwdset/vcode")
@@ -99,8 +102,17 @@ public class AuthServerController {
 	}
 
 	@RequestMapping(URI_VCODE_PWDSET_SIGNIN)
-	public ModelAndView signin(HttpServletRequest request, @RequestParam(required = true, name = "token")String token, @RequestParam(required = true, name = "vcode")String vcode) throws Exception {
+	public ModelAndView signin(HttpServletRequest request, @RequestParam(required = true, name = "token")String token, @RequestParam(required = true, name = "vcode")String vcode) {
     	return InnerHelper.modelAndViewResult(request, this.validate(request, token, vcode), "/password");
+	}
+
+	@RequestMapping(URI_VCODE_PWDSET_SIGNIN+"/update")
+	public ModelAndView update(HttpServletRequest request, @RequestParam(required = true, name = "token")String token, 
+			@RequestParam(required = true, name = "vcode")String vcode, @RequestParam(required = true, name = "userid")Long userId, @RequestParam(required = true, name = "password")String password) {
+		Result result = this.validate(null, password, password);
+		if(result.getStatus()==1)
+			authActions.updatePassword(userId, password);
+		return InnerHelper.modelAndViewResult(request, result);
 	}
 
 	private Result validate(HttpServletRequest request, String token, String vcode) {
