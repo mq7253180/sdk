@@ -111,12 +111,12 @@ public class InnerHelper {
 				.addObject("data", data);
 	}
 
-	public static ModelAndView modelAndViewMsg(HttpServletRequest request, Result result, String successDestination) {
+	public static ModelAndView modelAndViewResult(HttpServletRequest request, Result result, String successDestination) {
 		return modelAndViewMsg(request, result.getStatus(), result.getMsg(), result.getData(), successDestination);
 	}
 
-	public static ModelAndView modelAndViewMsg(HttpServletRequest request, Result result) {
-		return modelAndViewMsg(request, result, null);
+	public static ModelAndView modelAndViewResult(HttpServletRequest request, Result result) {
+		return modelAndViewResult(request, result, null);
 	}
 
 	public static ModelAndView modelAndViewI18N(HttpServletRequest request, int status, String i18NKey, String successDestination) {

@@ -100,7 +100,7 @@ public class AuthServerController {
 
 	@RequestMapping(URI_VCODE_PWDSET_SIGNIN)
 	public ModelAndView signin(HttpServletRequest request, @RequestParam(required = true, name = "token")String token, @RequestParam(required = true, name = "vcode")String vcode) throws Exception {
-    	return InnerHelper.modelAndViewMsg(request, this.validate(request, token, vcode), "/password");
+    	return InnerHelper.modelAndViewResult(request, this.validate(request, token, vcode), "/password");
 	}
 
 	private Result validate(HttpServletRequest request, String token, String vcode) {
