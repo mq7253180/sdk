@@ -5,7 +5,7 @@ import java.io.Serializable;
 public class Result implements Serializable {
 	private static final long serialVersionUID = 1L;
 	/*
-	 * 1成功, 0会话超时, -1无权限, -2签名传空, -3签名验证失败, -4抛异常, -5验证码输入为空，-6验证码过期, -7验证码输入有误, -8多租户模式下没有选择租户, -9邮箱找回密码时链接超时, -10邮箱找回密码时无效链接
+	 * 1成功, 0会话超时, -1无权限, -2签名传空, -3签名验证失败, -4抛异常, -5验证码输入为空，-6验证码过期, -7验证码输入有误, -8多租户模式下没有选择租户, -9邮箱找回密码时链接超时, -10邮箱找回密码时无效链接, -11找回密码时用户未注册
 	 */
 	private int status;
 	private String msg;
