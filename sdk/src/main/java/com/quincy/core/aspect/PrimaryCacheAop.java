@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.PostConstruct;
 
@@ -28,6 +29,7 @@ import com.quincy.sdk.helper.CommonHelper;
 @Component
 public class PrimaryCacheAop {
 	private final static Map<String, Cacheable> STORAGE = new ConcurrentHashMap<String, Cacheable>();
+	private final static AtomicInteger LOCK = new AtomicInteger();
 	private static Timer timer = null;
 	@Value("${cache.primary.evictor.delay:5000}")
 	private long evictorDelay;
@@ -70,18 +72,37 @@ public class PrimaryCacheAop {
 		MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
 		Method method = clazz.getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
 		String key = CommonHelper.fullMethodPath(clazz, methodSignature, method, joinPoint.getArgs(), ".", "_", "#");
-		Object value = null;
 		Cacheable cacheable = STORAGE.get(key);
 		if(cacheable==null) {
 			PrimaryCache annotation = method.getAnnotation(PrimaryCache.class);
-			value = joinPoint.proceed();
-			cacheable = new Cacheable();
-			cacheable.setValue(value);
-			cacheable.setExpireMillis(annotation.expire()*1000);
-			STORAGE.put(key, cacheable);
+			if(LOCK.compareAndSet(0, 1)) {
+				cacheable = this.invokeAndCache(joinPoint, annotation, key);
+				LOCK.set(0);
+			} else {
+				for(int i=0;i<annotation.retries();i++) {
+					Thread.sleep(annotation.millisBetweenRetries());
+					cacheable = STORAGE.get(key);
+					if(cacheable!=null)
+						break;
+				}
+				if(cacheable==null&&!annotation.returnNull())
+					return this.invokeAndCache(joinPoint, annotation, key);
+			}
 		}
-		cacheable.setLastAccessTime(System.currentTimeMillis());
-		return cacheable.getValue();
+		if(cacheable==null) {
+			return null;
+		} else {
+			cacheable.setLastAccessTime(System.currentTimeMillis());
+			return cacheable.getValue();
+		}
+	}
+
+	private Cacheable invokeAndCache(ProceedingJoinPoint joinPoint, PrimaryCache annotation, String key) throws Throwable {
+		Cacheable cacheable = new Cacheable();
+		cacheable.setValue(joinPoint.proceed());
+		cacheable.setExpireMillis(annotation.expire()*1000);
+		STORAGE.put(key, cacheable);
+		return cacheable;
 	}
 
 	private class Cacheable {
