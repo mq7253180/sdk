@@ -50,11 +50,11 @@ public class PrimaryCacheAop {
 			Set<Entry<String, Cacheable>> entries = CACHE.entrySet();
 			for(Entry<String, Cacheable> e:entries) {
 				Cacheable c = e.getValue();
-				if(currentTimeMillis-c.getLastAccessTime()>=c.getExpireMillis()) {
+				if(currentTimeMillis-c.getLastAccessTime()>=c.getExpireMillis())
 					CACHE.remove(e.getKey());
-					System.out.println("REMOTED================"+e.getKey());
+					/*System.out.println("REMOTED================"+e.getKey());
 				} else
-					System.out.println("------------------LOOPING");
+					System.out.println("------------------LOOPING");*/
 			}
 		}
 	}
