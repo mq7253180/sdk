@@ -23,7 +23,7 @@ import com.quincy.sdk.helper.CommonHelper;
 import redis.clients.jedis.Jedis;
 
 @Aspect
-@Order(2)
+@Order(3)
 @Component
 public class SecondaryCacheAop {
 	@Value("${spring.redis.key.prefix}")

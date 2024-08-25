@@ -29,7 +29,7 @@ import redis.clients.jedis.Transaction;
 
 @Slf4j
 @Aspect
-@Order(4)
+@Order(5)
 @Component
 public class JedisSupportAop {
 	private final static String MSG_TX_NOT_SUPPORTED = "Redis transaction can not be supported in cluster mode.";

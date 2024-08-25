@@ -24,7 +24,7 @@ import com.quincy.sdk.annotation.PrimaryCache;
 import com.quincy.sdk.helper.CommonHelper;
 
 @Aspect
-@Order(1)
+@Order(2)
 @Component
 public class PrimaryCacheAop {
 	private final static Map<String, Cacheable> STORAGE = new ConcurrentHashMap<String, Cacheable>();
