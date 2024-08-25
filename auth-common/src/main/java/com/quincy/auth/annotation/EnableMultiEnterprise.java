@@ -10,9 +10,9 @@ import org.springframework.context.annotation.Import;
 
 import com.quincy.auth.MultiEnterpriseConfiguration;
 
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-@Documented
 @Import(MultiEnterpriseConfiguration.class)
 public @interface EnableMultiEnterprise {	
 }

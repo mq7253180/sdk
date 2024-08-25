@@ -7,8 +7,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Documented
-@Retention(value = RetentionPolicy.RUNTIME)
-@Target(value = {ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
 public @interface ExecuteUpdate {
 	public String sql();
 	public boolean withHistory() default false;

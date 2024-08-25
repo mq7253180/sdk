@@ -8,14 +8,18 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.annotation.PostConstruct;
+
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+//import com.quincy.core.ReflectionsHolder;
 import com.quincy.sdk.annotation.PrimaryCache;
 import com.quincy.sdk.helper.CommonHelper;
 
@@ -24,9 +28,19 @@ import com.quincy.sdk.helper.CommonHelper;
 @Component
 public class PrimaryCacheAop {
 	private final static Map<String, Cacheable> CACHE = new ConcurrentHashMap<String, Cacheable>();
-	private final static Timer timer = new Timer();
-	static {
-		timer.schedule(new Evictor(), 5000, 5000);
+	private static Timer timer = null;
+	@Value("${cache.primary.evictor.delay:5000}")
+	private long evictorDelay;
+	@Value("${cache.primary.evictor.period:5000}")
+	private long evictorPeriod;
+
+	@PostConstruct
+	public void init() {
+//		Set<Method> methods = ReflectionsHolder.get().getMethodsAnnotatedWith(PrimaryCache.class);
+//		if(methods!=null&&methods.size()>0) {
+			timer = new Timer();
+			timer.schedule(new Evictor(), evictorDelay, evictorPeriod);
+//		}
 	}
 
 	private static class Evictor extends TimerTask {
@@ -36,8 +50,11 @@ public class PrimaryCacheAop {
 			Set<Entry<String, Cacheable>> entries = CACHE.entrySet();
 			for(Entry<String, Cacheable> e:entries) {
 				Cacheable c = e.getValue();
-				if(currentTimeMillis-c.getLastAccessTime()>=c.getExpireMillis())
+				if(currentTimeMillis-c.getLastAccessTime()>=c.getExpireMillis()) {
 					CACHE.remove(e.getKey());
+					System.out.println("REMOTED================"+e.getKey());
+				} else
+					System.out.println("------------------LOOPING");
 			}
 		}
 	}

@@ -10,9 +10,9 @@ import org.springframework.context.annotation.Import;
 
 import com.quincy.auth.interceptor.AuthorizationInterceptor;
 
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-@Documented
 @Import(AuthorizationInterceptor.class)
 public @interface EnableAllPathsAuth {	
 }

@@ -10,9 +10,9 @@ import org.springframework.context.annotation.Import;
 
 import com.quincy.auth.interceptor.AuthorizationAnnotationInterceptor;
 
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-@Documented
 @Import(AuthorizationAnnotationInterceptor.class)
 public @interface EnableAnnotationAuth {	
 }

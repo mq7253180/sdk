@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 
 @Documented
 @Retention(value = RetentionPolicy.RUNTIME)
-@Target(value = {ElementType.PARAMETER})
+@Target(ElementType.PARAMETER)
 public @interface ReferenceTo {
 	public int value() default -1;
 }

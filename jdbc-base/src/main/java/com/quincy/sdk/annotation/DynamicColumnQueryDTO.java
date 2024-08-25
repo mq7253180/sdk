@@ -7,8 +7,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Documented
-@Retention(value = RetentionPolicy.RUNTIME)
-@Target(value = {ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
 public @interface DynamicColumnQueryDTO {
 	
 }

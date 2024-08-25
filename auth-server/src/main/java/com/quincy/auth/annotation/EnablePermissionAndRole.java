@@ -10,9 +10,9 @@ import org.springframework.context.annotation.Import;
 
 import com.quincy.auth.service.impl.XSessionServiceImpl;
 
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-@Documented
 @Import(XSessionServiceImpl.class)
 public @interface EnablePermissionAndRole {	
 }

@@ -10,9 +10,9 @@ import org.springframework.context.annotation.Import;
 
 import com.quincy.auth.SessionDestroyedOriginalConfiguration;
 
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-@Documented
 @Import(SessionDestroyedOriginalConfiguration.class)
 public @interface EnableOriginalSessionEviction {
 	boolean browser() default false;

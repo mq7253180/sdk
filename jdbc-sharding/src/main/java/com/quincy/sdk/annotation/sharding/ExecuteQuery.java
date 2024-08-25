@@ -9,8 +9,8 @@ import java.lang.annotation.Target;
 import com.quincy.sdk.MasterOrSlave;
 
 @Documented
-@Retention(value = RetentionPolicy.RUNTIME)
-@Target(value = {ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
 public @interface ExecuteQuery {
 	public String sql();
 	public MasterOrSlave masterOrSlave() default MasterOrSlave.SLAVE;

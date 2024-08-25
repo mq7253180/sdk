@@ -10,9 +10,9 @@ import org.springframework.context.annotation.Import;
 
 import com.quincy.core.redis.SessionDestroyedRedisConfiguration;
 
+@Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-@Documented
 @Import(SessionDestroyedRedisConfiguration.class)
 public @interface EnableRedisSessionEviction {
 	boolean pcBrowser() default false;
