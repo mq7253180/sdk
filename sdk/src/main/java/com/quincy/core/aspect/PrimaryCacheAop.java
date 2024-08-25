@@ -27,7 +27,7 @@ import com.quincy.sdk.helper.CommonHelper;
 @Order(1)
 @Component
 public class PrimaryCacheAop {
-	private final static Map<String, Cacheable> CACHE = new ConcurrentHashMap<String, Cacheable>();
+	private final static Map<String, Cacheable> STORAGE = new ConcurrentHashMap<String, Cacheable>();
 	private static Timer timer = null;
 	@Value("${cache.primary.evictor.delay:5000}")
 	private long evictorDelay;
@@ -46,13 +46,13 @@ public class PrimaryCacheAop {
 	private static class Evictor extends TimerTask {
 		@Override
 		public void run() {
-			if(CACHE.size()>0) {
+			if(STORAGE.size()>0) {
 				long currentTimeMillis = System.currentTimeMillis();
-				Set<Entry<String, Cacheable>> entries = CACHE.entrySet();
+				Set<Entry<String, Cacheable>> entries = STORAGE.entrySet();
 				for(Entry<String, Cacheable> e:entries) {
 					Cacheable c = e.getValue();
 					if(currentTimeMillis-c.getLastAccessTime()>=c.getExpireMillis())
-						CACHE.remove(e.getKey());
+						STORAGE.remove(e.getKey());
 						/*System.out.println("REMOTED================"+e.getKey());
 					} else
 						System.out.println("------------------LOOPING");*/
@@ -71,14 +71,14 @@ public class PrimaryCacheAop {
 		Method method = clazz.getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
 		String key = CommonHelper.fullMethodPath(clazz, methodSignature, method, joinPoint.getArgs(), ".", "_", "#");
 		Object value = null;
-		Cacheable cacheable = CACHE.get(key);
+		Cacheable cacheable = STORAGE.get(key);
 		if(cacheable==null) {
 			PrimaryCache annotation = method.getAnnotation(PrimaryCache.class);
 			value = joinPoint.proceed();
 			cacheable = new Cacheable();
 			cacheable.setValue(value);
 			cacheable.setExpireMillis(annotation.expire()*1000);
-			CACHE.put(key, cacheable);
+			STORAGE.put(key, cacheable);
 		}
 		cacheable.setLastAccessTime(System.currentTimeMillis());
 		return cacheable.getValue();
