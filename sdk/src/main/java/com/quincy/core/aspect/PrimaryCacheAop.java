@@ -19,7 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-//import com.quincy.core.ReflectionsHolder;
+import com.quincy.core.ReflectionsHolder;
 import com.quincy.sdk.annotation.PrimaryCache;
 import com.quincy.sdk.helper.CommonHelper;
 
@@ -36,11 +36,11 @@ public class PrimaryCacheAop {
 
 	@PostConstruct
 	public void init() {
-//		Set<Method> methods = ReflectionsHolder.get().getMethodsAnnotatedWith(PrimaryCache.class);
-//		if(methods!=null&&methods.size()>0) {
+		Set<Method> methods = ReflectionsHolder.get().getMethodsAnnotatedWith(PrimaryCache.class);
+		if(methods!=null&&methods.size()>0) {
 			timer = new Timer();
 			timer.schedule(new Evictor(), evictorDelay, evictorPeriod);
-//		}
+		}
 	}
 
 	private static class Evictor extends TimerTask {
