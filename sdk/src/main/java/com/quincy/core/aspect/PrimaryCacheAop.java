@@ -46,15 +46,17 @@ public class PrimaryCacheAop {
 	private static class Evictor extends TimerTask {
 		@Override
 		public void run() {
-			long currentTimeMillis = System.currentTimeMillis();
-			Set<Entry<String, Cacheable>> entries = CACHE.entrySet();
-			for(Entry<String, Cacheable> e:entries) {
-				Cacheable c = e.getValue();
-				if(currentTimeMillis-c.getLastAccessTime()>=c.getExpireMillis())
-					CACHE.remove(e.getKey());
-					/*System.out.println("REMOTED================"+e.getKey());
-				} else
-					System.out.println("------------------LOOPING");*/
+			if(CACHE.size()>0) {
+				long currentTimeMillis = System.currentTimeMillis();
+				Set<Entry<String, Cacheable>> entries = CACHE.entrySet();
+				for(Entry<String, Cacheable> e:entries) {
+					Cacheable c = e.getValue();
+					if(currentTimeMillis-c.getLastAccessTime()>=c.getExpireMillis())
+						CACHE.remove(e.getKey());
+						/*System.out.println("REMOTED================"+e.getKey());
+					} else
+						System.out.println("------------------LOOPING");*/
+				}
 			}
 		}
 	}
