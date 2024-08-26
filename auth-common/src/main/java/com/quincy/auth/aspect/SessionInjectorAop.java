@@ -15,8 +15,8 @@ import com.quincy.auth.AuthHelper;
 import com.quincy.auth.o.XSession;
 import com.quincy.sdk.helper.AopHelper;
 
-@Aspect
 @Order(10)
+@Aspect
 @Component
 public class SessionInjectorAop {
 	@Pointcut("@annotation(com.quincy.auth.annotation.XSessionInject)")

@@ -25,8 +25,8 @@ import com.quincy.core.ReflectionsHolder;
 import com.quincy.sdk.annotation.PrimaryCache;
 import com.quincy.sdk.helper.CommonHelper;
 
-@Aspect
 @Order(2)
+@Aspect
 @Component
 public class PrimaryCacheAop {
 	private static Map<String, Cacheable> STORAGE = null;

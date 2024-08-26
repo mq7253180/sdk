@@ -11,8 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.quincy.core.db.SingleDataSourceHolder;
 import com.quincy.sdk.helper.AopHelper;
 
-@Aspect
 @Order(6)
+@Aspect
 @Component
 public class ReadOnlyAop {
 	@Pointcut("@annotation(com.quincy.sdk.annotation.ReadOnly)")

@@ -16,8 +16,8 @@ import com.jcraft.jsch.ChannelSftp;
 import com.quincy.core.sftp.ChannelSftpSource;
 import com.quincy.sdk.helper.AopHelper;
 
-@Aspect
 @Order(5)
+@Aspect
 @Component
 public class ChannelSftpInjectorAop {
 	@Autowired

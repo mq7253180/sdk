@@ -43,8 +43,8 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Aspect
 @Order(7)
+@Aspect
 @Component
 public class DistributedTransactionAop implements DTransactionOptRegistry {
 	private final static ThreadLocal<List<TransactionAtomic>> atomicsHolder = new ThreadLocal<List<TransactionAtomic>>();

@@ -20,8 +20,8 @@ import redis.clients.jedis.JedisClientConfig;
 import redis.clients.jedis.JedisPubSub;
 
 @Slf4j
-@Aspect
 @Order(4)
+@Aspect
 @Component
 public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> {
 	private final static String KEY_PREFIX = "synchronization:";

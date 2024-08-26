@@ -12,8 +12,8 @@ import com.quincy.sdk.helper.CommonHelper;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Aspect
 @Order(1)
+@Aspect
 @Component
 public class DurationLogAop {
 	@Pointcut("@annotation(com.quincy.sdk.annotation.DurationLog)")

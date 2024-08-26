@@ -17,8 +17,8 @@ import com.quincy.core.db.DataSourceHolder;
 import com.quincy.sdk.MasterOrSlave;
 import com.quincy.sdk.annotation.sharding.ShardingKey;
 
-@Aspect
 @Order(6)
+@Aspect
 @Component
 public class ShardingAop {
 	@Value("${spring.datasource.sharding.count}")
