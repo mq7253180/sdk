@@ -30,7 +30,7 @@ import com.quincy.sdk.helper.CommonHelper;
 @Component
 public class PrimaryCacheAop {
 	private static Map<String, Cacheable> STORAGE = null;
-	private static Map<String, AtomicInteger> LOCKS_HOLDER = null;
+	private static Map<String, Lockable> LOCKS_HOLDER = null;
 	@Value("${cache.primary.evictor.delay:5000}")
 	private long evictorDelay;
 	@Value("${cache.primary.evictor.period:5000}")
@@ -41,9 +41,9 @@ public class PrimaryCacheAop {
 		Set<Method> methods = ReflectionsHolder.get().getMethodsAnnotatedWith(PrimaryCache.class);
 		if(methods!=null&&methods.size()>0) {
 			STORAGE = new ConcurrentHashMap<String, Cacheable>();
-			LOCKS_HOLDER = new HashMap<String, AtomicInteger>();
+			LOCKS_HOLDER = new HashMap<String, Lockable>();
 			for(Method method:methods)//不同类的同名方法、同方法的不同参数也会共用同一把锁
-				LOCKS_HOLDER.put(method.getName(), new AtomicInteger());
+				LOCKS_HOLDER.put(method.getName(), new Lockable(new AtomicInteger(), new Object()));
 			new Timer().schedule(new Evictor(), evictorDelay, evictorPeriod);
 		}
 	}
@@ -55,8 +55,8 @@ public class PrimaryCacheAop {
 				long currentTimeMillis = System.currentTimeMillis();
 				Set<Entry<String, Cacheable>> entries = STORAGE.entrySet();
 				for(Entry<String, Cacheable> e:entries) {
-					Cacheable c = e.getValue();
-					if(currentTimeMillis-c.getLastAccessTime()>=c.getExpireMillis())
+					Cacheable cacheable = e.getValue();
+					if(currentTimeMillis-cacheable.getLastAccessTime()>=cacheable.getExpireMillis())
 						STORAGE.remove(e.getKey());
 						/*System.out.println("REMOTED================"+e.getKey());
 					} else
@@ -78,13 +78,20 @@ public class PrimaryCacheAop {
 		Cacheable cacheable = STORAGE.get(key);
 		if(cacheable==null) {
 			PrimaryCache annotation = method.getAnnotation(PrimaryCache.class);
-			AtomicInteger lock = LOCKS_HOLDER.get(method.getName());
-			if(lock.compareAndSet(0, 1)) {
+			Lockable lockable = LOCKS_HOLDER.get(method.getName());
+			AtomicInteger setnx = lockable.getSetnx();
+			Object lock = lockable.getLock();
+			if(setnx.compareAndSet(0, 1)) {
 				cacheable = this.invokeAndCache(joinPoint, annotation, key);
-				lock.set(0);
+				setnx.set(0);
+				synchronized(lock) {
+					lock.notifyAll();
+				}
 			} else {
 				for(int i=0;i<annotation.retries();i++) {
-					Thread.sleep(annotation.millisBetweenRetries());
+					synchronized(lock) {
+						lock.wait(annotation.millisBetweenRetries());
+					}
 					cacheable = STORAGE.get(key);
 					if(cacheable!=null)
 						break;
@@ -131,6 +138,22 @@ public class PrimaryCacheAop {
 		}
 		public void setValue(Object value) {
 			this.value = value;
+		}
+	}
+
+	private class Lockable {
+		private AtomicInteger setnx;
+		private Object lock;
+
+		private Lockable(AtomicInteger setnx, Object lock) {
+			this.setnx = setnx;
+			this.lock = lock;
+		}
+		public AtomicInteger getSetnx() {
+			return setnx;
+		}
+		public Object getLock() {
+			return lock;
 		}
 	}
 }
