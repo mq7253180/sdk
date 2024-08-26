@@ -1,6 +1,7 @@
 package com.quincy.core.aspect;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -28,9 +29,8 @@ import com.quincy.sdk.helper.CommonHelper;
 @Order(2)
 @Component
 public class PrimaryCacheAop {
-	private final static Map<String, Cacheable> STORAGE = new ConcurrentHashMap<String, Cacheable>();
-	private final static AtomicInteger LOCK = new AtomicInteger();
-	private static Timer timer = null;
+	private static Map<String, Cacheable> STORAGE = null;
+	private static Map<String, AtomicInteger> LOCKS_HOLDER = null;
 	@Value("${cache.primary.evictor.delay:5000}")
 	private long evictorDelay;
 	@Value("${cache.primary.evictor.period:5000}")
@@ -40,8 +40,11 @@ public class PrimaryCacheAop {
 	public void init() {
 		Set<Method> methods = ReflectionsHolder.get().getMethodsAnnotatedWith(PrimaryCache.class);
 		if(methods!=null&&methods.size()>0) {
-			timer = new Timer();
-			timer.schedule(new Evictor(), evictorDelay, evictorPeriod);
+			STORAGE = new ConcurrentHashMap<String, Cacheable>();
+			LOCKS_HOLDER = new HashMap<String, AtomicInteger>();
+			for(Method method:methods)//如果不同类的同名方法也会共用同一把锁
+				LOCKS_HOLDER.put(method.getName(), new AtomicInteger());
+			new Timer().schedule(new Evictor(), evictorDelay, evictorPeriod);
 		}
 	}
 
@@ -75,9 +78,10 @@ public class PrimaryCacheAop {
 		Cacheable cacheable = STORAGE.get(key);
 		if(cacheable==null) {
 			PrimaryCache annotation = method.getAnnotation(PrimaryCache.class);
-			if(LOCK.compareAndSet(0, 1)) {
+			AtomicInteger lock = LOCKS_HOLDER.get(method.getName());
+			if(lock.compareAndSet(0, 1)) {
 				cacheable = this.invokeAndCache(joinPoint, annotation, key);
-				LOCK.set(0);
+				lock.set(0);
 			} else {
 				for(int i=0;i<annotation.retries();i++) {
 					Thread.sleep(annotation.millisBetweenRetries());
