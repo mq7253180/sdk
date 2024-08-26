@@ -89,7 +89,7 @@ public class PrimaryCacheAop {
 					if(cacheable!=null)
 						break;
 				}
-				if(cacheable==null&&!annotation.returnNull())
+				if(cacheable==null)
 					return this.invokeAndCache(joinPoint, annotation, key);
 			}
 		}
