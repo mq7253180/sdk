@@ -42,7 +42,7 @@ public class PrimaryCacheAop {
 		if(methods!=null&&methods.size()>0) {
 			STORAGE = new ConcurrentHashMap<String, Cacheable>();
 			LOCKS_HOLDER = new HashMap<String, AtomicInteger>();
-			for(Method method:methods)//如果不同类的同名方法也会共用同一把锁
+			for(Method method:methods)//不同类的同名方法、同方法的不同参数也会共用同一把锁
 				LOCKS_HOLDER.put(method.getName(), new AtomicInteger());
 			new Timer().schedule(new Evictor(), evictorDelay, evictorPeriod);
 		}
