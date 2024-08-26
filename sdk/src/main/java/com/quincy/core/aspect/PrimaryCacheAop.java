@@ -81,31 +81,31 @@ public class PrimaryCacheAop {
 			Lockable lockable = LOCKS_HOLDER.get(method.getName());
 			AtomicInteger setnx = lockable.getSetnx();
 			Object lock = lockable.getLock();
-			if(setnx.compareAndSet(0, 1)) {
-				cacheable = this.invokeAndCache(joinPoint, annotation, key);
-				setnx.set(0);
-				synchronized(lock) {
-					lock.notifyAll();
-				}
-			} else {
-				for(int i=0;i<annotation.retries();i++) {
+			for(int i=0;i<=annotation.retries();i++) {
+				if(setnx.compareAndSet(0, 1)) {
+					cacheable = STORAGE.get(key);
+					if(cacheable==null) {
+						cacheable = this.invokeAndCache(joinPoint, annotation, key);
+						setnx.set(0);
+						synchronized(lock) {
+							lock.notifyAll();
+						}
+					}
+					break;
+				} else {
 					synchronized(lock) {
 						lock.wait(annotation.millisBetweenRetries());
 					}
 					cacheable = STORAGE.get(key);
-					if(cacheable!=null)
+					if(cacheable!=null)//被其他线程查库赋值
 						break;
 				}
-				if(cacheable==null)
-					return this.invokeAndCache(joinPoint, annotation, key);
 			}
+			if(cacheable==null)//重试次数后没有其他线程查库赋值
+				cacheable = this.invokeAndCache(joinPoint, annotation, key);
 		}
-		if(cacheable==null) {
-			return null;
-		} else {
-			cacheable.setLastAccessTime(System.currentTimeMillis());
-			return cacheable.getValue();
-		}
+		cacheable.setLastAccessTime(System.currentTimeMillis());
+		return cacheable.getValue();
 	}
 
 	private Cacheable invokeAndCache(ProceedingJoinPoint joinPoint, PrimaryCache annotation, String key) throws Throwable {
