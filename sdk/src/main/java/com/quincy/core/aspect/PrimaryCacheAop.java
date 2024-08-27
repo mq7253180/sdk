@@ -82,10 +82,10 @@ public class PrimaryCacheAop {
 		if(cacheable==null) {
 			PrimaryCache annotation = method.getAnnotation(PrimaryCache.class);
 			Lockable lockable = LOCKS_HOLDER.get(method.getName());
-			AtomicInteger setnx = lockable.getSetnx();
+			AtomicInteger nx = lockable.getNx();
 			Object lock = lockable.getLock();
 			for(int i=0;i<=annotation.retries();i++) {
-				if(setnx.compareAndSet(0, 1)) {
+				if(nx.compareAndSet(0, 1)) {
 					log.info(Thread.currentThread().threadId()+"------------------获取锁");
 					cacheable = STORAGE.get(key);
 					if(cacheable==null) {
@@ -94,7 +94,7 @@ public class PrimaryCacheAop {
 							lock.notifyAll();
 						}
 					}
-					setnx.set(0);
+					nx.set(0);
 					break;
 				} else {
 					synchronized(lock) {
@@ -149,15 +149,15 @@ public class PrimaryCacheAop {
 	}
 
 	private class Lockable {
-		private AtomicInteger setnx;
+		private AtomicInteger nx;
 		private Object lock;
 
-		private Lockable(AtomicInteger setnx, Object lock) {
-			this.setnx = setnx;
+		private Lockable(AtomicInteger nx, Object lock) {
+			this.nx = nx;
 			this.lock = lock;
 		}
-		public AtomicInteger getSetnx() {
-			return setnx;
+		public AtomicInteger getNx() {
+			return nx;
 		}
 		public Object getLock() {
 			return lock;
