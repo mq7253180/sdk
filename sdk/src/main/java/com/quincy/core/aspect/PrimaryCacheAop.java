@@ -90,11 +90,11 @@ public class PrimaryCacheAop {
 					cacheable = STORAGE.get(key);
 					if(cacheable==null) {
 						cacheable = this.invokeAndCache(joinPoint, annotation, key);
-						setnx.set(0);
 						synchronized(lock) {
 							lock.notifyAll();
 						}
 					}
+					setnx.set(0);
 					break;
 				} else {
 					synchronized(lock) {
