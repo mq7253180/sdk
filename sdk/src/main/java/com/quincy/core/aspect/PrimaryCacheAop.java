@@ -12,6 +12,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -29,6 +31,7 @@ import com.quincy.sdk.helper.CommonHelper;
 @Aspect
 @Component
 public class PrimaryCacheAop {
+	private final static Log log = LogFactory.getLog(PrimaryCacheAop.class);
 	private static Map<String, Cacheable> STORAGE = null;
 	private static Map<String, Lockable> LOCKS_HOLDER = null;
 	@Value("${cache.primary.evictor.delay:5000}")
@@ -56,11 +59,11 @@ public class PrimaryCacheAop {
 				Set<Entry<String, Cacheable>> entries = STORAGE.entrySet();
 				for(Entry<String, Cacheable> e:entries) {
 					Cacheable cacheable = e.getValue();
-					if(currentTimeMillis-cacheable.getLastAccessTime()>=cacheable.getExpireMillis())
+					if(currentTimeMillis-cacheable.getLastAccessTime()>=cacheable.getExpireMillis()) {
 						STORAGE.remove(e.getKey());
-						/*System.out.println("REMOTED================"+e.getKey());
+						log.info("REMOTED================"+e.getKey());
 					} else
-						System.out.println("------------------LOOPING");*/
+						log.info("------------------LOOPING");
 				}
 			}
 		}
@@ -83,6 +86,7 @@ public class PrimaryCacheAop {
 			Object lock = lockable.getLock();
 			for(int i=0;i<=annotation.retries();i++) {
 				if(setnx.compareAndSet(0, 1)) {
+					log.info(Thread.currentThread().threadId()+"------------------获取锁");
 					cacheable = STORAGE.get(key);
 					if(cacheable==null) {
 						cacheable = this.invokeAndCache(joinPoint, annotation, key);
@@ -94,11 +98,14 @@ public class PrimaryCacheAop {
 					break;
 				} else {
 					synchronized(lock) {
+						log.info(Thread.currentThread().threadId()+"----------第"+i+"次--------等待");
 						lock.wait(annotation.millisBetweenRetries());
 					}
 					cacheable = STORAGE.get(key);
-					if(cacheable!=null)//被其他线程查库赋值
+					if(cacheable!=null) {//被其他线程查库赋值，获取数据
+						log.info(Thread.currentThread().threadId()+"---------第"+i+"次---------获取数据");
 						break;
+					}
 				}
 			}
 			if(cacheable==null)//重试次数后没有其他线程查库赋值
