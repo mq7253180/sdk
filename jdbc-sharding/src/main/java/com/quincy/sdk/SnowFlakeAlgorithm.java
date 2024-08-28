@@ -146,6 +146,11 @@ public class SnowFlakeAlgorithm {
         // <<：左移运算符, 1 << 2 即将二进制的 1 扩大 2^2 倍
         // |：位或运算符, 是把某两个数中, 只要其中一个的某一位为1, 则结果的该位就为1
         // 优先级：<< > |
+//        long part = (currentTimeMillis - INIT_EPOCH) << TIMESTAMP_SHIFT;
+//        long part = shardingKey << DATA_CENTER_ID_SHIFT;
+//        long part = workerId << WORK_ID_SHIFT;
+//        long part = sequence;
+//        System.out.println(part+"---"+Long.toString(part, 2));
         long id = ((currentTimeMillis - INIT_EPOCH) << TIMESTAMP_SHIFT)//时间戳部分
 //        		| (dataCenterId << DATA_CENTER_ID_SHIFT)//数据中心部分
         		| (shardingKey << DATA_CENTER_ID_SHIFT)//路由键代替数据中心部分
@@ -212,7 +217,7 @@ public class SnowFlakeAlgorithm {
         }*/
 //        System.out.println(Math.pow(2, 22));
 //    	SnowFlakeAlgorithm.setShardingKeyRange(3);
-    	SnowFlakeAlgorithm.setWorkerId(31);
+    	SnowFlakeAlgorithm.setWorkerId(25);
     	for (int i = 0; i < 10; i++) {
     		Long id = SnowFlakeAlgorithm.nextId();
     		System.out.println(id+"-----"+SnowFlakeAlgorithm.extractShardingKey(id));
