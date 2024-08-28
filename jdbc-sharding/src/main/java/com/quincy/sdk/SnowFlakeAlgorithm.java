@@ -38,7 +38,7 @@ public class SnowFlakeAlgorithm {
     // 记录最后使用的毫秒时间戳，主要用于判断是否同一毫秒，以及用于服务器时钟回拨判断
     private long lastTimeMillis = -1L;
     // dataCenterId占用的位数
-    private static long DATA_CENTER_ID_BITS = 5L;
+    private static int DATA_CENTER_ID_BITS = 5;
     // dataCenterId占用5个比特位，最大值31
     // 0000000000000000000000000000000000000000000000000000000000011111
     private static long MAX_DATA_CENTER_ID = ~(-1L << DATA_CENTER_ID_BITS);
@@ -61,17 +61,25 @@ public class SnowFlakeAlgorithm {
     // 时间戳需要左移的位数 12+5+5
     private static final long TIMESTAMP_SHIFT = SEQUENCE_BITS + WORKER_ID_BITS + DATA_CENTER_ID_BITS;
 //    private static long dataCenterId = 1;
-    private static long workerId = 1;
+    private static int workerId = 1;
+    private static final int SHARDING_KEY_RANGE_LOWER = 1024;
+    private static final int SHARDING_KEY_RANGE_UPPER = 2047;
+
+//    private static final int SHARDING_KEY_RANGE_LOWER = 128;
+//    private static final int SHARDING_KEY_RANGE_UPPER = 511;
+
+    private static final int DATA_CENTER_ID_SEQUENCE_FLAXIBLE_BITS = Integer.toString(SHARDING_KEY_RANGE_UPPER, 2).length()-DATA_CENTER_ID_BITS;
 
     static {
-		SHARDING_KEY_LENGTH_RANGE_MAP.put(1, new int[] {0, 7, 3});
-		SHARDING_KEY_LENGTH_RANGE_MAP.put(2, new int[] {16, 63, 6});
-		SHARDING_KEY_LENGTH_RANGE_MAP.put(3, new int[] {128, 511, 9});
-		SHARDING_KEY_LENGTH_RANGE_MAP.put(4, new int[] {1024, 8191, 13});
-		SHARDING_KEY_LENGTH_RANGE_MAP.put(6, new int[] {131072, 524287, 19});
-		SEQUENCE_BITS -= 6;
+		SHARDING_KEY_LENGTH_RANGE_MAP.put(1, new int[] {0, 7});
+		SHARDING_KEY_LENGTH_RANGE_MAP.put(2, new int[] {16, 63});
+		SHARDING_KEY_LENGTH_RANGE_MAP.put(3, new int[] {128, 511});
+		SHARDING_KEY_LENGTH_RANGE_MAP.put(4, new int[] {1024, 8191});
+		SHARDING_KEY_LENGTH_RANGE_MAP.put(5, new int[] {1024, 2047});
+		SHARDING_KEY_LENGTH_RANGE_MAP.put(6, new int[] {131072, 524287});
+		SEQUENCE_BITS -= DATA_CENTER_ID_SEQUENCE_FLAXIBLE_BITS;
+		DATA_CENTER_ID_BITS += DATA_CENTER_ID_SEQUENCE_FLAXIBLE_BITS;
 		WORK_ID_SHIFT = SEQUENCE_BITS;
-		DATA_CENTER_ID_BITS += 6;
 		DATA_CENTER_ID_SHIFT = SEQUENCE_BITS + WORKER_ID_BITS;
 		MAX_DATA_CENTER_ID = ~(-1L << DATA_CENTER_ID_BITS);
 		System.out.println("SEQUENCE_BITS---"+SEQUENCE_BITS);
@@ -86,7 +94,7 @@ public class SnowFlakeAlgorithm {
             throw new IllegalArgumentException(String.format("Datacenter Id can't be greater than %d or less than 0.", MAX_DATA_CENTER_ID));
 		SnowFlakeAlgorithm.dataCenterId = dataCenterId;
 	}*/
-	public static void setWorkerId(long workerId) {
+	public static void setWorkerId(int workerId) {
 		if(workerId<0||workerId>MAX_WORKER_ID)
             throw new IllegalArgumentException(String.format("Worker Id can't be greater than %d or less than 0.", MAX_WORKER_ID));
 		SnowFlakeAlgorithm.workerId = workerId;
@@ -103,7 +111,7 @@ public class SnowFlakeAlgorithm {
      * @return
      */
     public static Long nextId() {
-        return snowFlakeUtil.nextId(random.nextInt(1024, 2047));
+        return snowFlakeUtil.nextId(random.nextInt(SHARDING_KEY_RANGE_LOWER, SHARDING_KEY_RANGE_UPPER));
     }
     /**
      * 通过雪花算法生成下一个id，注意这里使用synchronized同步
@@ -169,8 +177,8 @@ public class SnowFlakeAlgorithm {
     /**
      * 截取Sharding Key的掩码
      */
-//    private static final long SHARDING_KEY_MASK = 0b0000000000000000000000000000000000000000001111111111100000000000L;
-    private static final long SHARDING_KEY_MASK = (2048-1)<<11;
+    private static final String DATA_CENTER_ID_BITS_STR = String.valueOf(Math.pow(2, DATA_CENTER_ID_BITS));
+    private static final long SHARDING_KEY_MASK = (Long.parseLong(DATA_CENTER_ID_BITS_STR.substring(0, DATA_CENTER_ID_BITS_STR.indexOf(".")))-1)<<DATA_CENTER_ID_SHIFT;
 
     public static long extractShardingKey(long id) {
     	return ((id&SHARDING_KEY_MASK)>>DATA_CENTER_ID_SHIFT);
@@ -208,5 +216,7 @@ public class SnowFlakeAlgorithm {
     		Long id = SnowFlakeAlgorithm.nextId();
     		System.out.println(id+"-----"+SnowFlakeAlgorithm.extractShardingKey(id));
     	}
+//    	String binary = Long.toString(511, 2);
+//    	System.out.println(binary+"---"+binary.length());
     }
 }
