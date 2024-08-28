@@ -5,7 +5,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Random;
 
 import org.springframework.util.Assert;
@@ -25,10 +24,10 @@ public class SnowFlakeAlgorithm {
 	private static Random random = new Random();
 	private final static Map<Integer, int[]> SHARDING_KEY_LENGTH_RANGE_MAP = new HashMap<Integer, int[]>(4);
 	static {
-		SHARDING_KEY_LENGTH_RANGE_MAP.put(2, new int[] {16, 63});
-		SHARDING_KEY_LENGTH_RANGE_MAP.put(3, new int[] {128, 511});
-		SHARDING_KEY_LENGTH_RANGE_MAP.put(4, new int[] {1024, 8191});
-		SHARDING_KEY_LENGTH_RANGE_MAP.put(6, new int[] {131072, 524287});
+		SHARDING_KEY_LENGTH_RANGE_MAP.put(2, new int[] {16, 63, 6});
+		SHARDING_KEY_LENGTH_RANGE_MAP.put(3, new int[] {128, 511, 9});
+		SHARDING_KEY_LENGTH_RANGE_MAP.put(4, new int[] {1024, 8191, 13});
+		SHARDING_KEY_LENGTH_RANGE_MAP.put(6, new int[] {131072, 524287, 19});
 	}
 
 	public static synchronized int generateShardingKeyValue(int length) {
@@ -158,7 +157,7 @@ public class SnowFlakeAlgorithm {
 //		System.out.println(Math.pow(2, 15)+Math.pow(2, 14)+Math.pow(2, 13)+Math.pow(2, 12)+Math.pow(2, 11)+Math.pow(2, 10)+Math.pow(2, 9)+Math.pow(2, 8));
 //		System.out.println(Math.pow(2, 15)+Math.pow(2, 14)+Math.pow(2, 13)+Math.pow(2, 12)+Math.pow(2, 10)+Math.pow(2, 9)+Math.pow(2, 8)+255);
 //		System.out.println(new String(new byte[]{53, 46, 54, 46, 51, 48}));
-		Map<Integer, Integer> map = new HashMap<Integer, Integer>();
+		/*Map<Integer, Integer> map = new HashMap<Integer, Integer>();
 		for (int i = 0; i < 200; i++) {
 			int shardingKey = SnowFlakeAlgorithm.generateShardingKeyValue(4);
 			int remainder = shardingKey%8;
@@ -167,8 +166,8 @@ public class SnowFlakeAlgorithm {
 		}
 		for(Entry<Integer, Integer> e:map.entrySet()) {
 			System.out.println(e.getKey()+"-------"+e.getValue());
-		}
-        for (int i = 0; i < 10; i++) {
+		}*/
+        for (int i = 0; i < 1; i++) {
         	long id = SnowFlakeAlgorithm.nextId();
             System.out.println("id: "+id+"---"+String.valueOf(id).length());
             Date date = SnowFlakeAlgorithm.getTimeBySnowFlakeId(id);
@@ -178,5 +177,6 @@ public class SnowFlakeAlgorithm {
             System.out.println("RandomStr: "+getRandomStr());
             System.out.println("--------------------------------"+SnowFlakeAlgorithm.getObject().hashCode());
         }
+        System.out.println(Math.pow(2, 19));
     }
 }
