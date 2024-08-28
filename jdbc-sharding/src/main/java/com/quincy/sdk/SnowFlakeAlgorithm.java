@@ -33,7 +33,7 @@ public class SnowFlakeAlgorithm {
 
 	public static synchronized int generateShardingKeyValue(int length) {
 		int[] lowerAndUppder = SHARDING_KEY_LENGTH_RANGE_MAP.get(length);
-		Assert.notNull(lowerAndUppder, "Length must in 2, 3, 4, 6.");
+		Assert.notNull(lowerAndUppder, "Length must in 1, 2, 3, 4, 6.");
 		return random.nextInt(lowerAndUppder[0], lowerAndUppder[1]);
 	}
 
