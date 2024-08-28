@@ -20,13 +20,13 @@ import org.springframework.util.Assert;
  * SnowFlake的优点是，整体上按照时间自增排序，并且整个分布式系统内不会产生ID碰撞(由数据中心ID和机器ID作区分)，并且效率较高，经测试，SnowFlake每秒能够产生26万ID左右。
  */
 public class SnowFlake {
-	private static Random random = new Random();
+	private static Random RANDOM = new Random();
 	private final static Map<Integer, int[]> SHARDING_KEY_LENGTH_RANGE_MAP = new HashMap<Integer, int[]>(4);
 
 	public static synchronized int generateShardingKeyValue(int length) {
 		int[] lowerAndUppder = SHARDING_KEY_LENGTH_RANGE_MAP.get(length);
 		Assert.notNull(lowerAndUppder, "Only 2, 3, 4 are acceptable.");
-		return random.nextInt(lowerAndUppder[0], lowerAndUppder[1]);
+		return RANDOM.nextInt(lowerAndUppder[0], lowerAndUppder[1]);
 	}
 
 	// 初始时间戳(纪年)，可用雪花算法服务上线时间戳的值
@@ -116,17 +116,11 @@ public class SnowFlake {
 //		System.out.println("TIMESTAMP_SHIFT---"+TIMESTAMP_SHIFT);
 	}
     /**
-     * 获取唯一ID
-     * @return
-     */
-    public static Long nextId() {
-        return nextId(random.nextInt(SHARDING_KEY_RANGE_LOWER, SHARDING_KEY_RANGE_UPPER));
-    }
-    /**
      * 通过雪花算法生成下一个id，注意这里使用synchronized同步
      * @return 唯一id
      */
-    public synchronized static long nextId(int shardingKey) {
+    private synchronized static long nextId() {
+    	int shardingKey = RANDOM.nextInt(SHARDING_KEY_RANGE_LOWER, SHARDING_KEY_RANGE_UPPER);
         long currentTimeMillis = System.currentTimeMillis();
         // 当前时间小于上一次生成id使用的时间，可能出现服务器时钟回拨问题
         if(currentTimeMillis < lastTimeMillis)
