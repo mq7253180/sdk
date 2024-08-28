@@ -24,6 +24,7 @@ public class SnowFlakeAlgorithm {
 	private static Random random = new Random();
 	private final static Map<Integer, int[]> SHARDING_KEY_LENGTH_RANGE_MAP = new HashMap<Integer, int[]>(4);
 	static {
+		SHARDING_KEY_LENGTH_RANGE_MAP.put(1, new int[] {0, 7, 3});
 		SHARDING_KEY_LENGTH_RANGE_MAP.put(2, new int[] {16, 63, 6});
 		SHARDING_KEY_LENGTH_RANGE_MAP.put(3, new int[] {128, 511, 9});
 		SHARDING_KEY_LENGTH_RANGE_MAP.put(4, new int[] {1024, 8191, 13});
