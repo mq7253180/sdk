@@ -25,7 +25,7 @@ public class SnowFlakeAlgorithm {
 
 	public static synchronized int generateShardingKeyValue(int length) {
 		int[] lowerAndUppder = SHARDING_KEY_LENGTH_RANGE_MAP.get(length);
-		Assert.notNull(lowerAndUppder, "Length must in 1, 2, 3, 4, 6.");
+		Assert.notNull(lowerAndUppder, "Only 2, 3, 4 are acceptable.");
 		return random.nextInt(lowerAndUppder[0], lowerAndUppder[1]);
 	}
 
@@ -62,34 +62,30 @@ public class SnowFlakeAlgorithm {
     private static final long TIMESTAMP_SHIFT = SEQUENCE_BITS + WORKER_ID_BITS + DATA_CENTER_ID_BITS;
 //    private static long dataCenterId = 1;
     private static int workerId = 1;
-    private static final int SHARDING_KEY_RANGE_LOWER = 1024;
-    private static final int SHARDING_KEY_RANGE_UPPER = 2047;
-
-//    private static final int SHARDING_KEY_RANGE_LOWER = 128;
-//    private static final int SHARDING_KEY_RANGE_UPPER = 511;
-
-    private static final int DATA_CENTER_ID_SEQUENCE_FLAXIBLE_BITS = Integer.toString(SHARDING_KEY_RANGE_UPPER, 2).length()-DATA_CENTER_ID_BITS;
+    
+    private static int SHARDING_KEY_RANGE_LOWER;
+    private static int SHARDING_KEY_RANGE_UPPER;
+    private static int DATA_CENTER_ID_SEQUENCE_FLAXIBLE_BITS;
 
     static {
-		SHARDING_KEY_LENGTH_RANGE_MAP.put(1, new int[] {0, 7});
+//		SHARDING_KEY_LENGTH_RANGE_MAP.put(1, new int[] {0, 7});
 		SHARDING_KEY_LENGTH_RANGE_MAP.put(2, new int[] {16, 63});
 		SHARDING_KEY_LENGTH_RANGE_MAP.put(3, new int[] {128, 511});
-		SHARDING_KEY_LENGTH_RANGE_MAP.put(4, new int[] {1024, 8191});
-		SHARDING_KEY_LENGTH_RANGE_MAP.put(5, new int[] {1024, 2047});
-		SHARDING_KEY_LENGTH_RANGE_MAP.put(6, new int[] {131072, 524287});
-		SEQUENCE_BITS -= DATA_CENTER_ID_SEQUENCE_FLAXIBLE_BITS;
-		DATA_CENTER_ID_BITS += DATA_CENTER_ID_SEQUENCE_FLAXIBLE_BITS;
-		WORK_ID_SHIFT = SEQUENCE_BITS;
-		DATA_CENTER_ID_SHIFT = SEQUENCE_BITS + WORKER_ID_BITS;
-		MAX_DATA_CENTER_ID = ~(-1L << DATA_CENTER_ID_BITS);
-		System.out.println("SEQUENCE_BITS---"+SEQUENCE_BITS);
-		System.out.println("DATA_CENTER_ID_BITS---"+DATA_CENTER_ID_BITS);
-		System.out.println("DATA_CENTER_ID_SHIFT---"+DATA_CENTER_ID_SHIFT);
-		System.out.println("MAX_DATA_CENTER_ID---"+MAX_DATA_CENTER_ID);
-		System.out.println("TIMESTAMP_SHIFT---"+TIMESTAMP_SHIFT);
+		SHARDING_KEY_LENGTH_RANGE_MAP.put(4, new int[] {1024, 2047});
+//		SHARDING_KEY_LENGTH_RANGE_MAP.put(4, new int[] {1024, 8191});
+//		SHARDING_KEY_LENGTH_RANGE_MAP.put(6, new int[] {131072, 524287});
+		setShardingKeyRange(4);
 	}
+    /**
+     * 截取Sharding Key的掩码，必须放在static块之后才有效，因为DATA_CENTER_ID_BITS要取计算后的值
+     */
+    private static String DATA_CENTER_ID_BITS_STR = String.valueOf(Math.pow(2, DATA_CENTER_ID_BITS));
+    private static long SHARDING_KEY_MASK = (Long.parseLong(DATA_CENTER_ID_BITS_STR.substring(0, DATA_CENTER_ID_BITS_STR.indexOf(".")))-1)<<DATA_CENTER_ID_SHIFT;
 
-	/*public static void setDataCenterId(long dataCenterId) {
+    public static long extractShardingKey(long id) {
+    	return ((id&SHARDING_KEY_MASK)>>DATA_CENTER_ID_SHIFT);
+    }
+    /*public static void setDataCenterId(long dataCenterId) {
 		if(dataCenterId<0||dataCenterId>MAX_DATA_CENTER_ID)
             throw new IllegalArgumentException(String.format("Datacenter Id can't be greater than %d or less than 0.", MAX_DATA_CENTER_ID));
 		SnowFlakeAlgorithm.dataCenterId = dataCenterId;
@@ -98,6 +94,26 @@ public class SnowFlakeAlgorithm {
 		if(workerId<0||workerId>MAX_WORKER_ID)
             throw new IllegalArgumentException(String.format("Worker Id can't be greater than %d or less than 0.", MAX_WORKER_ID));
 		SnowFlakeAlgorithm.workerId = workerId;
+	}
+
+	public static void setShardingKeyRange(int index) {
+		int[] rangeLowerAndUpper = SHARDING_KEY_LENGTH_RANGE_MAP.get(index);
+		Assert.notNull(rangeLowerAndUpper, "Only 2, 3, 4 are acceptable.");
+		SHARDING_KEY_RANGE_LOWER = rangeLowerAndUpper[0];
+	    SHARDING_KEY_RANGE_UPPER = rangeLowerAndUpper[1];
+		DATA_CENTER_ID_SEQUENCE_FLAXIBLE_BITS = Integer.toString(SHARDING_KEY_RANGE_UPPER, 2).length()-DATA_CENTER_ID_BITS;
+		SEQUENCE_BITS -= DATA_CENTER_ID_SEQUENCE_FLAXIBLE_BITS;
+		DATA_CENTER_ID_BITS += DATA_CENTER_ID_SEQUENCE_FLAXIBLE_BITS;
+		WORK_ID_SHIFT = SEQUENCE_BITS;
+		DATA_CENTER_ID_SHIFT = SEQUENCE_BITS + WORKER_ID_BITS;
+		MAX_DATA_CENTER_ID = ~(-1L << DATA_CENTER_ID_BITS);
+		DATA_CENTER_ID_BITS_STR = String.valueOf(Math.pow(2, DATA_CENTER_ID_BITS));
+		SHARDING_KEY_MASK = (Long.parseLong(DATA_CENTER_ID_BITS_STR.substring(0, DATA_CENTER_ID_BITS_STR.indexOf(".")))-1)<<DATA_CENTER_ID_SHIFT;
+//		System.out.println("SEQUENCE_BITS---"+SEQUENCE_BITS);
+//		System.out.println("DATA_CENTER_ID_BITS---"+DATA_CENTER_ID_BITS);
+//		System.out.println("DATA_CENTER_ID_SHIFT---"+DATA_CENTER_ID_SHIFT);
+//		System.out.println("MAX_DATA_CENTER_ID---"+MAX_DATA_CENTER_ID);
+//		System.out.println("TIMESTAMP_SHIFT---"+TIMESTAMP_SHIFT);
 	}
 
 	private static SnowFlakeAlgorithm snowFlakeUtil = new SnowFlakeAlgorithm();
@@ -118,7 +134,6 @@ public class SnowFlakeAlgorithm {
      * @return 唯一id
      */
     public synchronized long nextId(int shardingKey) {
-    	System.out.println("shardingKey=================="+shardingKey);
         long currentTimeMillis = System.currentTimeMillis();
         // 当前时间小于上一次生成id使用的时间，可能出现服务器时钟回拨问题
         if(currentTimeMillis < lastTimeMillis)
@@ -143,10 +158,10 @@ public class SnowFlakeAlgorithm {
         		| (shardingKey << DATA_CENTER_ID_SHIFT)//路由键代替数据中心部分
         		| (workerId << WORK_ID_SHIFT)//机器表示部分
         		| sequence;//序列号部分
-        long extectedShardingKey = extractShardingKey(id);
-        if(extectedShardingKey!=shardingKey) {
-        	System.err.println("SHARDING_KEY不符："+id+"---"+shardingKey+"---"+extectedShardingKey+"---"+currentTimeMillis+"---"+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(currentTimeMillis));
-        }
+//        System.out.println("shardingKey=================="+shardingKey);
+//        long extectedShardingKey = extractShardingKey(id);
+//        if(extectedShardingKey!=shardingKey)
+//        	System.err.println("SHARDING_KEY不符："+id+"---"+shardingKey+"---"+extectedShardingKey+"---"+currentTimeMillis+"---"+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(currentTimeMillis));
         return id;
     }
     /**
@@ -173,15 +188,6 @@ public class SnowFlakeAlgorithm {
      */
     public static long extractTime(long id) {
         return ((TIME_BIT & id) >> TIMESTAMP_SHIFT) + INIT_EPOCH;
-    }
-    /**
-     * 截取Sharding Key的掩码
-     */
-    private static final String DATA_CENTER_ID_BITS_STR = String.valueOf(Math.pow(2, DATA_CENTER_ID_BITS));
-    private static final long SHARDING_KEY_MASK = (Long.parseLong(DATA_CENTER_ID_BITS_STR.substring(0, DATA_CENTER_ID_BITS_STR.indexOf(".")))-1)<<DATA_CENTER_ID_SHIFT;
-
-    public static long extractShardingKey(long id) {
-    	return ((id&SHARDING_KEY_MASK)>>DATA_CENTER_ID_SHIFT);
     }
  
     public static void main(String[] args) throws ParseException {
@@ -212,6 +218,7 @@ public class SnowFlakeAlgorithm {
             System.out.println("--------------------------------"+SnowFlakeAlgorithm.getObject().hashCode());
         }*/
 //        System.out.println(Math.pow(2, 22));
+//    	SnowFlakeAlgorithm.setShardingKeyRange(3);
     	for (int i = 0; i < 10; i++) {
     		Long id = SnowFlakeAlgorithm.nextId();
     		System.out.println(id+"-----"+SnowFlakeAlgorithm.extractShardingKey(id));
