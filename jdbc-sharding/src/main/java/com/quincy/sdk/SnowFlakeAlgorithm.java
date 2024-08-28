@@ -36,12 +36,12 @@ public class SnowFlakeAlgorithm {
     // 时间位取&
     private static final long TIME_BIT = 0b1111111111111111111111111111111111111111110000000000000000000000L;
     // 记录最后使用的毫秒时间戳，主要用于判断是否同一毫秒，以及用于服务器时钟回拨判断
-    private long lastTimeMillis = -1L;
+    private static long lastTimeMillis = -1L;
     // dataCenterId占用的位数
     private static int DATA_CENTER_ID_BITS = 5;
     // dataCenterId占用5个比特位，最大值31
     // 0000000000000000000000000000000000000000000000000000000000011111
-    private static long MAX_DATA_CENTER_ID = ~(-1L << DATA_CENTER_ID_BITS);
+//    private static long MAX_DATA_CENTER_ID = ~(-1L << DATA_CENTER_ID_BITS);
     // workId占用的位数
     private static final long WORKER_ID_BITS = 5L;
     // workId占用5个比特位，最大值31
@@ -53,7 +53,7 @@ public class SnowFlakeAlgorithm {
     // 0000000000000000000000000000000000000000000000000000111111111111
     private static final long SEQUENCE_MASK = ~(-1L << SEQUENCE_BITS);
     // 同一毫秒内的最新序号，最大值可为 2^12 - 1 = 4095
-    private long sequence;
+    private static long sequence;
     // workId位需要左移的位数 12
     private static long WORK_ID_SHIFT = SEQUENCE_BITS;
     // dataCenterId位需要左移的位数 12+5
@@ -106,7 +106,7 @@ public class SnowFlakeAlgorithm {
 		DATA_CENTER_ID_BITS += DATA_CENTER_ID_SEQUENCE_FLAXIBLE_BITS;
 		WORK_ID_SHIFT = SEQUENCE_BITS;
 		DATA_CENTER_ID_SHIFT = SEQUENCE_BITS + WORKER_ID_BITS;
-		MAX_DATA_CENTER_ID = ~(-1L << DATA_CENTER_ID_BITS);
+//		MAX_DATA_CENTER_ID = ~(-1L << DATA_CENTER_ID_BITS);
 		DATA_CENTER_ID_BITS_STR = String.valueOf(Math.pow(2, DATA_CENTER_ID_BITS));
 		SHARDING_KEY_MASK = (Long.parseLong(DATA_CENTER_ID_BITS_STR.substring(0, DATA_CENTER_ID_BITS_STR.indexOf(".")))-1)<<DATA_CENTER_ID_SHIFT;
 //		System.out.println("SEQUENCE_BITS---"+SEQUENCE_BITS);
@@ -115,25 +115,18 @@ public class SnowFlakeAlgorithm {
 //		System.out.println("MAX_DATA_CENTER_ID---"+MAX_DATA_CENTER_ID);
 //		System.out.println("TIMESTAMP_SHIFT---"+TIMESTAMP_SHIFT);
 	}
-
-	private static SnowFlakeAlgorithm snowFlakeUtil = new SnowFlakeAlgorithm();
-
-	private SnowFlakeAlgorithm() {}
-	public static SnowFlakeAlgorithm getObject() {
-		return snowFlakeUtil;
-	}
     /**
      * 获取唯一ID
      * @return
      */
     public static Long nextId() {
-        return snowFlakeUtil.nextId(random.nextInt(SHARDING_KEY_RANGE_LOWER, SHARDING_KEY_RANGE_UPPER));
+        return nextId(random.nextInt(SHARDING_KEY_RANGE_LOWER, SHARDING_KEY_RANGE_UPPER));
     }
     /**
      * 通过雪花算法生成下一个id，注意这里使用synchronized同步
      * @return 唯一id
      */
-    public synchronized long nextId(int shardingKey) {
+    public synchronized static long nextId(int shardingKey) {
         long currentTimeMillis = System.currentTimeMillis();
         // 当前时间小于上一次生成id使用的时间，可能出现服务器时钟回拨问题
         if(currentTimeMillis < lastTimeMillis)
@@ -169,7 +162,7 @@ public class SnowFlakeAlgorithm {
      * @param lastTimeMillis 指定毫秒时间戳
      * @return 时间戳
      */
-    private long getNextMillis(long lastTimeMillis) {
+    private static long getNextMillis(long lastTimeMillis) {
         long currentTimeMillis = System.currentTimeMillis();
         while (currentTimeMillis <= lastTimeMillis) {
             currentTimeMillis = System.currentTimeMillis();
@@ -219,6 +212,7 @@ public class SnowFlakeAlgorithm {
         }*/
 //        System.out.println(Math.pow(2, 22));
 //    	SnowFlakeAlgorithm.setShardingKeyRange(3);
+    	SnowFlakeAlgorithm.setWorkerId(31);
     	for (int i = 0; i < 10; i++) {
     		Long id = SnowFlakeAlgorithm.nextId();
     		System.out.println(id+"-----"+SnowFlakeAlgorithm.extractShardingKey(id));
