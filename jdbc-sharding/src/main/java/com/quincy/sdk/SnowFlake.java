@@ -19,7 +19,7 @@ import org.springframework.util.Assert;
  * 加起来刚好64位，为一个Long型。<br>
  * SnowFlake的优点是，整体上按照时间自增排序，并且整个分布式系统内不会产生ID碰撞(由数据中心ID和机器ID作区分)，并且效率较高，经测试，SnowFlake每秒能够产生26万ID左右。
  */
-public class SnowFlakeAlgorithm {
+public class SnowFlake {
 	private static Random random = new Random();
 	private final static Map<Integer, int[]> SHARDING_KEY_LENGTH_RANGE_MAP = new HashMap<Integer, int[]>(4);
 
@@ -93,7 +93,7 @@ public class SnowFlakeAlgorithm {
 	public static void setWorkerId(int workerId) {
 		if(workerId<0||workerId>MAX_WORKER_ID)
             throw new IllegalArgumentException(String.format("Worker Id can't be greater than %d or less than 0.", MAX_WORKER_ID));
-		SnowFlakeAlgorithm.workerId = workerId;
+		SnowFlake.workerId = workerId;
 	}
 
 	public static void setShardingKeyRange(int index) {
@@ -217,10 +217,10 @@ public class SnowFlakeAlgorithm {
         }*/
 //        System.out.println(Math.pow(2, 22));
 //    	SnowFlakeAlgorithm.setShardingKeyRange(3);
-    	SnowFlakeAlgorithm.setWorkerId(25);
+    	SnowFlake.setWorkerId(25);
     	for (int i = 0; i < 10; i++) {
-    		Long id = SnowFlakeAlgorithm.nextId();
-    		System.out.println(id+"-----"+SnowFlakeAlgorithm.extractShardingKey(id));
+    		Long id = SnowFlake.nextId();
+    		System.out.println(id+"-----"+SnowFlake.extractShardingKey(id));
     	}
 //    	String binary = Long.toString(511, 2);
 //    	System.out.println(binary+"---"+binary.length());
