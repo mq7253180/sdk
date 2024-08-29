@@ -29,9 +29,6 @@ public class UserController {
 	public void pwdUpdate(HttpServletRequest request, @RequestParam(required = true, name = "password")String password) {
 		XSession xsession = AuthHelper.getSession(request);
 		User userPo = xsession.getUser();
-		User userVo = new User();
-		userVo.setId(userPo.getId());
-		userVo.setPassword(password);
-		authActions.updatePassword(userVo);
+		authActions.updatePassword(userPo.getId(), password);
 	}
 }

@@ -116,10 +116,7 @@ public class AuthServerController {
 			if(userPo==null) {
 				result = new Result(-11, "auth.pwdreset.link.nouser");
 			} else {
-				User userVo = new User();
-				userVo.setId(userPo.getId());
-				userVo.setPassword(password);
-				authActions.updatePassword(userVo);
+				authActions.updatePassword(userPo.getId(), password);
 				result = Result.newSuccess();
 			}
 			result.setMsg(new RequestContext(request).getMessage(result.getMsg()));
