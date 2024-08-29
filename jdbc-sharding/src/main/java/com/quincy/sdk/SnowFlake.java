@@ -79,8 +79,8 @@ public class SnowFlake {
     /**
      * 截取Sharding Key的掩码，必须放在static块之后才有效，因为DATA_CENTER_ID_BITS要取计算后的值
      */
-    private static String DATA_CENTER_ID_BITS_STR = String.valueOf(Math.pow(2, DATA_CENTER_ID_BITS));
-    private static long SHARDING_KEY_MASK = (Long.parseLong(DATA_CENTER_ID_BITS_STR.substring(0, DATA_CENTER_ID_BITS_STR.indexOf(".")))-1)<<DATA_CENTER_ID_SHIFT;
+    private static String DATA_CENTER_ID_BITS_STR;
+    private static long SHARDING_KEY_MASK;
 
     public static long extractShardingKey(long id) {
     	return ((id&SHARDING_KEY_MASK)>>DATA_CENTER_ID_SHIFT);
