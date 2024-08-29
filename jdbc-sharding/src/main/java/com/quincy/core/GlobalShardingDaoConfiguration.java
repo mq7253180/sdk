@@ -148,37 +148,37 @@ public class GlobalShardingDaoConfiguration implements BeanDefinitionRegistryPos
 									Object v = rs.getObject(j);
 									Class<?> parameterType = setterMethod.getParameterTypes()[0];
 									if(!parameterType.isInstance(v)) {
-										if(parameterType.getName().equals(String.class.getName())) {
+										if(String.class.isAssignableFrom(parameterType)) {
 											v = rs.getString(j);
-										} else if(parameterType.getName().equals(boolean.class.getName())||parameterType.getName().equals(Boolean.class.getName())) {
+										} else if(boolean.class.isAssignableFrom(parameterType)||Boolean.class.isAssignableFrom(parameterType)) {
 											v = rs.getBoolean(j);
-										} else if(parameterType.getName().equals(byte.class.getName())||parameterType.getName().equals(Byte.class.getName())) {
+										} else if(byte.class.isAssignableFrom(parameterType)||Byte.class.isAssignableFrom(parameterType)) {
 											v = rs.getByte(j);
-										} else if(parameterType.getName().equals(short.class.getName())||parameterType.getName().equals(Short.class.getName())) {
+										} else if(short.class.isAssignableFrom(parameterType)||Short.class.isAssignableFrom(parameterType)) {
 											v = rs.getShort(j);
-										} else if(parameterType.getName().equals(int.class.getName())||parameterType.getName().equals(Integer.class.getName())) {
+										} else if(int.class.isAssignableFrom(parameterType)||Integer.class.isAssignableFrom(parameterType)) {
 											v = rs.getInt(j);
-										} else if(parameterType.getName().equals(long.class.getName())||parameterType.getName().equals(Long.class.getName())) {
+										} else if(long.class.isAssignableFrom(parameterType)||Long.class.isAssignableFrom(parameterType)) {
 											v = rs.getLong(j);
-										} else if(parameterType.getName().equals(float.class.getName())||parameterType.getName().equals(Float.class.getName())) {
+										} else if(float.class.isAssignableFrom(parameterType)||Float.class.isAssignableFrom(parameterType)) {
 											v = rs.getFloat(j);
-										} else if(parameterType.getName().equals(double.class.getName())||parameterType.getName().equals(Double.class.getName())) {
+										} else if(double.class.isAssignableFrom(parameterType)||Double.class.isAssignableFrom(parameterType)) {
 											v = rs.getDouble(j);
-										} else if(parameterType.getName().equals(BigDecimal.class.getName())) {
+										} else if(BigDecimal.class.isAssignableFrom(parameterType)) {
 											v = rs.getBigDecimal(j);
-										} else if(parameterType.getName().equals(Date.class.getName())||parameterType.getName().equals(java.sql.Date.class.getName())) {
-											v = rs.getDate(j);
-										} else if(parameterType.getName().equals(Time.class.getName())) {
-											v = rs.getTime(j);
-										} else if(parameterType.getName().equals(Timestamp.class.getName())) {
+										} else if(Timestamp.class.isAssignableFrom(parameterType)) {
 											v = rs.getTimestamp(j);
-										} else if(parameterType.getName().equals(Array.class.getName())) {
+										} else if(Time.class.isAssignableFrom(parameterType)) {
+											v = rs.getTime(j);
+										} else if(Date.class.isAssignableFrom(parameterType)) {
+											v = rs.getDate(j);
+										} else if(Array.class.isAssignableFrom(parameterType)) {
 											v = rs.getArray(j);
-										} else if(parameterType.getName().equals(Blob.class.getName())) {
+										} else if(Blob.class.isAssignableFrom(parameterType)) {
 											v = rs.getBlob(j);
-										} else if(parameterType.getName().equals(Clob.class.getName())) {
+										} else if(Clob.class.isAssignableFrom(parameterType)) {
 											v = rs.getClob(j);
-										} else if(parameterType.getName().equals(byte[].class.getName())) {
+										} else if(byte[].class.isAssignableFrom(parameterType)) {
 											InputStream in = null;
 											try {
 												in = rs.getBinaryStream(j);
