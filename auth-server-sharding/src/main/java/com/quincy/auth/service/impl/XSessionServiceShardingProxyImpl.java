@@ -9,7 +9,7 @@ import com.quincy.sdk.annotation.sharding.ShardingKey;
 public class XSessionServiceShardingProxyImpl extends XSessionServiceImpl implements XSessionServiceShardingProxy {
 	@ReadOnly
 	@Override
-	public XSession create(@ShardingKey Integer shardingKey, User user) {
+	public XSession create(@ShardingKey(snowFlake = true) Long shardingKey, User user) {
 		return this.create(user);
 	}
 }

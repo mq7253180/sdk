@@ -15,6 +15,6 @@ public class XSessionServiceShardingImpl implements XSessionService {
 
 	@Override
 	public XSession create(User user) {
-		return xSessionServiceShardingProxy.create(user.getShardingKey(), user);
+		return xSessionServiceShardingProxy.create(user.getCurrentEnterprise().getId(), user);
 	}
 }

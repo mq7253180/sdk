@@ -31,7 +31,6 @@ public class UserController {
 		User userPo = xsession.getUser();
 		User userVo = new User();
 		userVo.setId(userPo.getId());
-		userVo.setShardingKey(userPo.getShardingKey());
 		userVo.setPassword(password);
 		authActions.updatePassword(userVo);
 	}
