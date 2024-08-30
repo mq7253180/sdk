@@ -4,5 +4,5 @@ import com.quincy.auth.o.User;
 import com.quincy.auth.o.XSession;
 
 public interface XSessionServiceShardingProxy {
-	public XSession create(Long shardingKey, User user);
+	public XSession create(long shardingKey, User user);
 }

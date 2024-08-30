@@ -123,7 +123,7 @@ public class SnowFlake {
      * 通过雪花算法生成下一个id，注意这里使用synchronized同步
      * @return 唯一id
      */
-    public synchronized static long nextId(int shardingKey) {
+    public synchronized static long nextId(long shardingKey) {
         long currentTimeMillis = System.currentTimeMillis();
         // 当前时间小于上一次生成id使用的时间，可能出现服务器时钟回拨问题
         if(currentTimeMillis < lastTimeMillis)
