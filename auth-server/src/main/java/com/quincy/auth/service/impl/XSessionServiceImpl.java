@@ -16,11 +16,13 @@ import com.quincy.auth.o.Menu;
 import com.quincy.auth.o.User;
 import com.quincy.auth.o.XSession;
 import com.quincy.auth.service.XSessionService;
+import com.quincy.sdk.annotation.ReadOnly;
 
 public class XSessionServiceImpl implements XSessionService {
 	@Autowired
 	private AuthMapper authMapper;
 
+	@ReadOnly
 	@Override
 	public XSession create(User user) {
 		XSession session = new XSession();
