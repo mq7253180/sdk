@@ -151,7 +151,7 @@ public class GlobalShardingDaoConfiguration implements BeanDefinitionRegistryPos
 			throws SQLException, IOException, InstantiationException, IllegalAccessException, IllegalArgumentException,
 			InvocationTargetException, NoSuchMethodException, SecurityException, InterruptedException, ExecutionException {
 		Map<String, Method> map = classMethodMap.get(returnItemType);
-		int shardCount = dataSource.getResolvedDataSources().size()/2;
+		int shardCount = dataSource.getResolvedDataSources().size()>>1;
 		boolean returnDto = returnType.getName().equals(returnItemType.getName());
 		List<FutureTask<List<Object>>> tasks = new ArrayList<>(shardCount);
 		for(int i=0;i<shardCount;i++) {
@@ -300,16 +300,16 @@ public class GlobalShardingDaoConfiguration implements BeanDefinitionRegistryPos
 	}
 
 	@Override
-	public int[] executeUpdate(String sql, MasterOrSlave masterOrSlave, boolean anyway, long hashForSkip, Object... args) throws SQLException, InterruptedException, ExecutionException {
-		return this.executeUpdate(sql, masterOrSlave, anyway, hashForSkip, System.currentTimeMillis(), args);
+	public int[] executeUpdate(String sql, MasterOrSlave masterOrSlave, boolean anyway, long shardingKeyToSkip, Object... args) throws SQLException, InterruptedException, ExecutionException {
+		return this.executeUpdate(sql, masterOrSlave, anyway, shardingKeyToSkip, System.currentTimeMillis(), args);
 	}
 
-	private int[] executeUpdate(String sql, MasterOrSlave masterOrSlave, boolean anyway, long hashForSkip, long start, Object[] args) throws SQLException, InterruptedException, ExecutionException {
-		int shardCount = dataSource.getResolvedDataSources().size()/2;
+	private int[] executeUpdate(String sql, MasterOrSlave masterOrSlave, boolean anyway, long shardingKeyToSkip, long start, Object[] args) throws SQLException, InterruptedException, ExecutionException {
+		int shardCount = dataSource.getResolvedDataSources().size()>>1;
 		List<FutureTask<Integer>> tasks = new ArrayList<>(shardCount);
-		long shardToSkip = hashForSkip&(shardCount-1);
+		long shardToSkip = shardingKeyToSkip>=0?shardingKeyToSkip&(shardCount-1):-1;
 		for(int i=0;i<shardCount;i++) {
-			if(hashForSkip>=0&&i==shardToSkip)
+			if(i==shardToSkip)
 				continue;
 			int shardIndex = i;
 	        FutureTask<Integer> task = new FutureTask<>(new Callable<Integer>() {
