@@ -120,12 +120,12 @@ public class GlobalShardingDaoConfiguration implements BeanDefinitionRegistryPos
 		boolean returnDto = returnType.getName().equals(returnItemType.getName());
 		List<FutureTask<List<Object>>> tasks = new ArrayList<>(shardCount);
 		for(int i=0;i<shardCount;i++) {
-			int ii = i;
+			int shardIndex = i;
 	        FutureTask<List<Object>> task = new FutureTask<>(new Callable<List<Object>>() {
 				@Override
 				public List<Object> call() throws Exception {
 					List<Object> list =  new ArrayList<>(returnDto?1:10);
-					String key = masterOrSlave.value()+ii;
+					String key = masterOrSlave.value()+shardIndex;
 					Connection conn = null;
 					PreparedStatement statment = null;
 					ResultSet rs = null;
@@ -206,7 +206,7 @@ public class GlobalShardingDaoConfiguration implements BeanDefinitionRegistryPos
 //							lists[i] = list;
 						return list;
 					} finally {
-						log.warn("第{}个分片耗时========Duration============{}", ii, (System.currentTimeMillis()-start));
+						log.warn("第{}个分片耗时========Duration============{}", shardIndex, (System.currentTimeMillis()-start));
 						if(rs!=null)
 							rs.close();
 						if(statment!=null)
@@ -273,11 +273,11 @@ public class GlobalShardingDaoConfiguration implements BeanDefinitionRegistryPos
 		int shardCount = dataSource.getResolvedDataSources().size()/2;
 		List<FutureTask<Integer>> tasks = new ArrayList<>(shardCount);
 		for(int i=0;i<shardCount;i++) {
-			int ii = i;
+			int shardIndex = i;
 	        FutureTask<Integer> task = new FutureTask<>(new Callable<Integer>() {
 				@Override
 				public Integer call() throws Exception {
-					String key = masterOrSlave.value()+ii;
+					String key = masterOrSlave.value()+shardIndex;
 					Connection conn = null;
 					PreparedStatement statment = null;
 					try {
@@ -289,7 +289,7 @@ public class GlobalShardingDaoConfiguration implements BeanDefinitionRegistryPos
 						}
 						return statment.executeUpdate();
 					} finally {
-						log.warn("第{}个分片耗时========Duration============{}", ii, (System.currentTimeMillis()-start));
+						log.warn("第{}个分片耗时========Duration============{}", shardIndex, (System.currentTimeMillis()-start));
 						if(statment!=null)
 							statment.close();
 						if(conn!=null)
