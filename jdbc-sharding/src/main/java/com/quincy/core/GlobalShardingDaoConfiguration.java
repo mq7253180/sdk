@@ -91,13 +91,21 @@ public class GlobalShardingDaoConfiguration implements BeanDefinitionRegistryPos
 			    				break;
 						}
 						long shardingKey = -1;
+						Object[] afterArgs = args;
 						if(indexOfShardingKeyToSkip>=0) {
+							afterArgs = new Object[args.length-1];
+							for(int i=0,j=0;i<args.length;i++) {
+								if(i!=indexOfShardingKeyToSkip) {
+									afterArgs[j] = args[i];
+									j++;
+								}
+							}
 							Object shardingArgObj = args[indexOfShardingKeyToSkip];
 							shardingKey = Integer.parseInt(shardingArgObj.toString());
 							if(snowFlake)
 								shardingKey = SnowFlake.extractShardingKey(shardingKey);
 						}
-						return executeUpdate(executeUpdateAnnotation.sql(), executeUpdateAnnotation.masterOrSlave(), executeUpdateAnnotation.anyway(), shardingKey, start, args);
+						return executeUpdate(executeUpdateAnnotation.sql(), executeUpdateAnnotation.masterOrSlave(), executeUpdateAnnotation.anyway(), shardingKey, start, afterArgs);
 					}
 					return null;
 				}
