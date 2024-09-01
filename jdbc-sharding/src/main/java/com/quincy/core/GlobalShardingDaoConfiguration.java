@@ -306,8 +306,8 @@ public class GlobalShardingDaoConfiguration implements BeanDefinitionRegistryPos
 
 	private int[] executeUpdate(String sql, MasterOrSlave masterOrSlave, boolean anyway, long shardingKeyToSkip, long start, Object[] args) throws SQLException, InterruptedException, ExecutionException {
 		int shardCount = dataSource.getResolvedDataSources().size()>>1;
-		List<FutureTask<Integer>> tasks = new ArrayList<>(shardCount);
 		long shardToSkip = shardingKeyToSkip>=0?shardingKeyToSkip&(shardCount-1):-1;
+		List<FutureTask<Integer>> tasks = new ArrayList<>(shardCount);
 		for(int i=0;i<shardCount;i++) {
 			if(i==shardToSkip)
 				continue;
