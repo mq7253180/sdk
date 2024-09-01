@@ -2,6 +2,7 @@ package com.quincy.core;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -35,11 +36,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 
 import com.quincy.sdk.ShardingJdbcDao;
+import com.quincy.sdk.SnowFlake;
 import com.quincy.core.db.RoutingDataSource;
 import com.quincy.sdk.MasterOrSlave;
 import com.quincy.sdk.annotation.sharding.AllShardsJDBCDao;
 import com.quincy.sdk.annotation.sharding.ExecuteQuery;
 import com.quincy.sdk.annotation.sharding.ExecuteUpdate;
+import com.quincy.sdk.annotation.sharding.ShardingKeyToSkip;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -69,11 +72,43 @@ public class GlobalShardingDaoConfiguration implements BeanDefinitionRegistryPos
 					}
 					if(executeUpdateAnnotation!=null) {
 						Assert.isTrue(returnType.getName().equals(int[].class.getName())||returnType.getName().equals(Integer[].class.getName()), "Return type must be int[] or Integer[].");
-						return executeUpdate(executeUpdateAnnotation.sql(), executeUpdateAnnotation.masterOrSlave(), executeUpdateAnnotation.anyway(), start, args);
+						Annotation[][] annotationss = method.getParameterAnnotations();
+						int indexOfShardingKeyToSkip = -1;
+						boolean snowFlake = false;
+						for(int i=0;i<annotationss.length;i++) {
+							Annotation[] annotations = annotationss[i];
+							boolean stopLoop = false;
+			    			for(int j=0;j<annotations.length;j++) {
+			    				if(annotations[j] instanceof ShardingKeyToSkip) {
+			    					ShardingKeyToSkip annotation = (ShardingKeyToSkip)annotations[j];
+			    					snowFlake = annotation.snowFlake();
+			    					indexOfShardingKeyToSkip = i;
+			    					stopLoop = true;
+					    			break;
+					    		}
+			    			}
+			    			if(stopLoop)
+			    				break;
+						}
+						long shardingKey = -1;
+						if(indexOfShardingKeyToSkip>=0) {
+							Object shardingArgObj = args[indexOfShardingKeyToSkip];
+							shardingKey = Integer.parseInt(shardingArgObj.toString());
+							if(snowFlake)
+								shardingKey = SnowFlake.extractShardingKey(shardingKey);
+						}
+						return executeUpdate(executeUpdateAnnotation.sql(), executeUpdateAnnotation.masterOrSlave(), executeUpdateAnnotation.anyway(), shardingKey, start, args);
 					}
 					return null;
 				}
 			});
+			/*try {
+				Object[] args = null;
+				executeUpdate("", MasterOrSlave.MASTER, true, args);
+				executeUpdate("", MasterOrSlave.MASTER, true, 8192, args);
+			} catch (SQLException | InterruptedException | ExecutionException e) {
+				e.printStackTrace();
+			}*/
 			String className = clazz.getName().substring(clazz.getName().lastIndexOf(".")+1);
 			className = String.valueOf(className.charAt(0)).toLowerCase()+className.substring(1);
 			beanFactory.registerSingleton(className, o);
@@ -261,18 +296,21 @@ public class GlobalShardingDaoConfiguration implements BeanDefinitionRegistryPos
 	@Override
 	public int[] executeUpdate(String sql, MasterOrSlave masterOrSlave, Object... args)
 			throws SQLException, InterruptedException, ExecutionException {
-		return this.executeUpdate(sql, masterOrSlave, false, args);
+		return this.executeUpdate(sql, masterOrSlave, false, -1, args);
 	}
 
 	@Override
-	public int[] executeUpdate(String sql, MasterOrSlave masterOrSlave, boolean anyway, Object... args) throws SQLException, InterruptedException, ExecutionException {
-		return this.executeUpdate(sql, masterOrSlave, anyway, System.currentTimeMillis(), args);
+	public int[] executeUpdate(String sql, MasterOrSlave masterOrSlave, boolean anyway, long hashForSkip, Object... args) throws SQLException, InterruptedException, ExecutionException {
+		return this.executeUpdate(sql, masterOrSlave, anyway, hashForSkip, System.currentTimeMillis(), args);
 	}
 
-	private int[] executeUpdate(String sql, MasterOrSlave masterOrSlave, boolean anyway, long start, Object[] args) throws SQLException, InterruptedException, ExecutionException {
+	private int[] executeUpdate(String sql, MasterOrSlave masterOrSlave, boolean anyway, long hashForSkip, long start, Object[] args) throws SQLException, InterruptedException, ExecutionException {
 		int shardCount = dataSource.getResolvedDataSources().size()/2;
 		List<FutureTask<Integer>> tasks = new ArrayList<>(shardCount);
+		long shardToSkip = hashForSkip&(shardCount-1);
 		for(int i=0;i<shardCount;i++) {
+			if(hashForSkip>=0&&i==shardToSkip)
+				continue;
 			int shardIndex = i;
 	        FutureTask<Integer> task = new FutureTask<>(new Callable<Integer>() {
 				@Override

@@ -45,26 +45,26 @@ public class ShardingAop {
 	    		boolean snowFlake = false;
 	    		for(int i=0;i<annotationss.length;i++) {
 	    			Annotation[] annotations = annotationss[i];
+	    			boolean stopLoop = false;
 	    			for(int j=0;j<annotations.length;j++) {
 	    				if(annotations[j] instanceof ShardingKey) {
 	    					index = i;
 	    					ShardingKey annotation = (ShardingKey)annotations[j];
 	    					snowFlake = annotation.snowFlake();
+	    					stopLoop = true;
 			    			break;
 			    		}
 	    			}
+	    			if(stopLoop)
+	    				break;
 	    		}
 	    		Assert.isTrue(index>-1, "Sharding key must be specified using @ShardingKey before parameter, and with type of Integer or Long!!!");
 	    		Object[] args = joinPoint.getArgs();
 		    	Object shardingArgObj = args[index];
 		    	Assert.isTrue(shardingArgObj instanceof Integer||shardingArgObj instanceof Long, "Only Long or Integer are acceptable as parameter of sharding key!!!");
 		    	Long shardingArg = Long.valueOf(shardingArgObj.toString());
-		    	Long ramainder = null;
-		    	if(snowFlake) {
-		    		long extractedShardingArg = SnowFlake.extractShardingKey(shardingArg);
-		    		ramainder = extractedShardingArg%shardingCount;
-		    	} else
-		    		ramainder = shardingArg%shardingCount;
+		    	Long shardingKey = snowFlake?SnowFlake.extractShardingKey(shardingArg):shardingArg;
+		    	Long ramainder = shardingKey&(shardingCount-1);
 		    	DataSourceHolder.set(masterOrSlave+ramainder);
 			}
 			return joinPoint.proceed();
