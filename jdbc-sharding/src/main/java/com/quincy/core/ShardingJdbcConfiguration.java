@@ -21,16 +21,16 @@ import com.quincy.sdk.MasterOrSlave;
 public class ShardingJdbcConfiguration {
 	@Value("${spring.datasource.driver-class-name}")
 	private String driverClassName;
-	@Value("${spring.datasource.sharding.url.prefix}")
-	private String urlPrefix;
-	@Value("${spring.datasource.sharding.url.suffix}")
-	private String urlSuffix;
 	@Value("${spring.datasource.username}")
 	private String userName;
 	@Value("${spring.datasource.password}")
 	private String password;
 	@Value("${spring.datasource.pool.masterRatio}")
 	private int masterRatio;
+	@Value("${spring.datasource.sharding.url.prefix}")
+	private String urlPrefix;
+	@Value("${spring.datasource.sharding.url.suffix}")
+	private String urlSuffix;
 	@Value("${spring.datasource.sharding.count}")
 	private int shardingCount;
 	@Autowired
