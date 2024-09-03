@@ -23,7 +23,10 @@ public class MultiEnterpriseConfiguration extends HandlerInterceptorAdapter {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 		XSession xsession = AuthHelper.getSession(request);
-		if(xsession.getUser().getCurrentEnterprise()==null) {
+		if(xsession==null) {
+			InnerHelper.outputOrRedirect(request, response, handler, 0, new RequestContext(request).getMessage("auth.timeout.ajax"), null, authCenter+"/auth/signin/broker", true);
+			return false;
+		} else if(xsession.getUser().getCurrentEnterprise()==null) {
 			List<Enterprise> enterprises = xsession.getUser().getEnterprises();
 			/*enterprises = new ArrayList<>();
 			Enterprise e = new Enterprise();

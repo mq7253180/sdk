@@ -280,7 +280,7 @@ public class GlobalShardingDaoConfiguration implements BeanDefinitionRegistryPos
 			if(completedCount>=shardCount)
 				break;
 			else
-				Thread.sleep(10);
+				Thread.sleep(50);
 		}
 //		return returnDto?null:lists;
 		if(returnDto) {
@@ -350,7 +350,7 @@ public class GlobalShardingDaoConfiguration implements BeanDefinitionRegistryPos
 	        	threadPoolExecutor.submit(task);
 		}
 		int completedCount = 0;
-		boolean[] compleatedTasks = new boolean[shardCount];
+		boolean[] compleatedTasks = new boolean[tasks.size()];
 		while(true) {
 			for(int i=0;i<compleatedTasks.length;i++) {
 				if(!compleatedTasks[i]) {
@@ -361,10 +361,10 @@ public class GlobalShardingDaoConfiguration implements BeanDefinitionRegistryPos
 					}
 				}
 			}
-			if(completedCount>=shardCount)
+			if(completedCount>=tasks.size())
 				break;
 			else
-				Thread.sleep(10);
+				Thread.sleep(50);
 		}
 		int[] toReturn = new int[shardCount];
 		for(int i=0;i<tasks.size();i++) {
