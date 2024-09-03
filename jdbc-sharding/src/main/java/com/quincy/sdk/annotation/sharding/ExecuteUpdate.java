@@ -13,6 +13,6 @@ import com.quincy.sdk.MasterOrSlave;
 @Target(ElementType.METHOD)
 public @interface ExecuteUpdate {
 	public String sql();
-	public MasterOrSlave masterOrSlave();
+	public MasterOrSlave masterOrSlave() default MasterOrSlave.MASTER;
 	public boolean anyway() default false;
 }
