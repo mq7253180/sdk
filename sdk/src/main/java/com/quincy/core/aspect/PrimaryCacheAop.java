@@ -24,7 +24,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import com.quincy.core.ReflectionsHolder;
-import com.quincy.sdk.annotation.PrimaryCache;
+import com.quincy.sdk.annotation.Cache;
 import com.quincy.sdk.helper.CommonHelper;
 
 @Order(2)
@@ -41,7 +41,7 @@ public class PrimaryCacheAop {
 
 	@PostConstruct
 	public void init() {
-		Set<Method> methods = ReflectionsHolder.get().getMethodsAnnotatedWith(PrimaryCache.class);
+		Set<Method> methods = ReflectionsHolder.get().getMethodsAnnotatedWith(Cache.class);
 		if(methods!=null&&methods.size()>0) {
 			STORAGE = new ConcurrentHashMap<String, Cacheable>();
 			LOCKS_HOLDER = new HashMap<String, Lockable>();
@@ -69,7 +69,7 @@ public class PrimaryCacheAop {
 		}
 	}
 
-	@Pointcut("@annotation(com.quincy.sdk.annotation.PrimaryCache)")
+	@Pointcut("@annotation(com.quincy.sdk.annotation.Cache)")
     public void pointCut() {}
 
 	@Around("pointCut()")
@@ -80,7 +80,7 @@ public class PrimaryCacheAop {
 		String key = CommonHelper.fullMethodPath(clazz, methodSignature, method, joinPoint.getArgs(), ".", "_", "#");
 		Cacheable cacheable = STORAGE.get(key);
 		if(cacheable==null) {
-			PrimaryCache annotation = method.getAnnotation(PrimaryCache.class);
+			Cache annotation = method.getAnnotation(Cache.class);
 			Lockable lockable = LOCKS_HOLDER.get(method.getName());
 			AtomicInteger nx = lockable.getNx();
 			Object lock = lockable.getLock();
@@ -115,7 +115,7 @@ public class PrimaryCacheAop {
 		return cacheable.getValue();
 	}
 
-	private Cacheable invokeAndCache(ProceedingJoinPoint joinPoint, PrimaryCache annotation, String key) throws Throwable {
+	private Cacheable invokeAndCache(ProceedingJoinPoint joinPoint, Cache annotation, String key) throws Throwable {
 		Cacheable cacheable = new Cacheable();
 		cacheable.setValue(joinPoint.proceed());
 		cacheable.setExpireMillis(annotation.expire()*1000);

@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 import com.quincy.core.redis.JedisSource;
 import com.quincy.core.redis.RedisConstants;
 import com.quincy.sdk.RedisProcessor;
-import com.quincy.sdk.annotation.SecondaryCache;
+import com.quincy.sdk.annotation.L2Cache;
 import com.quincy.sdk.helper.CommonHelper;
 
 import redis.clients.jedis.Jedis;
@@ -34,7 +34,7 @@ public class SecondaryCacheAop {
 	@Autowired
 	private RedisProcessor redisProcessor;
 
-	@Pointcut("@annotation(com.quincy.sdk.annotation.SecondaryCache)")
+	@Pointcut("@annotation(com.quincy.sdk.annotation.L2Cache)")
     public void pointCut() {}
 
     @Around("pointCut()")
@@ -42,7 +42,7 @@ public class SecondaryCacheAop {
     	Class<?> clazz = joinPoint.getTarget().getClass();
     	MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
     	Method method = clazz.getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
-    	SecondaryCache annotation = method.getAnnotation(SecondaryCache.class);
+    	L2Cache annotation = method.getAnnotation(L2Cache.class);
     	String keyStr = annotation.key().trim();
     	String _key = keyPrefix+"cache:"+(keyStr.length()>0?keyStr:CommonHelper.fullMethodPath(clazz, methodSignature, method, joinPoint.getArgs(), ".", "_", "#"));
     	byte[] key = (_key+":VALUE").getBytes();
@@ -79,7 +79,7 @@ public class SecondaryCacheAop {
     	}
     }
 
-    private Object invokeAndCache(Jedis jedis, ProceedingJoinPoint joinPoint, SecondaryCache annotation, byte[] key) throws Throwable {
+    private Object invokeAndCache(Jedis jedis, ProceedingJoinPoint joinPoint, L2Cache annotation, byte[] key) throws Throwable {
     	Object toReturn = joinPoint.proceed();
     	if(toReturn!=null) {
     		byte[] valToCache = CommonHelper.serialize(toReturn);

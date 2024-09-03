@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface SecondaryCache {
+public @interface L2Cache {
 	public int expire() default 180;
 	public String key() default "";
 	public int setnxExpire() default 3;
