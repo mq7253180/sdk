@@ -249,7 +249,7 @@ public class GlobalShardingDaoConfiguration implements BeanDefinitionRegistryPos
 //							lists[i] = list;
 						return list;
 					} finally {
-						log.warn("第{}个分片耗时========Duration============{}", shardIndex, (System.currentTimeMillis()-start));
+						log.info("第{}个分片耗时========Duration============{}", shardIndex, (System.currentTimeMillis()-start));
 						if(rs!=null)
 							rs.close();
 						if(statment!=null)
@@ -335,7 +335,7 @@ public class GlobalShardingDaoConfiguration implements BeanDefinitionRegistryPos
 						}
 						return statment.executeUpdate();
 					} finally {
-						log.warn("第{}个分片耗时========Duration============{}", shardIndex, (System.currentTimeMillis()-start));
+						log.info("第{}个分片耗时========Duration============{}", shardIndex, (System.currentTimeMillis()-start));
 						if(statment!=null)
 							statment.close();
 						if(conn!=null)
