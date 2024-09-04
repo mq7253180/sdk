@@ -1,4 +1,4 @@
-package com.quincy.core;
+package com.quincy.core.web;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,8 +10,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter;
 import org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor;
-
-import com.quincy.core.web.GlobalHandlerMethodReturnValueHandler;
 
 @Configuration
 public class RetValueDecator implements InitializingBean {
