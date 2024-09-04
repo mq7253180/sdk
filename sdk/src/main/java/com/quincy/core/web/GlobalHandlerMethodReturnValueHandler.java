@@ -6,7 +6,6 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import com.quincy.core.ThreadLocalHolder;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.annotation.DoNotWrap;
 import com.quincy.sdk.helper.CommonHelper;
@@ -31,7 +30,6 @@ public class GlobalHandlerMethodReturnValueHandler implements HandlerMethodRetur
 		DoNotWrap doNotWrap = returnType.getMethod().getDeclaredAnnotation(DoNotWrap.class);
 		if(doNotWrap==null) {
 			Result result = Result.newSuccess();
-			result.setAccsessToken(ThreadLocalHolder.getAccsessToken());
 			returnValue = result.msg(applicationContext.getMessage(Result.I18N_KEY_SUCCESS, null, CommonHelper.getLocale())).data(returnValue);
 		}
 		origin.handleReturnValue(returnValue, returnType, mavContainer, webRequest);

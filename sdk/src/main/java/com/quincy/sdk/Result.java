@@ -10,7 +10,7 @@ public class Result implements Serializable {
 	private int status;
 	private String msg;
 	private Object data;
-	private Object accsessToken;
+//	private Object accsessToken;
 
 	public Result() {
 		
@@ -45,12 +45,12 @@ public class Result implements Serializable {
 	public void setData(Object data) {
 		this.data = data;
 	}
-	public Object getAccsessToken() {
+	/*public Object getAccsessToken() {
 		return accsessToken;
 	}
 	public void setAccsessToken(Object accsessToken) {
 		this.accsessToken = accsessToken;
-	}
+	}*/
 
 	public final static String I18N_KEY_SUCCESS = "status.success";
 	public final static String I18N_KEY_EXCEPTION = "status.error.500";
