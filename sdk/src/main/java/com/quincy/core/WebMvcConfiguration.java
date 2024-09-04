@@ -15,7 +15,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupp
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import com.quincy.core.web.GeneralInterceptor;
-import com.quincy.core.web.PublicKeyGetter;
+import com.quincy.core.web.QuincyAuthInterceptor;
 import com.quincy.core.web.SignatureInterceptor;
 import com.quincy.core.web.StaticInterceptor;
 import com.quincy.core.web.VCodeController;

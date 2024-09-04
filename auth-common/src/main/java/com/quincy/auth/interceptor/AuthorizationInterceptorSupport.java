@@ -10,7 +10,7 @@ import com.quincy.auth.AuthConstants;
 import com.quincy.auth.AuthHelper;
 import com.quincy.auth.o.XSession;
 import com.quincy.core.InnerHelper;
-import com.quincy.core.QuincyAuthInterceptor;
+import com.quincy.core.web.QuincyAuthInterceptor;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

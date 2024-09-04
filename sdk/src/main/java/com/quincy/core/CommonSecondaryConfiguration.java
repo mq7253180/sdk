@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class CommonApplicationContext2 {
+public class CommonSecondaryConfiguration {
 	@Value("${pool.maxTotal:#{null}}")
 	private Integer maxTotal;
 	@Value("${pool.maxIdle:#{null}}")

@@ -1,4 +1,4 @@
-package com.quincy.core;
+package com.quincy.core.web;
 
 public interface QuincyAuthInterceptor {
 }

@@ -11,7 +11,6 @@ public class Result implements Serializable {
 	private String msg;
 	private Object data;
 	private Object accsessToken;
-	private String cluster;
 
 	public Result() {
 		
@@ -52,12 +51,6 @@ public class Result implements Serializable {
 	public void setAccsessToken(Object accsessToken) {
 		this.accsessToken = accsessToken;
 	}
-	public String getCluster() {
-		return cluster;
-	}
-	public void setCluster(String cluster) {
-		this.cluster = cluster;
-	}
 
 	public final static String I18N_KEY_SUCCESS = "status.success";
 	public final static String I18N_KEY_EXCEPTION = "status.error.500";
@@ -87,11 +80,6 @@ public class Result implements Serializable {
 
 	public Result data(Object data) {
 		this.data = data;
-		return this;
-	}
-
-	public Result cluster(String cluster) {
-		this.cluster = cluster;
 		return this;
 	}
 }

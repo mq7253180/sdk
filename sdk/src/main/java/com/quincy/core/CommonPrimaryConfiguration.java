@@ -28,7 +28,7 @@ import com.quincy.core.web.GlobalLocaleResolver;
 import com.quincy.sdk.helper.CommonHelper;
 
 @Configuration
-public class CommonApplicationContext {//implements TransactionManagementConfigurer {
+public class CommonPrimaryConfiguration {//implements TransactionManagementConfigurer {
 	@Bean
     public MessageSource messageSource() throws IOException {
 		Map<String, String> map = new HashMap<String, String>();

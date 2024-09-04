@@ -14,12 +14,10 @@ import com.quincy.sdk.helper.CommonHelper;
 public class GlobalHandlerMethodReturnValueHandler implements HandlerMethodReturnValueHandler {
 	private HandlerMethodReturnValueHandler origin;
 	private ApplicationContext applicationContext;
-	private String cluster;
 
-	public GlobalHandlerMethodReturnValueHandler(HandlerMethodReturnValueHandler origin, ApplicationContext applicationContext, String cluster) {
+	public GlobalHandlerMethodReturnValueHandler(HandlerMethodReturnValueHandler origin, ApplicationContext applicationContext) {
 		this.origin = origin;
 		this.applicationContext = applicationContext;
-		this.cluster = cluster;
 	}
 
 	@Override
@@ -34,7 +32,7 @@ public class GlobalHandlerMethodReturnValueHandler implements HandlerMethodRetur
 		if(doNotWrap==null) {
 			Result result = Result.newSuccess();
 			result.setAccsessToken(ThreadLocalHolder.getAccsessToken());
-			returnValue = result.msg(applicationContext.getMessage(Result.I18N_KEY_SUCCESS, null, CommonHelper.getLocale())).data(returnValue).cluster(cluster);
+			returnValue = result.msg(applicationContext.getMessage(Result.I18N_KEY_SUCCESS, null, CommonHelper.getLocale())).data(returnValue);
 		}
 		origin.handleReturnValue(returnValue, returnType, mavContainer, webRequest);
 	}
