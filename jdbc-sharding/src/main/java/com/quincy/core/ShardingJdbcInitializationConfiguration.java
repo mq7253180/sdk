@@ -17,22 +17,22 @@ import com.quincy.core.db.RoutingDataSource;
 import jakarta.annotation.PostConstruct;
 
 @Configuration
-public class ShardingJdbcPostConstruction {
+public class ShardingJdbcInitializationConfiguration {
 	@Autowired
 	private DataSource dataSource;
 	@Autowired
-	private GlobalShardingDaoConfiguration globalShardingDaoConfiguration;
+	private ShardingJdbcDaoConfiguration shardingJdbcDaoConfiguration;
 	@Autowired
-	private JdbcPostConstruction jdbcPostConstruction;
+	private JdbcInitializationConfiguration jdbcPostConstruction;
 
 	@PostConstruct
 	public void init() throws NoSuchMethodException, SecurityException {
 		RoutingDataSource rds = (RoutingDataSource)dataSource;
 		int shardCount = rds.getResolvedDataSources().size()/2;
 		BlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<Runnable>(shardCount);
-		globalShardingDaoConfiguration.setClassMethodMap(jdbcPostConstruction.getClassMethodMap());
-		globalShardingDaoConfiguration.setDataSource(rds);
-		globalShardingDaoConfiguration.setThreadPoolExecutor(new ThreadPoolExecutor(shardCount, shardCount, 5, TimeUnit.SECONDS, workQueue, new RejectedExecutionHandler() {
+		shardingJdbcDaoConfiguration.setClassMethodMap(jdbcPostConstruction.getClassMethodMap());
+		shardingJdbcDaoConfiguration.setDataSource(rds);
+		shardingJdbcDaoConfiguration.setThreadPoolExecutor(new ThreadPoolExecutor(shardCount, shardCount, 5, TimeUnit.SECONDS, workQueue, new RejectedExecutionHandler() {
 			@Override
 			public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
 				throw new RejectedExecutionException("分片执行繁忙，稍后再试！");

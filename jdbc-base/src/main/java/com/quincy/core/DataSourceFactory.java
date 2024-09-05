@@ -6,15 +6,12 @@ import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.commons.pool2.impl.AbandonedConfig;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 
-@PropertySource(value = {"classpath:application-sdk.properties"})
 @Configuration
 //@AutoConfigureAfter(CommonApplicationContext.class)
 //@Import(CommonApplicationContext.class)
-public class DBCommonApplicationContext {//implements TransactionManagementConfigurer {
+public class DataSourceFactory {//implements TransactionManagementConfigurer {
 	@Autowired
 	private GenericObjectPoolConfig poolCfg;
 	@Autowired
@@ -22,7 +19,7 @@ public class DBCommonApplicationContext {//implements TransactionManagementConfi
 	@Autowired
 	private DBConnPoolParams dbConnPoolParams;
 
-	public BasicDataSource createBasicDataSource(int ratio) throws SQLException {
+	public BasicDataSource create(int ratio) throws SQLException {
 		BasicDataSource ds = new BasicDataSource();
 		ds.setMaxTotal(poolCfg.getMaxTotal()>0?poolCfg.getMaxTotal()*ratio:poolCfg.getMaxTotal());
 		ds.setMaxIdle(poolCfg.getMaxIdle()>0?poolCfg.getMaxIdle()*ratio:poolCfg.getMaxIdle());

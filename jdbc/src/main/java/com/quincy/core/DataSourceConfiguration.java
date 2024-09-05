@@ -18,7 +18,7 @@ import com.quincy.core.db.RoutingDataSource;
 @Configuration
 //@AutoConfigureAfter(CommonApplicationContext.class)
 //@Import(CommonApplicationContext.class)
-public class CoreApplicationContext {//implements TransactionManagementConfigurer {
+public class DataSourceConfiguration {//implements TransactionManagementConfigurer {
 	@Value("${spring.datasource.driver-class-name}")
 	private String driverClassName;
 	@Value("${spring.datasource.url}")
@@ -36,11 +36,11 @@ public class CoreApplicationContext {//implements TransactionManagementConfigure
 	@Value("${spring.datasource.pool.masterRatio}")
 	private int masterRatio;
 	@Autowired
-	private DBCommonApplicationContext dbCommonApplicationContext;
+	private DataSourceFactory dataSourceFactory;
 
 	@Bean(name = "dataSource")
     public DataSource routingDataSource() throws SQLException {
-		BasicDataSource masterDB = dbCommonApplicationContext.createBasicDataSource(1);
+		BasicDataSource masterDB = dataSourceFactory.create(1);
 		masterDB.setDriverClassName(driverClassName);
 		masterDB.setUrl(masterUrl);
 		masterDB.setUsername(masterUserName);
@@ -50,7 +50,7 @@ public class CoreApplicationContext {//implements TransactionManagementConfigure
 		masterDB.setRollbackOnReturn(false);
 		masterDB.setDefaultReadOnly(false);
 
-		BasicDataSource slaveDB = dbCommonApplicationContext.createBasicDataSource(masterRatio);
+		BasicDataSource slaveDB = dataSourceFactory.create(masterRatio);
 		slaveDB.setDriverClassName(driverClassName);
 		slaveDB.setUrl(slaveUrl);
 		slaveDB.setUsername(slaveUserName);

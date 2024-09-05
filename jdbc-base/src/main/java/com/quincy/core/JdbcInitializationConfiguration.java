@@ -26,7 +26,7 @@ import com.quincy.sdk.annotation.Result;
 import jakarta.annotation.PostConstruct;
 
 @Configuration
-public class JdbcPostConstruction {
+public class JdbcInitializationConfiguration {
 	@Autowired
 	private DataSource dataSource;
 	@Autowired

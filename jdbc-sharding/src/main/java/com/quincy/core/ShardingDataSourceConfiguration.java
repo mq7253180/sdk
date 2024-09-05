@@ -18,7 +18,7 @@ import com.quincy.core.db.RoutingDataSource;
 import com.quincy.sdk.MasterOrSlave;
 
 @Configuration
-public class ShardingJdbcConfiguration {
+public class ShardingDataSourceConfiguration {
 	@Value("${spring.datasource.driver-class-name}")
 	private String driverClassName;
 	@Value("${spring.datasource.username}")
@@ -34,7 +34,7 @@ public class ShardingJdbcConfiguration {
 	@Value("${spring.datasource.sharding.count}")
 	private int shardingCount;
 	@Autowired
-	private DBCommonApplicationContext dbCommonApplicationContext;
+	private DataSourceFactory dataSourceFactory;
 	@Autowired
 	private ApplicationContext applicationContext;
 	private final static String PROPERTY_KEY_PREFIX = "spring.datasource.sharding.";
@@ -49,7 +49,7 @@ public class ShardingJdbcConfiguration {
 			String slaveKey = PROPERTY_KEY_PREFIX+i+".slave";
 			String slaveVal = applicationContext.getEnvironment().getProperty(slaveKey);
 			Assert.hasText(slaveVal, "第"+i+"个分片只读库没有设置(从0开始)");
-			BasicDataSource masterDB = dbCommonApplicationContext.createBasicDataSource(1);
+			BasicDataSource masterDB = dataSourceFactory.create(1);
 			masterDB.setDriverClassName(driverClassName);
 			masterDB.setUrl(urlPrefix+masterVal+urlSuffix);
 			masterDB.setUsername(userName);
@@ -59,7 +59,7 @@ public class ShardingJdbcConfiguration {
 			masterDB.setRollbackOnReturn(false);
 			masterDB.setDefaultReadOnly(false);
 
-			BasicDataSource slaveDB = dbCommonApplicationContext.createBasicDataSource(masterRatio);
+			BasicDataSource slaveDB = dataSourceFactory.create(masterRatio);
 			slaveDB.setDriverClassName(driverClassName);
 			slaveDB.setUrl(urlPrefix+slaveVal+urlSuffix);
 			slaveDB.setUsername(userName);

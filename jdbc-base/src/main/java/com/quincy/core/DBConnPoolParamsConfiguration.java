@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import com.quincy.sdk.helper.CommonHelper;
 
 @Configuration
-public class JdbcConfiguration {
+public class DBConnPoolParamsConfiguration {
 	@Value("${spring.datasource.dbcp2.poolPreparedStatements:#{null}}")
 	private Boolean poolPreparedStatements;
 	@Value("${spring.datasource.dbcp2.maxOpenPreparedStatements:#{null}}")
