@@ -17,9 +17,9 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import com.quincy.auth.controller.RootController;
-import com.quincy.auth.controller.RootControllerHandler;
 import com.quincy.auth.dao.PermissionRepository;
 import com.quincy.auth.entity.Permission;
+import com.quincy.sdk.RootControllerHandler;
 import com.quincy.sdk.helper.RSASecurityHelper;
 
 import jakarta.servlet.http.HttpServletRequest;

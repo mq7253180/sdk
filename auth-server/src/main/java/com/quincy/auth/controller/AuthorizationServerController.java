@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContext;
 
-import com.quincy.auth.TempPwdLoginEmailInfo;
 import com.quincy.core.VCodeConstants;
 import com.quincy.core.InnerConstants;
 import com.quincy.core.InnerHelper;
 import com.quincy.sdk.AuthActions;
 import com.quincy.sdk.Result;
+import com.quincy.sdk.TempPwdLoginEmailInfo;
 import com.quincy.sdk.VCodeCharsFrom;
 import com.quincy.sdk.VCodeOpsRgistry;
 import com.quincy.sdk.helper.CommonHelper;

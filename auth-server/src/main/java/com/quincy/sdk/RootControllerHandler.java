@@ -1,4 +1,4 @@
-package com.quincy.auth.controller;
+package com.quincy.sdk;
 
 import java.util.Map;
 
