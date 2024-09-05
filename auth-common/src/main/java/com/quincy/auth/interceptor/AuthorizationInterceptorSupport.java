@@ -7,9 +7,9 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.support.RequestContext;
 
 import com.quincy.auth.AuthConstants;
-import com.quincy.auth.AuthHelper;
 import com.quincy.core.InnerHelper;
 import com.quincy.core.web.QuincyAuthInterceptor;
+import com.quincy.sdk.AuthHelper;
 import com.quincy.sdk.o.XSession;
 
 import jakarta.servlet.http.HttpServletRequest;

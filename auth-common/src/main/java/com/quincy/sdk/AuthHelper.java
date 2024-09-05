@@ -1,5 +1,6 @@
-package com.quincy.auth;
+package com.quincy.sdk;
 
+import com.quincy.auth.AuthConstants;
 import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.o.XSession;
 

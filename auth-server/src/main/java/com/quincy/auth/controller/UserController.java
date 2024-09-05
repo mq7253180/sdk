@@ -5,8 +5,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.quincy.auth.AuthHelper;
 import com.quincy.sdk.AuthActions;
+import com.quincy.sdk.AuthHelper;
 import com.quincy.sdk.annotation.auth.LoginRequired;
 import com.quincy.sdk.o.User;
 import com.quincy.sdk.o.XSession;

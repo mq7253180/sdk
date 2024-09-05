@@ -11,7 +11,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import com.quincy.auth.AuthHelper;
+import com.quincy.sdk.AuthHelper;
 import com.quincy.sdk.helper.AopHelper;
 import com.quincy.sdk.o.XSession;
 

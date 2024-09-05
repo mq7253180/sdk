@@ -7,6 +7,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import org.springframework.web.servlet.support.RequestContext;
 
 import com.quincy.core.InnerHelper;
+import com.quincy.sdk.AuthHelper;
 import com.quincy.sdk.annotation.CustomizedInterceptor;
 import com.quincy.sdk.annotation.auth.LoginRequired;
 import com.quincy.sdk.o.Enterprise;
