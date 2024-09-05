@@ -27,7 +27,7 @@ import redis.clients.jedis.util.Pool;
 
 @Slf4j
 @Configuration
-public class RedisApplicationContext {
+public class JedisSourceConfiguration {
 	@Value("${spring.application.name}")
 	private String applicationName;
 	@Value("#{'${spring.redis.nodes}'.split(',')}")
