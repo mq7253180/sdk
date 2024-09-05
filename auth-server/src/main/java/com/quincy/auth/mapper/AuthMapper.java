@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import com.quincy.auth.entity.Permission;
 import com.quincy.auth.entity.Role;
-import com.quincy.auth.o.Menu;
+import com.quincy.sdk.o.Menu;
 
 @Repository
 public interface AuthMapper {

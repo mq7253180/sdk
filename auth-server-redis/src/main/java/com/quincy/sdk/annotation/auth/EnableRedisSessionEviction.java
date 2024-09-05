@@ -1,4 +1,4 @@
-package com.quincy.auth.annotation;
+package com.quincy.sdk.annotation.auth;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -8,11 +8,14 @@ import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Import;
 
-import com.quincy.auth.interceptor.AuthorizationInterceptor;
+import com.quincy.core.SessionDestroyedRedisConfiguration;
 
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-@Import(AuthorizationInterceptor.class)
-public @interface EnableAllPathsAuth {	
+@Import(SessionDestroyedRedisConfiguration.class)
+public @interface EnableRedisSessionEviction {
+	boolean pcBrowser() default false;
+	boolean mobileBrowser() default false;
+	boolean app() default false;
 }

@@ -13,6 +13,7 @@ import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.util.Assert;
 
 import com.quincy.core.db.JdbcDaoConstants;
@@ -25,6 +26,7 @@ import com.quincy.sdk.annotation.Result;
 
 import jakarta.annotation.PostConstruct;
 
+@PropertySource("classpath:application-jdbc.properties")
 @Configuration
 public class JdbcInitializationConfiguration {
 	@Autowired

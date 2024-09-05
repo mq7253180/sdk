@@ -1,9 +1,8 @@
-package com.quincy.auth.controller;
+package com.quincy.sdk;
 
 import org.springframework.web.servlet.ModelAndView;
 
-import com.quincy.auth.o.User;
-import com.quincy.sdk.Client;
+import com.quincy.sdk.o.User;
 
 import jakarta.servlet.http.HttpServletRequest;
 

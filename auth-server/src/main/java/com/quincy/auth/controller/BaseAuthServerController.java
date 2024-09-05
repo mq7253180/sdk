@@ -10,13 +10,14 @@ import org.springframework.web.servlet.support.RequestContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quincy.auth.AuthConstants;
 import com.quincy.auth.SessionInvalidation;
-import com.quincy.auth.o.User;
-import com.quincy.auth.o.XSession;
 import com.quincy.auth.service.XSessionService;
 import com.quincy.core.VCodeConstants;
+import com.quincy.sdk.AuthActions;
 import com.quincy.sdk.Client;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.helper.CommonHelper;
+import com.quincy.sdk.o.User;
+import com.quincy.sdk.o.XSession;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.quincy.auth.AuthHelper;
-import com.quincy.auth.o.XSession;
+import com.quincy.sdk.o.XSession;
 
 import freemarker.core.Environment;
 import freemarker.template.TemplateDirectiveBody;

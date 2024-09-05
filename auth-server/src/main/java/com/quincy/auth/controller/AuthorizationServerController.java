@@ -14,6 +14,7 @@ import com.quincy.auth.TempPwdLoginEmailInfo;
 import com.quincy.core.VCodeConstants;
 import com.quincy.core.InnerConstants;
 import com.quincy.core.InnerHelper;
+import com.quincy.sdk.AuthActions;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.VCodeCharsFrom;
 import com.quincy.sdk.VCodeOpsRgistry;

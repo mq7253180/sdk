@@ -1,7 +1,7 @@
 package com.quincy.auth;
 
-import com.quincy.auth.o.XSession;
 import com.quincy.sdk.helper.CommonHelper;
+import com.quincy.sdk.o.XSession;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;

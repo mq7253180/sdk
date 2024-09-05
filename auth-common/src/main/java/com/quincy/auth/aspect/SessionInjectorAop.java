@@ -12,14 +12,14 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import com.quincy.auth.AuthHelper;
-import com.quincy.auth.o.XSession;
 import com.quincy.sdk.helper.AopHelper;
+import com.quincy.sdk.o.XSession;
 
 @Order(10)
 @Aspect
 @Component
 public class SessionInjectorAop {
-	@Pointcut("@annotation(com.quincy.auth.annotation.XSessionInject)")
+	@Pointcut("@annotation(com.quincy.sdk.annotation.auth.XSessionInject)")
 	public void xSessionInjectPointCut() {}
 
 	@Around("xSessionInjectPointCut()")
@@ -27,7 +27,7 @@ public class SessionInjectorAop {
 		return this.doAround(joinPoint);
 	}
 
-	@Pointcut("@annotation(com.quincy.auth.annotation.PermissionNeeded)")
+	@Pointcut("@annotation(com.quincy.sdk.annotation.auth.PermissionNeeded)")
     public void permissionNeededPointCut() {}
 
 	@Around("permissionNeededPointCut()")

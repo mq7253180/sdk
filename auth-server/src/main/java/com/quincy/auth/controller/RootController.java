@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.quincy.auth.AuthConstants;
-import com.quincy.auth.annotation.LoginRequired;
+import com.quincy.sdk.annotation.auth.LoginRequired;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

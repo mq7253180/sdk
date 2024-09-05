@@ -1,4 +1,4 @@
-package com.quincy.auth.o;
+package com.quincy.sdk.o;
 
 import java.io.Serializable;
 

@@ -4,8 +4,8 @@ import java.lang.reflect.Method;
 
 import org.springframework.web.method.HandlerMethod;
 
-import com.quincy.auth.annotation.LoginRequired;
-import com.quincy.auth.annotation.PermissionNeeded;
+import com.quincy.sdk.annotation.auth.LoginRequired;
+import com.quincy.sdk.annotation.auth.PermissionNeeded;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

@@ -1,4 +1,4 @@
-package com.quincy.auth.annotation;
+package com.quincy.sdk.annotation.auth;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

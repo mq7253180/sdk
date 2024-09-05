@@ -6,9 +6,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.quincy.auth.AuthHelper;
-import com.quincy.auth.annotation.LoginRequired;
-import com.quincy.auth.o.User;
-import com.quincy.auth.o.XSession;
+import com.quincy.sdk.AuthActions;
+import com.quincy.sdk.annotation.auth.LoginRequired;
+import com.quincy.sdk.o.User;
+import com.quincy.sdk.o.XSession;
 
 import jakarta.servlet.http.HttpServletRequest;
 

@@ -5,7 +5,7 @@
 		<result column="id" property="id" jdbcType="INTEGER" />
 		<result column="name" property="name" jdbcType="VARCHAR" />
 	</resultMap>
-	<resultMap id="menuResultMap" type="com.quincy.auth.o.Menu">
+	<resultMap id="menuResultMap" type="com.quincy.sdk.o.Menu">
 		<result column="id" property="id" jdbcType="INTEGER" />
 		<result column="p_id" property="pId" jdbcType="INTEGER" />
 		<result column="permission_id" property="permissionId" jdbcType="INTEGER" />

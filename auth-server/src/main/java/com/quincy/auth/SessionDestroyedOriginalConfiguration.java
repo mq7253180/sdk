@@ -5,7 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.context.annotation.Bean;
 
-import com.quincy.auth.annotation.EnableOriginalSessionEviction;
+import com.quincy.sdk.annotation.auth.EnableOriginalSessionEviction;
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpSessionEvent;

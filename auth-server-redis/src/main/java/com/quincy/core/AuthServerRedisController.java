@@ -1,4 +1,4 @@
-package com.quincy.core.redis;
+package com.quincy.core;
 
 import java.util.UUID;
 
@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContext;
 
-import com.quincy.auth.controller.AuthActions;
-import com.quincy.auth.o.User;
-import com.quincy.core.InnerHelper;
+import com.quincy.core.redis.JedisSource;
+import com.quincy.core.redis.RedisConstants;
+import com.quincy.sdk.AuthActions;
 import com.quincy.sdk.Client;
 import com.quincy.sdk.EmailService;
 import com.quincy.sdk.PwdRestEmailInfo;
@@ -22,6 +22,7 @@ import com.quincy.sdk.Result;
 import com.quincy.sdk.VCodeCharsFrom;
 import com.quincy.sdk.VCodeOpsRgistry;
 import com.quincy.sdk.helper.CommonHelper;
+import com.quincy.sdk.o.User;
 
 import jakarta.servlet.http.HttpServletRequest;
 import redis.clients.jedis.Jedis;
@@ -29,7 +30,7 @@ import redis.clients.jedis.Transaction;
 
 @Controller
 @RequestMapping("/auth")
-public class AuthServerController {
+public class AuthServerRedisController {
 	@Value("${auth.center:}")
 	private String authCenter;
 	@Value("${spring.redis.key.prefix}")
