@@ -44,11 +44,11 @@ import com.quincy.core.db.JdbcDaoConstants;
 import com.quincy.sdk.DynamicColumn;
 import com.quincy.sdk.DynamicField;
 import com.quincy.sdk.JdbcDao;
-import com.quincy.sdk.annotation.ExecuteQuery;
-import com.quincy.sdk.annotation.ExecuteQueryWIthDynamicColumns;
-import com.quincy.sdk.annotation.ExecuteUpdate;
-import com.quincy.sdk.annotation.FindDynamicFields;
-import com.quincy.sdk.annotation.JDBCDao;
+import com.quincy.sdk.annotation.jdbc.ExecuteQuery;
+import com.quincy.sdk.annotation.jdbc.ExecuteQueryWIthDynamicColumns;
+import com.quincy.sdk.annotation.jdbc.ExecuteUpdate;
+import com.quincy.sdk.annotation.jdbc.FindDynamicFields;
+import com.quincy.sdk.annotation.jdbc.JDBCDao;
 import com.quincy.sdk.helper.CommonHelper;
 
 import lombok.extern.slf4j.Slf4j;

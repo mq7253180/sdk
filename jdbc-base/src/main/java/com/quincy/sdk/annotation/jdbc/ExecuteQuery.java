@@ -1,4 +1,4 @@
-package com.quincy.sdk.annotation;
+package com.quincy.sdk.annotation.jdbc;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -9,8 +9,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface ExecuteUpdate {
+public @interface ExecuteQuery {
 	public String sql();
-	public boolean withHistory() default false;
-	public String selectionSql() default "";
+	public Class<?> returnItemType();
 }

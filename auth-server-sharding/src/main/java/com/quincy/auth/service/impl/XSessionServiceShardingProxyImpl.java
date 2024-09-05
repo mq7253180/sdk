@@ -1,7 +1,7 @@
 package com.quincy.auth.service.impl;
 
 import com.quincy.auth.service.XSessionServiceShardingProxy;
-import com.quincy.sdk.annotation.ReadOnly;
+import com.quincy.sdk.annotation.jdbc.ReadOnly;
 import com.quincy.sdk.annotation.sharding.ShardingKey;
 import com.quincy.sdk.o.User;
 import com.quincy.sdk.o.XSession;

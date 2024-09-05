@@ -17,12 +17,12 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.util.Assert;
 
 import com.quincy.core.db.JdbcDaoConstants;
-import com.quincy.sdk.annotation.Column;
-import com.quincy.sdk.annotation.DTO;
-import com.quincy.sdk.annotation.DynamicColumnQueryDTO;
-import com.quincy.sdk.annotation.DynamicColumns;
-import com.quincy.sdk.annotation.DynamicFields;
-import com.quincy.sdk.annotation.Result;
+import com.quincy.sdk.annotation.jdbc.Column;
+import com.quincy.sdk.annotation.jdbc.DTO;
+import com.quincy.sdk.annotation.jdbc.DynamicColumnQueryDTO;
+import com.quincy.sdk.annotation.jdbc.DynamicColumns;
+import com.quincy.sdk.annotation.jdbc.DynamicFields;
+import com.quincy.sdk.annotation.jdbc.Result;
 
 import jakarta.annotation.PostConstruct;
 

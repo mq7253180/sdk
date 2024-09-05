@@ -15,7 +15,7 @@ import com.quincy.sdk.helper.AopHelper;
 @Aspect
 @Component
 public class ReadOnlyAop {
-	@Pointcut("@annotation(com.quincy.sdk.annotation.ReadOnly)")
+	@Pointcut("@annotation(com.quincy.sdk.annotation.jdbc.ReadOnly)")
     public void pointCut() {}
 
 	@Around("pointCut()")

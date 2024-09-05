@@ -29,7 +29,7 @@ public class ShardingAop {
     public void shardingPointCut() {}
 	@Pointcut("@annotation(org.springframework.transaction.annotation.Transactional)")
     public void transactionalPointCut() {}
-	@Pointcut("@annotation(com.quincy.sdk.annotation.ReadOnly)")
+	@Pointcut("@annotation(com.quincy.sdk.annotation.jdbc.ReadOnly)")
     public void readOnlyPointCut() {}
 
 	private Object doAround(ProceedingJoinPoint joinPoint, String masterOrSlave) throws Throwable {

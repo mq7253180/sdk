@@ -1,4 +1,4 @@
-package com.quincy.sdk.annotation;
+package com.quincy.sdk.annotation.jdbc;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface DynamicColumnQueryDTO {
-	
+@Target(ElementType.FIELD)
+public @interface Column {
+	public String value();
 }
