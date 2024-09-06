@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,8 +33,10 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.springframework.http.MediaType;
 
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
 
 public class HttpClientHelper {
 //	private final static String ERR_MSG = "Abnormal HTTP Status Code: %s, URI: %s";
@@ -187,6 +190,40 @@ public class HttpClientHelper {
 			}
 			throw new HttpResponseException(statusCode, "\r\nRUL: "+httpUriRequest.getURI()+"\r\nMSG: "+msg);
 		}
+	}
+
+	public interface UploadHandler {
+		public void handle(String name, InputStream in) throws IOException;
+	}
+
+	public static void handleUpload(HttpServletRequest request, UploadHandler handler) throws IOException, ServletException {
+		Collection<Part> parts = request.getParts();
+		for(Part part:parts) {
+			InputStream in = null;
+			try {
+				in = part.getInputStream();
+				handler.handle(part.getSubmittedFileName(), in);
+			} finally {
+				if(in!=null)
+					in.close();
+			}
+		}
+		/*
+		DiskFileItemFactory factory = new DiskFileItemFactory.Builder().get();
+		JakartaServletFileUpload<DiskFileItem, DiskFileItemFactory> upload = new JakartaServletFileUpload<DiskFileItem, DiskFileItemFactory>(factory);
+		upload.setHeaderCharset(Charset.forName("UTF-8"));
+		List<DiskFileItem> list = upload.parseRequest(request);
+		for(DiskFileItem item:list) {
+			InputStream in = null;
+			try {
+				in = item.getInputStream();
+				handler.handle(item.getName(), in);
+			} finally {
+				if(in!=null)
+					in.close();
+			}
+		}
+		*/
 	}
 
 	public static SimplifiedHttpResponse uploadFromDownload(String downloadUrl, String uploadUrl, Header[] headers, String paramName, String filename, String sessionKey) throws IOException {
