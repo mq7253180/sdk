@@ -13,10 +13,23 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class GeneralInterceptor extends HandlerInterceptorAdapter {
+	private String accessControlAllowOrigin;
+
+	public GeneralInterceptor(String accessControlAllowOrigin) {
+		this.accessControlAllowOrigin = accessControlAllowOrigin;
+	}
+
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
 		log.warn(HttpClientHelper.getRequestURIOrURL(request, HttpClientHelper.FLAG_URL));
-//		response.setHeader("Access-Control-Allow-Origin", domain);
+		/*Enumeration<String> headerNames = request.getHeaderNames();
+		log.warn("==========================");
+		while(headerNames.hasMoreElements()) {
+			String headerName = headerNames.nextElement();
+			log.warn("{}-------{}", headerName, request.getHeader(headerName));
+		}
+		log.warn("==========================");*/
+		response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
 //		response.setHeader("Access-Control-Allow-Credentials", "true");
 //		response.setHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
 //		response.setHeader("Access-Control-Max-Age", "3600");

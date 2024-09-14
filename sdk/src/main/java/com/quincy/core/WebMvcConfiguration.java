@@ -32,6 +32,8 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
 	private ApplicationContext applicationContext;
 	@Value("${env}")
 	private String env;
+	@Value("${access-control-allow-origin}")
+	private String accessControlAllowOrigin;
 	@Autowired(required = false)
 	private QuincyAuthInterceptor quincyAuthInterceptor;
 	@Autowired(required = false)
@@ -44,7 +46,7 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
 	protected void addInterceptors(InterceptorRegistry registry) {
 		if(Constants.ENV_DEV.equals(env))
 			registry.addInterceptor(new StaticInterceptor()).addPathPatterns("/static/**");
-		registry.addInterceptor(new GeneralInterceptor()).addPathPatterns("/**");
+		registry.addInterceptor(new GeneralInterceptor(accessControlAllowOrigin)).addPathPatterns("/**");
 		if(publicKeyGetter!=null)
 			registry.addInterceptor(new SignatureInterceptor(publicKeyGetter)).addPathPatterns("/**").excludePathPatterns(EXCLUDE_PATH_PATTERNS);
 		registry.addInterceptor(vCodeInterceptor).addPathPatterns("/**").excludePathPatterns(EXCLUDE_PATH_PATTERNS);
