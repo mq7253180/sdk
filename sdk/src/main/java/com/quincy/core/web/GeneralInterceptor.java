@@ -1,5 +1,7 @@
 package com.quincy.core.web;
 
+import java.util.Enumeration;
+
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
@@ -21,7 +23,7 @@ public class GeneralInterceptor extends HandlerInterceptorAdapter {
 
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-		log.warn(HttpClientHelper.getRequestURIOrURL(request, HttpClientHelper.FLAG_URL));
+//		log.warn(HttpClientHelper.getRequestURIOrURL(request, HttpClientHelper.FLAG_URL));
 		/*Enumeration<String> headerNames = request.getHeaderNames();
 		log.warn("==========================");
 		while(headerNames.hasMoreElements()) {
@@ -30,10 +32,10 @@ public class GeneralInterceptor extends HandlerInterceptorAdapter {
 		}
 		log.warn("==========================");*/
 		response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
+		response.setHeader("Access-Control-Allow-Headers", "x-requested-with");
 //		response.setHeader("Access-Control-Allow-Credentials", "true");
 //		response.setHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
 //		response.setHeader("Access-Control-Max-Age", "3600");
-//		response.setHeader("Access-Control-Allow-Headers", "accept, Accept, Origin, x-requested-with, XRequestedWith, XMLHttpRequest, Content-Type, contentType, LastModified, "+Constants.CLIENT_TOKEN);
 //		Locale locale = CommonHelper.getLocale(request);
 		/*
 		 * 普通springmvc这样设置, spring-boot抛异常, spring-boot要通过实现LocaleResolver接口的bean实现

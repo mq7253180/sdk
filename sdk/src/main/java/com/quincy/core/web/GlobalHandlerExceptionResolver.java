@@ -28,6 +28,7 @@ public class GlobalHandlerExceptionResolver {//implements HandlerExceptionResolv
 			exception = e.toString().replaceAll("\n", "").replaceAll("\r", "").replaceAll("\\\\", "/").replaceAll("\"", "'");
 			response.setHeader("Content-Type", client.getContentType());
 		}
+//		response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		RequestContext requestContext = new RequestContext(request);
 		return new ModelAndView("/error_"+client.getSuffix())
 				.addObject("msg", requestContext.getMessage(Result.I18N_KEY_EXCEPTION))
