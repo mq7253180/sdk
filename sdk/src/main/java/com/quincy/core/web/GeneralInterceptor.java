@@ -1,19 +1,14 @@
 package com.quincy.core.web;
 
-import java.util.Enumeration;
-
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import com.quincy.sdk.Client;
 import com.quincy.sdk.helper.CommonHelper;
-import com.quincy.sdk.helper.HttpClientHelper;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class GeneralInterceptor extends HandlerInterceptorAdapter {
 	private String accessControlAllowOrigin;
 
@@ -33,7 +28,7 @@ public class GeneralInterceptor extends HandlerInterceptorAdapter {
 		log.warn("==========================");*/
 		response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
 		response.setHeader("Access-Control-Allow-Headers", "x-requested-with");
-//		response.setHeader("Access-Control-Allow-Credentials", "true");
+		response.setHeader("Access-Control-Allow-Credentials", "true");
 //		response.setHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
 //		response.setHeader("Access-Control-Max-Age", "3600");
 //		Locale locale = CommonHelper.getLocale(request);
