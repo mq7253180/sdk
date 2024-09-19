@@ -18,9 +18,9 @@ public class GeneralInterceptor extends HandlerInterceptorAdapter {
 
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-//		log.warn(HttpClientHelper.getRequestURIOrURL(request, HttpClientHelper.FLAG_URL));
 		/*Enumeration<String> headerNames = request.getHeaderNames();
 		log.warn("==========================");
+		log.warn(HttpClientHelper.getRequestURIOrURL(request, HttpClientHelper.FLAG_URL));
 		while(headerNames.hasMoreElements()) {
 			String headerName = headerNames.nextElement();
 			log.warn("{}-------{}", headerName, request.getHeader(headerName));
