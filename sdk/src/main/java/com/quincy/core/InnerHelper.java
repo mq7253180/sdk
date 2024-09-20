@@ -45,7 +45,7 @@ public class InnerHelper {
 //				if(appendBackToFlag==APPEND_BACKTO_FLAG_URL) {
 				if(clientSys) {
 					requestURL = request.getRequestURL().toString();
-					if(requestURL.startsWith("http"))
+					if(requestURL.startsWith("http:"))
 						requestURL = request.getRequestURL().insert(4, 's').toString();
 					if(requestURL.endsWith("/"))
 						requestURL = requestURL.substring(0, requestURL.length()-1);
