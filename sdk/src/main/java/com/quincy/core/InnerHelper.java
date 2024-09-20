@@ -40,19 +40,19 @@ public class InnerHelper {
 //			if(appendBackToFlag>APPEND_BACKTO_FLAG_NOT) {
 			if(appendBackTo) {
 				boolean appendRedirectTo = true;
-				String requestURX = null;
+				String requestURL = null;
 				String queryString = CommonHelper.trim(request.getQueryString());
 //				if(appendBackToFlag==APPEND_BACKTO_FLAG_URL) {
 				if(clientSys) {
-					requestURX = request.getRequestURL().toString();
-					if(requestURX.endsWith("/"))
-						requestURX = requestURX.substring(0, requestURX.length()-1);
+					requestURL = request.getRequestURL().toString();
+					if(requestURL.endsWith("/"))
+						requestURL = requestURL.substring(0, requestURL.length()-1);
 //				} else if(appendBackToFlag==APPEND_BACKTO_FLAG_URI) {
 				} else {
-					requestURX = request.getRequestURI();
-					if(queryString!=null||requestURX.length()>1) {
-						if(requestURX.endsWith("/")&&requestURX.length()>1)
-							requestURX = requestURX.substring(0, requestURX.length()-1);
+					requestURL = request.getRequestURI();
+					if(queryString!=null||requestURL.length()>1) {
+						if(requestURL.endsWith("/")&&requestURL.length()>1)
+							requestURL = requestURL.substring(0, requestURL.length()-1);
 					} else
 						appendRedirectTo = false;
 				}
@@ -60,7 +60,7 @@ public class InnerHelper {
 					location.append(getSeparater(location.toString()))
 					.append(InnerConstants.PARAM_REDIRECT_TO)
 					.append("=")
-					.append(URLEncoder.encode(requestURX+(queryString==null?"":("?"+queryString)), "UTF-8"));
+					.append(URLEncoder.encode(requestURL+(queryString==null?"":("?"+queryString)), "UTF-8"));
 			}
 			if(clientSys) {
 				String locale = CommonHelper.trim(request.getParameter(InnerConstants.KEY_LOCALE));
