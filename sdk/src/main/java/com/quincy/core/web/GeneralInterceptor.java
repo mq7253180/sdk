@@ -27,7 +27,7 @@ public class GeneralInterceptor extends HandlerInterceptorAdapter {
 		}
 		log.warn("==========================");*/
 		response.setHeader("Access-Control-Allow-Origin", accessControlAllowOrigin);
-		response.setHeader("Access-Control-Allow-Headers", "x-requested-with, content-type");
+		response.setHeader("Access-Control-Allow-Headers", "x-requested-with, content-type, x-token");
 		response.setHeader("Access-Control-Allow-Credentials", "true");
 //		response.setHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE");
 //		response.setHeader("Access-Control-Max-Age", "3600");
