@@ -509,7 +509,6 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			returnDto = resultType.getName().equals(returnItemTypeName);
 			returnWrapper = true;
 		}
-		List<String> dynamicFields = new ArrayList<String>();
 		List<DynamicColumn> dynamicColumnsModel = new ArrayList<DynamicColumn>();
 		List<Object> list = new ArrayList<>();
 		String sql = sqlFrontHalf+" s LEFT OUTER JOIN s_dynamic_field_val v ON s.id=v.business_id_str OR s.id=v.business_id_int LEFT OUTER JOIN s_dynamic_field f ON v.field_id=f.id AND f.table_name=?;";
@@ -549,8 +548,8 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			dynamicFieldsRs = dynamicFieldsStatement.executeQuery();
 			while(dynamicFieldsRs.next()) {
 				String name = dynamicFieldsRs.getString("name");
-				dynamicFields.add(name);
-				dynamicColumnsModel.add(new DynamicColumn(dynamicFieldsRs.getInt("id"), name, dynamicFieldsRs.getInt("sort")));
+				String align = dynamicFieldsRs.getString("align");
+				dynamicColumnsModel.add(new DynamicColumn(dynamicFieldsRs.getInt("id"), name, align, dynamicFieldsRs.getInt("sort")));
 			}
 			statement.close();
 			statement = conn.prepareStatement(sql);
@@ -616,7 +615,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					this.sortDynamicColumns((List)getterMethod.invoke(item));
 				itemOrList = list;
 			}
-			return returnWrapper?this.wrap(returnType, dynamicFields, itemOrList):itemOrList;
+			return returnWrapper?this.wrap(returnType, dynamicColumnsModel, itemOrList):itemOrList;
 		} finally {
 			if(dynamicFieldsRs!=null)
 				dynamicFieldsRs.close();
@@ -640,7 +639,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		});
 	}
 
-	private Object wrap(Class<?> returnType, List<String> dynamicFields, Object itemOrList) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+	private Object wrap(Class<?> returnType, List<? extends DynamicField> dynamicFields, Object itemOrList) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		Map<String, Method> wrapperDtoMethods = classMethodMap.get(returnType);
 		Method fieldsSetterMethod = wrapperDtoMethods.get(JdbcDaoConstants.DYNAMIC_COLUMN_WRAPPER_FIELDS_SETTER_METHOD_KEY);
 		Method resultSetterMethod = wrapperDtoMethods.get(JdbcDaoConstants.DYNAMIC_COLUMN_WRAPPER_RESULT_SETTER_METHOD_KEY);
@@ -666,8 +665,9 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			while(rs.next()) {
 				Integer id = rs.getInt("id");
 				String name = rs.getString("name");
+				String align = rs.getString("align");
 				int sort = rs.getInt("sort");
-				list.add(new DynamicField(id, name, sort));
+				list.add(new DynamicField(id, name, align, sort));
 			}
 			return list;
 		} finally {
