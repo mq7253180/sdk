@@ -548,8 +548,8 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			dynamicFieldsRs = dynamicFieldsStatement.executeQuery();
 			while(dynamicFieldsRs.next()) {
 				String name = dynamicFieldsRs.getString("name");
-				String align = dynamicFieldsRs.getString("align");
-				dynamicColumnsModel.add(new DynamicColumn(dynamicFieldsRs.getInt("id"), name, align, dynamicFieldsRs.getInt("sort")));
+				String clazz = dynamicFieldsRs.getString("class");
+				dynamicColumnsModel.add(new DynamicColumn(dynamicFieldsRs.getInt("id"), name, clazz, dynamicFieldsRs.getInt("sort")));
 			}
 			statement.close();
 			statement = conn.prepareStatement(sql);

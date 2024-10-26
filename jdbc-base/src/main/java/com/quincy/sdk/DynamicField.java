@@ -6,17 +6,17 @@ public class DynamicField implements Serializable {
 	private static final long serialVersionUID = -4784892811403682316L;
 	private Integer id;
 	private String name;
-	private String align = "left";
+	private String clazz = "left";
 	private int sort;
 
 	public DynamicField() {
 		
 	}
-	public DynamicField(Integer id, String name, String align, int sort) {
+	public DynamicField(Integer id, String name, String clazz, int sort) {
 		this.id = id;
 		this.name = name;
-		if(align!=null)
-			this.align = align;
+		if(clazz!=null)
+			this.clazz = clazz;
 		this.sort = sort;
 	}
 	public Integer getId() {
@@ -25,8 +25,8 @@ public class DynamicField implements Serializable {
 	public String getName() {
 		return name;
 	}
-	public String getAlign() {
-		return align;
+	public String getClazz() {
+		return clazz;
 	}
 	public int getSort() {
 		return sort;

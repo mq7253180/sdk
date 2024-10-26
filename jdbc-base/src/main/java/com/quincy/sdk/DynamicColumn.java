@@ -9,8 +9,8 @@ public class DynamicColumn extends DynamicField implements Cloneable, Serializab
 	public DynamicColumn() {
 		super();
 	}
-	public DynamicColumn(Integer id, String name, String align, int sort) {
-		super(id, name, align, sort);
+	public DynamicColumn(Integer id, String name, String clazz, int sort) {
+		super(id, name, clazz, sort);
 	}
 	public Object getValue() {
 		return value;
