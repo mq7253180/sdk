@@ -665,9 +665,9 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 			while(rs.next()) {
 				Integer id = rs.getInt("id");
 				String name = rs.getString("name");
-				String align = rs.getString("align");
+				String clazz = rs.getString("class");
 				int sort = rs.getInt("sort");
-				list.add(new DynamicField(id, name, align, sort));
+				list.add(new DynamicField(id, name, clazz, sort));
 			}
 			return list;
 		} finally {
