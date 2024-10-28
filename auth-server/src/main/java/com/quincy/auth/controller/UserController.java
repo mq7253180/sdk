@@ -5,7 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.quincy.sdk.AuthActions;
+import com.quincy.auth.service.UserService;
 import com.quincy.sdk.AuthHelper;
 import com.quincy.sdk.annotation.auth.LoginRequired;
 import com.quincy.sdk.o.User;
@@ -17,7 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 @RequestMapping("/user")
 public class UserController {
 	@Autowired
-	private AuthActions authActions;
+	private UserService userService;
 
 	@LoginRequired
 	@RequestMapping("/pwdset")
@@ -29,7 +29,7 @@ public class UserController {
 	@RequestMapping("/pwdset/update")
 	public void pwdUpdate(HttpServletRequest request, @RequestParam(required = true, name = "password")String password) {
 		XSession xsession = AuthHelper.getSession(request);
-		User userPo = xsession.getUser();
-		authActions.updatePassword(userPo.getId(), password);
+		User user = xsession.getUser();
+		userService.updatePassword(user.getId(), password);
 	}
 }

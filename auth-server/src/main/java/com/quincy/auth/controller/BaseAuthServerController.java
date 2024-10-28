@@ -10,6 +10,8 @@ import org.springframework.web.servlet.support.RequestContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quincy.auth.AuthConstants;
 import com.quincy.auth.SessionInvalidation;
+import com.quincy.auth.entity.UserEntity;
+import com.quincy.auth.service.UserService;
 import com.quincy.auth.service.XSessionService;
 import com.quincy.core.VCodeConstants;
 import com.quincy.sdk.AuthActions;
@@ -23,6 +25,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 public class BaseAuthServerController {
+	@Autowired(required = false)
+	private UserService userService;
 	@Autowired(required = false)
 	private XSessionService xSessionService;
 	@Autowired(required = false)
@@ -51,7 +55,7 @@ public class BaseAuthServerController {
 			return result;
 		}
 		Client client = Client.get(request);
-		User user = authActions.findUser(username, client);
+		User user = userService.find(username, client);
 		if(user==null) {
 			result.setStatus(-2);
 			result.setMsg(requestContext.getMessage("auth.account.no"));
@@ -87,10 +91,22 @@ public class BaseAuthServerController {
 					sessionInvalidation.invalidate(originalJsessionid);
 			}
 		}
-		authActions.updateLastLogin(user.getId(), session.getId(), client);//互踢还需要应用层配合更新数据库里的jsessionid
+		this.updateLastLogin(user.getId(), session.getId(), client);//互踢还需要应用层配合更新数据库里的jsessionid
 		result.setStatus(1);
 		result.setMsg(requestContext.getMessage("auth.success"));
 		result.setData(client.isJson()?new ObjectMapper().writeValueAsString(xsession):xsession);
 		return result;
+	}
+
+	private void updateLastLogin(Long userId, String jessionid, Client client) {
+		UserEntity vo = new UserEntity();
+		vo.setId(userId);
+		if(client.isPc())
+			vo.setJsessionidPcBrowser(jessionid);
+		if(client.isMobile())
+			vo.setJsessionidMobileBrowser(jessionid);
+		if(client.isApp())
+			vo.setJsessionidApp(jessionid);
+		userService.update(vo);
 	}
 }

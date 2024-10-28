@@ -41,9 +41,7 @@ public class AuthorizationServerController extends BaseAuthServerController {
 	@RequestMapping("/signin")
 	public ModelAndView toLogin(HttpServletRequest request, @RequestParam(required = false, value = InnerConstants.PARAM_REDIRECT_TO)String _redirectTo) {
 		Assert.notNull(authActions, AUTH_ACTIONS_NULL_MSG);
-		ModelAndView mv = authActions.signinView(request);
-		if(mv==null)
-			mv = new ModelAndView("/login");
+		ModelAndView mv = new ModelAndView("/login");
 		String redirectTo = CommonHelper.trim(_redirectTo);
 		if(redirectTo!=null)
 			mv.addObject(InnerConstants.PARAM_REDIRECT_TO, redirectTo);

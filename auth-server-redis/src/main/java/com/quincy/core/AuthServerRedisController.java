@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContext;
 
+import com.quincy.auth.service.UserService;
 import com.quincy.core.redis.JedisSource;
 import com.quincy.core.redis.RedisConstants;
-import com.quincy.sdk.AuthActions;
 import com.quincy.sdk.Client;
 import com.quincy.sdk.EmailService;
 import com.quincy.sdk.PwdRestEmailInfo;
@@ -49,7 +49,7 @@ public class AuthServerRedisController {
 	@Autowired(required = false)
 	private PwdRestEmailInfo pwdRestEmailInfo;
 	@Autowired
-	private AuthActions authActions;
+	private UserService userService;
 	private final static String URI_VCODE_PWDSET_SIGNIN = "/pwdset";
 
 	@RequestMapping("/pwdset/vcode")
@@ -113,11 +113,11 @@ public class AuthServerRedisController {
 	public ModelAndView update(HttpServletRequest request, @RequestParam(required = true, name = "token")String token, @RequestParam(required = true, name = "vcode")String vcode, @RequestParam(required = true, name = "password")String password) {
 		Result result = this.validate(null, password, password);
 		if(result.getStatus()==1) {
-			User userPo = authActions.findUser(result.getData().toString(), Client.get(request));
-			if(userPo==null) {
+			User user = userService.find(result.getData().toString(), Client.get(request));
+			if(user==null) {
 				result = new Result(-11, "auth.pwdreset.link.nouser");
 			} else {
-				authActions.updatePassword(userPo.getId(), password);
+				userService.updatePassword(user.getId(), password);
 				result = Result.newSuccess();
 			}
 			result.setMsg(new RequestContext(request).getMessage(result.getMsg()));
