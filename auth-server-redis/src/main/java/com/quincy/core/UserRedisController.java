@@ -29,8 +29,8 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Transaction;
 
 @Controller
-@RequestMapping("/auth")
-public class AuthServerRedisController {
+@RequestMapping("/user")
+public class UserRedisController {
 	@Value("${auth.center:}")
 	private String authCenter;
 	@Value("${spring.redis.key.prefix}")
@@ -50,7 +50,7 @@ public class AuthServerRedisController {
 	private PwdRestEmailInfo pwdRestEmailInfo;
 	@Autowired
 	private UserService userService;
-	private final static String URI_VCODE_PWDSET_SIGNIN = "/pwdset";
+//	private final static String URI_VCODE_PWDSET_SIGNIN = "/pwdset";
 
 	@RequestMapping("/pwdset/vcode")
 	public ModelAndView vcode(HttpServletRequest request, @RequestParam(required = true, name = "email")String _email) throws Exception {
@@ -72,9 +72,7 @@ public class AuthServerRedisController {
 				String vcode = new String(vCodeOpsRgistry.generate(VCodeCharsFrom.MIXED, tmppwdLength));
 				String uri = new StringBuilder(200)
 						.append(authCenter)
-						.append("/auth")
-						.append(URI_VCODE_PWDSET_SIGNIN)
-						.append("?token=")
+						.append("/auth/pwdset?token=")
 						.append(token)
 						.append("&vcode=")
 						.append(vcode)
@@ -104,12 +102,12 @@ public class AuthServerRedisController {
 		return InnerHelper.modelAndViewI18N(request, status, msgI18N);
 	}
 
-	@RequestMapping(URI_VCODE_PWDSET_SIGNIN)
+	@RequestMapping("/pwdset/signin")
 	public ModelAndView signin(HttpServletRequest request, @RequestParam(required = true, name = "token")String token, @RequestParam(required = true, name = "vcode")String vcode) {
     	return InnerHelper.modelAndViewResult(request, this.validate(request, token, vcode), "/password");
 	}
 
-	@RequestMapping(URI_VCODE_PWDSET_SIGNIN+"/update")
+	@RequestMapping("/pwdset/vcode/update")
 	public ModelAndView update(HttpServletRequest request, @RequestParam(required = true, name = "token")String token, @RequestParam(required = true, name = "vcode")String vcode, @RequestParam(required = true, name = "password")String password) {
 		Result result = this.validate(null, password, password);
 		if(result.getStatus()==1) {
