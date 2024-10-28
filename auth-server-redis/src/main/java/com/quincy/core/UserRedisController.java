@@ -102,11 +102,6 @@ public class UserRedisController {
 		return InnerHelper.modelAndViewI18N(request, status, msgI18N);
 	}
 
-	@RequestMapping("/pwdset/signin")
-	public ModelAndView signin(HttpServletRequest request, @RequestParam(required = true, name = "token")String token, @RequestParam(required = true, name = "vcode")String vcode) {
-    	return InnerHelper.modelAndViewResult(request, this.validate(request, token, vcode), "/password");
-	}
-
 	@RequestMapping("/pwdset/vcode/update")
 	public ModelAndView update(HttpServletRequest request, @RequestParam(required = true, name = "token")String token, @RequestParam(required = true, name = "vcode")String vcode, @RequestParam(required = true, name = "password")String password) {
 		Result result = this.validate(null, password, password);
