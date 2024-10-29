@@ -6,6 +6,7 @@ import com.quincy.auth.dao.LoginUserMappingRepository;
 import com.quincy.auth.dao.UserDaoProxy;
 import com.quincy.auth.entity.LoginUserMappingEntity;
 import com.quincy.auth.entity.UserEntity;
+import com.quincy.auth.o.UserDto;
 import com.quincy.auth.service.UserServiceShardingProxy;
 import com.quincy.sdk.Client;
 import com.quincy.sdk.SnowFlake;
@@ -29,8 +30,8 @@ public class UserServiceShardingProxyImpl extends UserServiceImpl implements Use
 			return null;
 		} else {
 			Long userId = loginUserMappingEntity.getUserId();
-			UserEntity userEntity = userDaoProxy.find(SnowFlake.extractShardingKey(userId), userId);
-			return this.toUser(userEntity, client);
+			UserDto userDto = userDaoProxy.find(SnowFlake.extractShardingKey(userId), userId);
+			return this.toUser(userDto, client);
 		}
 	}
 

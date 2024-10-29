@@ -78,7 +78,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 					if(queryAnnotation!=null) {
 						Class<?> returnItemType = queryAnnotation.returnItemType();
 						Assert.isTrue(returnType.getName().equals(List.class.getName())||returnType.getName().equals(ArrayList.class.getName())||returnType.getName().equals(returnItemType.getName()), "Return type must be List or ArrayList or given returnItemType.");
-						Object result = executeQuery(queryAnnotation.sql(), queryAnnotation.returnItemType(), returnType, args);
+						Object result = executeQuery(queryAnnotation.sql(), queryAnnotation.returnItemType(), returnType, queryAnnotation.newConn(), args);
 						log.warn("Duration======{}======{}", queryAnnotation.sql(), (System.currentTimeMillis()-start));
 						return result;
 					}
@@ -129,7 +129,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 	}
 
 	@Override
-	public Object executeQuery(String sql, Class<?> returnItemType, Class<?> returnType, Object... args)
+	public Object executeQuery(String sql, Class<?> returnItemType, Class<?> returnType, boolean _newConn, Object... args)
 			throws SQLException, IOException, InstantiationException, IllegalAccessException, IllegalArgumentException,
 			InvocationTargetException, NoSuchMethodException, SecurityException {
 		boolean returnDto = returnType.getName().equals(returnItemType.getName());
@@ -142,8 +142,9 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 		PreparedStatement statement = null;
 		ResultSet rs = null;
 		Object connectionHolder = TransactionSynchronizationManager.getResource(dataSource);
+		boolean newConn = _newConn||connectionHolder==null;
 		try {
-			conn = connectionHolder==null?dataSource.getConnection():((ConnectionHolder)connectionHolder).getConnection();
+			conn = newConn?dataSource.getConnection():((ConnectionHolder)connectionHolder).getConnection();
 			statement = conn.prepareStatement(sql);
 			ResultSetMetaData rsmd = statement.getMetaData();
 			int columnCount = rsmd.getColumnCount();
@@ -167,7 +168,7 @@ public class JdbcDaoConfiguration implements BeanDefinitionRegistryPostProcessor
 				rs.close();
 			if(statement!=null)
 				statement.close();
-			if(connectionHolder==null&&conn!=null)
+			if(newConn&&conn!=null)
 				conn.close();
 		}
 	}

@@ -7,6 +7,7 @@ import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.quincy.auth.UserBase;
 import com.quincy.auth.dao.UserRepository;
 import com.quincy.auth.entity.UserEntity;
 import com.quincy.auth.service.UserService;
@@ -84,7 +85,7 @@ public class UserServiceImpl implements UserService {
 		this.update(vo);
 	}
 
-	protected User toUser(UserEntity entity, Client client) {
+	protected User toUser(UserBase entity, Client client) {
 		User user = new User();
 		user.setId(entity.getId());
 		user.setCreationTime(entity.getCreationTime());

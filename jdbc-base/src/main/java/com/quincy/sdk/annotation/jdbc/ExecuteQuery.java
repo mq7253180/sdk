@@ -12,4 +12,5 @@ import java.lang.annotation.Target;
 public @interface ExecuteQuery {
 	public String sql();
 	public Class<?> returnItemType();
+	public boolean newConn() default false;
 }

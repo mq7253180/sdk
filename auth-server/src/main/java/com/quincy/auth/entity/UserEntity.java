@@ -8,6 +8,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.quincy.auth.UserBase;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -20,7 +21,7 @@ import lombok.Data;
 @DynamicUpdate
 @EntityListeners({AuditingEntityListener.class})
 @Entity(name = "b_user")
-public class UserEntity {
+public class UserEntity implements UserBase {
 	@Id
 	@Column(name="id")
 	private Long id;
