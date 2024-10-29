@@ -84,7 +84,7 @@ public class UserServiceImpl implements UserService {
 		this.update(vo);
 	}
 
-	private User toUser(UserEntity entity, Client client) {
+	protected User toUser(UserEntity entity, Client client) {
 		User user = new User();
 		user.setId(entity.getId());
 		user.setCreationTime(entity.getCreationTime());
