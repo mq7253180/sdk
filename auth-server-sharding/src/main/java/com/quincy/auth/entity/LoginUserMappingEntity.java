@@ -21,7 +21,6 @@ public class LoginUserMappingEntity {
 	private Long id;
 	@Column(name="login_name")
 	private String loginName;
-	@Id
 	@Column(name="user_id")
 	private Long userId;
 }

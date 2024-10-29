@@ -1,6 +1,7 @@
 package com.quincy.auth.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.quincy.auth.dao.LoginUserMappingRepository;
 import com.quincy.auth.dao.UserDaoProxy;
@@ -10,8 +11,11 @@ import com.quincy.auth.o.UserDto;
 import com.quincy.auth.service.UserServiceShardingProxy;
 import com.quincy.sdk.Client;
 import com.quincy.sdk.SnowFlake;
+import com.quincy.sdk.annotation.jdbc.ReadOnly;
+import com.quincy.sdk.annotation.sharding.ShardingKey;
 import com.quincy.sdk.o.User;
 
+@Service
 public class UserServiceShardingProxyImpl extends UserServiceImpl implements UserServiceShardingProxy {
 	@Autowired
 	private LoginUserMappingRepository loginUserMappingRepository;
@@ -19,29 +23,33 @@ public class UserServiceShardingProxyImpl extends UserServiceImpl implements Use
 	private UserDaoProxy userDaoProxy;
 
 	@Override
-	public UserEntity update(long shardingKey, UserEntity vo) {
+	public UserEntity update(@ShardingKey long shardingKey, UserEntity vo) {
 		return this.update(vo);
 	}
 
+	@ReadOnly
 	@Override
-	public User find(long shardingKey, String loginName, Client client) {
+	public User find(@ShardingKey long shardingKey, String loginName, Client client) {
 		LoginUserMappingEntity loginUserMappingEntity = loginUserMappingRepository.findByLoginName(loginName);
 		if(loginUserMappingEntity==null) {
 			return null;
 		} else {
 			Long userId = loginUserMappingEntity.getUserId();
-			UserDto userDto = userDaoProxy.find(SnowFlake.extractShardingKey(userId), userId);
-			return this.toUser(userDto, client);
+			long realShardingKey = SnowFlake.extractShardingKey(userId);
+			UserDto userDto = userDaoProxy.find(realShardingKey, userId);
+			User user = this.toUser(userDto, client);
+			user.setShardingKey(realShardingKey);
+			return user;
 		}
 	}
 
 	@Override
-	public User find(long shardingKey, Long id, Client client) {
+	public User find(@ShardingKey long shardingKey, Long id, Client client) {
 		return this.find(id, client);
 	}
 
 	@Override
-	public void updatePassword(long shardingKey, Long userId, String password) {
+	public void updatePassword(@ShardingKey long shardingKey, Long userId, String password) {
 		this.updatePassword(userId, password);
 	}
 }

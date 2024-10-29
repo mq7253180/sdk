@@ -12,7 +12,7 @@ public class UserDaoProxy {
 	@Autowired
 	private UserDao userDao;
 
-	@ReadOnly
+	@ReadOnly(reRoute = true)
 	public UserDto find(@ShardingKey long shardingKey, Long id) {
 		return userDao.find(id);
 	}

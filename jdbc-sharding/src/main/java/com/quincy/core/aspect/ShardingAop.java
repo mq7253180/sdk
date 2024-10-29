@@ -16,6 +16,8 @@ import org.springframework.util.Assert;
 import com.quincy.core.db.DataSourceHolder;
 import com.quincy.sdk.MasterOrSlave;
 import com.quincy.sdk.SnowFlake;
+import com.quincy.sdk.annotation.jdbc.ReadOnly;
+import com.quincy.sdk.annotation.sharding.Sharding;
 import com.quincy.sdk.annotation.sharding.ShardingKey;
 
 @Order(6)
@@ -35,11 +37,14 @@ public class ShardingAop {
 	private Object doAround(ProceedingJoinPoint joinPoint, String masterOrSlave) throws Throwable {
 		boolean stackRoot = false;
 		try {
-			if(DataSourceHolder.getDetermineCurrentLookupKey()==null) {
+			Class<?> clazz = joinPoint.getTarget().getClass();
+			MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
+    		Method method = clazz.getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
+    		ReadOnly readOnly = method.getDeclaredAnnotation(ReadOnly.class);
+    		Sharding sharding = method.getAnnotation(Sharding.class);
+    		boolean reRoute = (readOnly!=null&&readOnly.reRoute())||(sharding!=null&&sharding.reRoute());
+			if(reRoute||DataSourceHolder.getDetermineCurrentLookupKey()==null) {
 				stackRoot = true;
-				Class<?> clazz = joinPoint.getTarget().getClass();
-				MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
-	    		Method method = clazz.getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
 	    		Annotation[][] annotationss = method.getParameterAnnotations();
 	    		int index = -1;
 	    		boolean snowFlake = false;
@@ -64,6 +69,8 @@ public class ShardingAop {
 		    	Assert.isTrue(shardingArgObj instanceof Integer||shardingArgObj instanceof Long, "Only Long or Integer are acceptable as parameter of sharding key!!!");
 		    	Long shardingArg = Long.valueOf(shardingArgObj.toString());
 		    	Long shardingKey = snowFlake?SnowFlake.extractShardingKey(shardingArg):shardingArg;
+		    	if(shardingKey<0)
+		    		shardingKey = shardingKey*-1;
 		    	Long ramainder = shardingKey&(shardingCount-1);
 		    	DataSourceHolder.set(masterOrSlave+ramainder);
 			}
