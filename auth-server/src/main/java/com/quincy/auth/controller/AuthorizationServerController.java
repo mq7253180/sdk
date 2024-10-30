@@ -35,6 +35,7 @@ public class AuthorizationServerController extends BaseAuthServerController {
 	@Value("${auth.tmppwd.length:32}")
 	private int tmppwdLength;
 	private final static String PARA_NAME_USERNAME = "username";
+	private final static String SESSION_ATTR_NAME_USERID = "userid";
 	/**
 	 * 进登录页
 	 */
@@ -99,8 +100,14 @@ public class AuthorizationServerController extends BaseAuthServerController {
 	}
 
 	private Result pwdLogin(HttpServletRequest request, String username, String _password) throws Exception {
+		RequestContext requestContext = new RequestContext(request);
+		Result result = this.validate(request, username);
+		if(result.getStatus()<1) {
+			result.setMsg(requestContext.getMessage(result.getMsg()));
+			return result;
+		}
 		String password = CommonHelper.trim(_password);
-		Result result = password!=null?login(request, username, password):new Result(0, new RequestContext(request).getMessage("auth.null.password"));
+		result = password!=null?login(request, Long.valueOf(result.getData().toString()), password):new Result(0, requestContext.getMessage("auth.null.password"));
 		HttpSession session = request.getSession();//如果doPwdLogin没登录成功，session是空的，需要创建session用来保存失败次数，但是session失效后失败次数也随之消失，还是可以继续重试
 		if(result.getStatus()==LOGIN_STATUS_PWD_INCORRECT) {
 			int failuresPp = this.getFailures(request)+1;
@@ -119,7 +126,7 @@ public class AuthorizationServerController extends BaseAuthServerController {
 		Result result = vCodeOpsRgistry.validate(request, true, VCodeConstants.ATTR_KEY_VCODE_LOGIN);
 		if(result.getStatus()==1) {
 			HttpSession session = request.getSession(false);
-			result = login(request, session.getAttribute(PARA_NAME_USERNAME).toString());
+			result = login(request, Long.valueOf(session.getAttribute(SESSION_ATTR_NAME_USERID).toString()));
 		}
 		return InnerHelper.modelAndViewResult(request, result, redirectTo!=null?"redirect:"+redirectTo:null);
 	}
@@ -137,12 +144,19 @@ public class AuthorizationServerController extends BaseAuthServerController {
 			msgI18N = "email.null";
 		} else {
 			if(!CommonHelper.isEmail(email)) {
-				status = -1;
+				status = -3;
 				msgI18N = "email.illegal";
 			} else {
-				status = 1;
-				msgI18N = Result.I18N_KEY_SUCCESS;
-				vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.MIXED, tmppwdLength, email, tempPwdLoginEmailInfo.getSubject(), tempPwdLoginEmailInfo.getContent());
+				Result result = this.validate(request, email);
+				if(result.getStatus()<1) {
+					status = result.getStatus();
+					msgI18N = result.getMsg();
+				} else {
+					status = 1;
+					msgI18N = Result.I18N_KEY_SUCCESS;
+					request.getSession().setAttribute(SESSION_ATTR_NAME_USERID, result.getData());
+					vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.MIXED, tmppwdLength, email, tempPwdLoginEmailInfo.getSubject(), tempPwdLoginEmailInfo.getContent());
+				}
 			}
 		}
 		return InnerHelper.modelAndViewI18N(request, status, msgI18N);

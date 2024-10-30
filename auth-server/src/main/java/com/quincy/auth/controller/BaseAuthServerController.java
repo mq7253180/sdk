@@ -40,27 +40,34 @@ public class BaseAuthServerController {
 	protected final static int LOGIN_STATUS_PWD_INCORRECT = -3;
 	protected final static String AUTH_ACTIONS_NULL_MSG = "没有设置回调动作";
 
-	protected Result login(HttpServletRequest request, String _username) throws Exception {
-		return this.login(request, _username, null);
-	}
-
-	protected Result login(HttpServletRequest request, String _username, String password) throws Exception {
-		Assert.notNull(authActions, AUTH_ACTIONS_NULL_MSG);
-		RequestContext requestContext = new RequestContext(request);
+	protected Result validate(HttpServletRequest request, String _username) {
 		Result result = new Result();
 		String username = CommonHelper.trim(_username);
 		if(username==null) {
 			result.setStatus(-1);
-			result.setMsg(requestContext.getMessage("auth.null.username"));
+			result.setMsg("auth.null.username");
 			return result;
 		}
 		Long userId = userService.findUserId(username);
 		if(userId==null) {
 			result.setStatus(-2);
-			result.setMsg(requestContext.getMessage("auth.account.no"));
+			result.setMsg("auth.account.no");
 			return result;
 		}
+		result.setStatus(1);
+		result.setData(userId);
+		return result;
+	}
+
+	protected Result login(HttpServletRequest request, Long userId) throws Exception {
+		return this.login(request, userId, null);
+	}
+
+	protected Result login(HttpServletRequest request, Long userId, String password) throws Exception {
+		Assert.notNull(authActions, AUTH_ACTIONS_NULL_MSG);
+		RequestContext requestContext = new RequestContext(request);
 		Client client = Client.get(request);
+		Result result = new Result();
 		User user = userService.find(userId, client);
 		if(password!=null&&!password.equalsIgnoreCase(user.getPassword())) {
 			result.setStatus(LOGIN_STATUS_PWD_INCORRECT);
