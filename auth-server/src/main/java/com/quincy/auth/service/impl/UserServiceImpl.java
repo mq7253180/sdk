@@ -2,10 +2,11 @@ package com.quincy.auth.service.impl;
 
 import java.util.Optional;
 
-import javax.transaction.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.quincy.auth.UserBase;
 import com.quincy.auth.dao.UserRepository;
@@ -21,8 +22,8 @@ public class UserServiceImpl implements UserService {
 	@Autowired
 	private UserRepository userRepository;
 
-	@Transactional
 	@Override
+	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
 	public UserEntity update(UserEntity vo) {
 		UserEntity po = userRepository.findById(vo.getId()).get();
 		String username = CommonHelper.trim(vo.getUsername());
@@ -78,6 +79,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
 	public void updatePassword(Long userId, String password) {
 		UserEntity vo = new UserEntity();
 		vo.setId(userId);

@@ -2,6 +2,9 @@ package com.quincy.auth.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.quincy.auth.dao.LoginUserMappingRepository;
 import com.quincy.auth.dao.UserDaoProxy;
@@ -23,12 +26,13 @@ public class UserServiceShardingProxyImpl extends UserServiceImpl implements Use
 	private UserDaoProxy userDaoProxy;
 
 	@Override
+	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
 	public UserEntity update(@ShardingKey long shardingKey, UserEntity vo) {
 		return this.update(vo);
 	}
-
-	@ReadOnly
+	
 	@Override
+	@ReadOnly
 	public User find(@ShardingKey long shardingKey, String loginName, Client client) {
 		LoginUserMappingEntity loginUserMappingEntity = loginUserMappingRepository.findByLoginName(loginName);
 		if(loginUserMappingEntity==null) {
@@ -44,11 +48,13 @@ public class UserServiceShardingProxyImpl extends UserServiceImpl implements Use
 	}
 
 	@Override
+	@ReadOnly
 	public User find(@ShardingKey long shardingKey, Long id, Client client) {
 		return this.find(id, client);
 	}
 
 	@Override
+	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
 	public void updatePassword(@ShardingKey long shardingKey, Long userId, String password) {
 		this.updatePassword(userId, password);
 	}

@@ -7,8 +7,8 @@ import com.quincy.sdk.o.User;
 import com.quincy.sdk.o.XSession;
 
 public class XSessionServiceShardingProxyImpl extends XSessionServiceImpl implements XSessionServiceShardingProxy {
-	@ReadOnly
 	@Override
+	@ReadOnly
 	public XSession create(@ShardingKey long shardingKey, User user) {
 		return this.create(user);
 	}
