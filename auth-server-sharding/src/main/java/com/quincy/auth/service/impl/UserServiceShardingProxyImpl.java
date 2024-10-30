@@ -14,11 +14,6 @@ import com.quincy.sdk.o.User;
 
 @Service
 public class UserServiceShardingProxyImpl extends UserServiceImpl implements UserServiceShardingProxy {
-	/*@Autowired
-	private LoginUserMappingRepository loginUserMappingRepository;
-	@Autowired
-	private UserDaoProxy userDaoProxy;*/
-
 	@Override
 	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
 	public UserEntity update(@ShardingKey long shardingKey, UserEntity vo) {
@@ -30,23 +25,7 @@ public class UserServiceShardingProxyImpl extends UserServiceImpl implements Use
 	public Long findUserId(@ShardingKey long shardingKey, String loginName) {
 		return this.findUserId(loginName);
 	}
-/*
-	@Override
-	@ReadOnly
-	public User find(@ShardingKey long shardingKey, String loginName, Client client) {
-		LoginUserMappingEntity loginUserMappingEntity = loginUserMappingRepository.findByLoginName(loginName);
-		if(loginUserMappingEntity==null) {
-			return null;
-		} else {
-			Long userId = loginUserMappingEntity.getUserId();
-			long realShardingKey = SnowFlake.extractShardingKey(userId);
-			UserDto userDto = userDaoProxy.find(realShardingKey, userId);
-			User user = this.toUser(userDto, client);
-			user.setShardingKey(realShardingKey);
-			return user;
-		}
-	}
-*/
+
 	@Override
 	@ReadOnly
 	public User find(@ShardingKey long shardingKey, Long id, Client client) {

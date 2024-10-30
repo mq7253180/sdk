@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.quincy.auth.UserBase;
 import com.quincy.auth.dao.LoginUserMappingRepository;
 import com.quincy.auth.dao.UserRepository;
 import com.quincy.auth.entity.LoginUserMappingEntity;
@@ -90,7 +89,7 @@ public class UserServiceImpl implements UserService {
 		this.update(vo);
 	}
 
-	protected User toUser(UserBase entity, Client client) {
+	protected User toUser(UserEntity entity, Client client) {
 		User user = new User();
 		user.setId(entity.getId());
 		user.setCreationTime(entity.getCreationTime());
