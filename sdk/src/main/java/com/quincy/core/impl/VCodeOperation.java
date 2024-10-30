@@ -26,7 +26,6 @@ public class VCodeOperation implements VCodeOpsRgistry {
 	@Value("${auth.vcode.timeout:180}")
 	private int vcodeTimeoutSeconds;
 	private static final Map<String, String> I18N_KEYS_HOLDER = new HashMap<String, String>(2);
-	private final static String ATTR_KEY_USERNAME = "username";
 	static {
 		I18N_KEYS_HOLDER.put(VCodeConstants.ATTR_KEY_VCODE_ROBOT_FORBIDDEN, "vcode.name.vcode");
 		I18N_KEYS_HOLDER.put(VCodeConstants.ATTR_KEY_VCODE_LOGIN, "vcode.name.password");
@@ -85,7 +84,6 @@ public class VCodeOperation implements VCodeOpsRgistry {
 	public String genAndSend(HttpServletRequest request, VCodeCharsFrom charsFrom, int length, VCodeSender sender) throws Exception {
 		char[] vcode = this.generate(charsFrom, length);
 		HttpSession session = request.getSession();
-		session.setAttribute(ATTR_KEY_USERNAME, request.getParameter(ATTR_KEY_USERNAME));
 		session.setAttribute(VCodeConstants.ATTR_KEY_VCODE_LOGIN, new String(vcode));
 		session.setAttribute(VCodeConstants.ATTR_KEY_VCODE_ORIGINAL_MAX_INACTIVE_INTERVAL, session.getMaxInactiveInterval());
 		session.setMaxInactiveInterval(vcodeTimeoutSeconds);
