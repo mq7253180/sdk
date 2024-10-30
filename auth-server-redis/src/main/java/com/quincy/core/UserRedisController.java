@@ -21,7 +21,6 @@ import com.quincy.sdk.Result;
 import com.quincy.sdk.VCodeCharsFrom;
 import com.quincy.sdk.VCodeOpsRgistry;
 import com.quincy.sdk.helper.CommonHelper;
-import com.quincy.sdk.o.User;
 
 import jakarta.servlet.http.HttpServletRequest;
 import redis.clients.jedis.Jedis;
