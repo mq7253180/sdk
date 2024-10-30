@@ -54,13 +54,14 @@ public class BaseAuthServerController {
 			result.setMsg(requestContext.getMessage("auth.null.username"));
 			return result;
 		}
-		Client client = Client.get(request);
-		User user = userService.find(username, client);
-		if(user==null) {
+		Long userId = userService.findUserId(username);
+		if(userId==null) {
 			result.setStatus(-2);
 			result.setMsg(requestContext.getMessage("auth.account.no"));
 			return result;
 		}
+		Client client = Client.get(request);
+		User user = userService.find(userId, client);
 		if(password!=null&&!password.equalsIgnoreCase(user.getPassword())) {
 			result.setStatus(LOGIN_STATUS_PWD_INCORRECT);
 			result.setMsg(requestContext.getMessage("auth.account.pwd_incorrect"));

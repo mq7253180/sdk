@@ -15,7 +15,6 @@ import org.springframework.web.servlet.support.RequestContext;
 import com.quincy.auth.service.UserService;
 import com.quincy.core.redis.JedisSource;
 import com.quincy.core.redis.RedisConstants;
-import com.quincy.sdk.Client;
 import com.quincy.sdk.EmailService;
 import com.quincy.sdk.PwdRestEmailInfo;
 import com.quincy.sdk.Result;
@@ -106,11 +105,11 @@ public class UserRedisController {
 	public ModelAndView update(HttpServletRequest request, @RequestParam(required = true, name = "token")String token, @RequestParam(required = true, name = "vcode")String vcode, @RequestParam(required = true, name = "password")String password) {
 		Result result = this.validate(null, password, password);
 		if(result.getStatus()==1) {
-			User user = userService.find(result.getData().toString(), Client.get(request));
-			if(user==null) {
+			Long userId = userService.findUserId(result.getData().toString());
+			if(userId==null) {
 				result = new Result(-11, "auth.pwdreset.link.nouser");
 			} else {
-				userService.updatePassword(user.getId(), password);
+				userService.updatePassword(userId, password);
 				result = Result.newSuccess();
 			}
 			result.setMsg(new RequestContext(request).getMessage(result.getMsg()));

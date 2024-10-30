@@ -21,13 +21,10 @@ public class UserServiceShardingImpl implements UserService {
 	public UserEntity update(UserEntity vo) {
 		return this.userServiceShardingProxy.update(SnowFlake.extractShardingKey(vo.getId()), vo);
 	}
-	/**
-	 * 通过手机号、邮箱、用户名字符串的hashCode一次路由查user_id映射关系表，得到user_id
-	 * 通过从user_id中提取到的shardingKey二次路由查库，查到用户信息
-	 */
+
 	@Override
-	public User find(String loginName, Client client) {
-		return this.userServiceShardingProxy.find(loginName.hashCode(), loginName, client);
+	public Long findUserId(String loginName) {
+		return this.userServiceShardingProxy.findUserId(loginName.hashCode(), loginName);
 	}
 
 	@Override
@@ -39,5 +36,4 @@ public class UserServiceShardingImpl implements UserService {
 	public void updatePassword(Long userId, String password) {
 		this.userServiceShardingProxy.updatePassword(SnowFlake.extractShardingKey(userId), userId, password);
 	}
-	
 }

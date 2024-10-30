@@ -9,7 +9,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.quincy.auth.UserBase;
+import com.quincy.auth.dao.LoginUserMappingRepository;
 import com.quincy.auth.dao.UserRepository;
+import com.quincy.auth.entity.LoginUserMappingEntity;
 import com.quincy.auth.entity.UserEntity;
 import com.quincy.auth.service.UserService;
 import com.quincy.sdk.Client;
@@ -19,6 +21,8 @@ import com.quincy.sdk.o.User;
 
 @Service
 public class UserServiceImpl implements UserService {
+	@Autowired
+	private LoginUserMappingRepository loginUserMappingRepository;
 	@Autowired
 	private UserRepository userRepository;
 
@@ -61,10 +65,9 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	@ReadOnly
-	public User find(String loginName, Client client) {
-		UserEntity entity = userRepository.findByUsernameOrEmailOrMobilePhone(loginName, loginName, loginName);
-		return entity==null?null:this.toUser(entity, client);
+	public Long findUserId(String loginName) {
+		LoginUserMappingEntity loginUserMappingEntity = loginUserMappingRepository.findByLoginName(loginName);
+		return loginUserMappingEntity==null?null:loginUserMappingEntity.getUserId();
 	}
 
 	@Override
