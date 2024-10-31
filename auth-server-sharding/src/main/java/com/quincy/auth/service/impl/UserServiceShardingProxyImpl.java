@@ -40,4 +40,16 @@ public class UserServiceShardingProxyImpl extends UserServiceImpl implements Use
 	public void updatePassword(@ShardingKey long shardingKey, Long userId, String password) {
 		this.updatePassword(userId, password);
 	}
+
+	@Override
+	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
+	public void add(@ShardingKey long shardingKey, UserEntity vo) {
+		this.userRepository.save(vo);
+	}
+
+	@Override
+	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
+	public void createMapping(long shardingKey, Long userId, String loginName) {
+		this.createMapping(userId, loginName);
+	}
 }

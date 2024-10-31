@@ -13,6 +13,7 @@ import com.quincy.auth.dao.UserRepository;
 import com.quincy.auth.entity.LoginUserMappingEntity;
 import com.quincy.auth.entity.UserEntity;
 import com.quincy.auth.service.UserService;
+import com.quincy.core.dao.UtilsDao;
 import com.quincy.sdk.Client;
 import com.quincy.sdk.annotation.jdbc.ReadOnly;
 import com.quincy.sdk.helper.CommonHelper;
@@ -23,7 +24,9 @@ public class UserServiceImpl implements UserService {
 	@Autowired
 	private LoginUserMappingRepository loginUserMappingRepository;
 	@Autowired
-	private UserRepository userRepository;
+	protected UserRepository userRepository;
+	@Autowired
+	private UtilsDao utilsDao;
 
 	@Override
 	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
@@ -107,5 +110,26 @@ public class UserServiceImpl implements UserService {
 		if(client.isApp())
 			user.setJsessionid(entity.getJsessionidPcBrowser());
 		return user;
+	}
+
+	@Override
+	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
+	public void add(UserEntity vo) {
+		Long userId = utilsDao.selectAutoIncreament("b_user");
+		if(vo.getMobilePhone()!=null)
+			this.createMapping(userId, vo.getMobilePhone());
+		if(vo.getEmail()!=null)
+			this.createMapping(userId, vo.getEmail());
+		if(vo.getUsername()!=null)
+			this.createMapping(userId, vo.getUsername());
+		vo.setId(userId);
+		userRepository.save(vo);
+	}
+
+	protected void createMapping(Long userId, String loginName) {
+		LoginUserMappingEntity loginUserMappingEntity = new LoginUserMappingEntity();
+		loginUserMappingEntity.setUserId(userId);
+		loginUserMappingEntity.setLoginName(loginName);
+		loginUserMappingRepository.save(loginUserMappingEntity);
 	}
 }

@@ -36,4 +36,18 @@ public class UserServiceShardingImpl implements UserService {
 	public void updatePassword(Long userId, String password) {
 		this.userServiceShardingProxy.updatePassword(SnowFlake.extractShardingKey(userId), userId, password);
 	}
+
+	@Override
+	public void add(UserEntity vo) {
+		Long userId = SnowFlake.nextId();
+		Long shardingKey = SnowFlake.extractShardingKey(userId);
+		if(vo.getMobilePhone()!=null)
+			this.userServiceShardingProxy.createMapping(vo.getMobilePhone().hashCode(), userId, vo.getMobilePhone());
+		if(vo.getEmail()!=null)
+			this.userServiceShardingProxy.createMapping(vo.getEmail().hashCode(), userId, vo.getEmail());
+		if(vo.getUsername()!=null)
+			this.userServiceShardingProxy.createMapping(vo.getUsername().hashCode(), userId, vo.getUsername());
+		vo.setId(userId);
+		this.userServiceShardingProxy.add(shardingKey, vo);
+	}
 }

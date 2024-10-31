@@ -9,4 +9,5 @@ public interface UserService {
 	public Long findUserId(String loginName);
 	public User find(Long id, Client client);
 	public void updatePassword(Long userId, String password);
+	public void add(UserEntity vo);
 }
