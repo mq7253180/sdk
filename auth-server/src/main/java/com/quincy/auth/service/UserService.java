@@ -10,4 +10,6 @@ public interface UserService {
 	public User find(Long id, Client client);
 	public void updatePassword(Long userId, String password);
 	public void add(UserEntity vo);
+	public void createMapping(String loginName, Long userId);
+	public Long createMapping(String loginName);
 }

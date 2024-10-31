@@ -49,7 +49,7 @@ public class UserServiceShardingProxyImpl extends UserServiceImpl implements Use
 
 	@Override
 	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
-	public void createMapping(long shardingKey, Long userId, String loginName) {
-		this.createMapping(userId, loginName);
+	public void createMapping(long shardingKey, String loginName, Long userId) {
+		this.createMapping(loginName, userId);
 	}
 }

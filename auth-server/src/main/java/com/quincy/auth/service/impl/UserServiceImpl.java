@@ -115,21 +115,34 @@ public class UserServiceImpl implements UserService {
 	@Override
 	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
 	public void add(UserEntity vo) {
-		Long userId = utilsDao.selectAutoIncreament("b_user");
+		Long userId = vo.getId();
+		if(userId==null) {
+			userId = utilsDao.selectAutoIncreament("b_user");
+			vo.setId(userId);
+		}
 		if(vo.getMobilePhone()!=null)
-			this.createMapping(userId, vo.getMobilePhone());
+			this.createMapping(vo.getMobilePhone(), userId);
 		if(vo.getEmail()!=null)
-			this.createMapping(userId, vo.getEmail());
+			this.createMapping(vo.getEmail(), userId);
 		if(vo.getUsername()!=null)
-			this.createMapping(userId, vo.getUsername());
-		vo.setId(userId);
+			this.createMapping(vo.getUsername(), userId);
 		userRepository.save(vo);
 	}
 
-	protected void createMapping(Long userId, String loginName) {
+	@Override
+	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
+	public void createMapping(String loginName, Long userId) {
 		LoginUserMappingEntity loginUserMappingEntity = new LoginUserMappingEntity();
 		loginUserMappingEntity.setUserId(userId);
 		loginUserMappingEntity.setLoginName(loginName);
 		loginUserMappingRepository.save(loginUserMappingEntity);
+	}
+
+	@Override
+	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
+	public Long createMapping(String loginName) {
+		Long userId = utilsDao.selectAutoIncreament("b_user");
+		this.createMapping(loginName, userId);
+		return userId;
 	}
 }

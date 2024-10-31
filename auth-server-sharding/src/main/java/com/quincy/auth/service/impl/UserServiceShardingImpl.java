@@ -39,15 +39,19 @@ public class UserServiceShardingImpl implements UserService {
 
 	@Override
 	public void add(UserEntity vo) {
-		Long userId = SnowFlake.nextId();
-		Long shardingKey = SnowFlake.extractShardingKey(userId);
-		if(vo.getMobilePhone()!=null)
-			this.userServiceShardingProxy.createMapping(vo.getMobilePhone().hashCode(), userId, vo.getMobilePhone());
-		if(vo.getEmail()!=null)
-			this.userServiceShardingProxy.createMapping(vo.getEmail().hashCode(), userId, vo.getEmail());
-		if(vo.getUsername()!=null)
-			this.userServiceShardingProxy.createMapping(vo.getUsername().hashCode(), userId, vo.getUsername());
-		vo.setId(userId);
+		Long shardingKey = SnowFlake.extractShardingKey(vo.getId());
 		this.userServiceShardingProxy.add(shardingKey, vo);
+	}
+
+	@Override
+	public void createMapping(String loginName, Long userId) {
+		this.userServiceShardingProxy.createMapping(loginName.hashCode(), loginName, userId);
+	}
+
+	@Override
+	public Long createMapping(String loginName) {
+		Long userId = SnowFlake.nextId();
+		this.userServiceShardingProxy.createMapping(loginName.hashCode(), loginName, userId);
+		return userId;
 	}
 }
