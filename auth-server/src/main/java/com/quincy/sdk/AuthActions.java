@@ -1,7 +1,8 @@
 package com.quincy.sdk;
 
+import java.io.Serializable;
 import java.util.Map;
 
 public interface AuthActions {
-	public abstract void loadAttributes(Long userId, Map<String, Object> attributes);
+	public abstract void onLogin(Long userId, Map<String, Serializable> attributes);
 }
