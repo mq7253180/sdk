@@ -105,9 +105,9 @@ public class UserServiceImpl implements UserService {
 		user.setAvatar(entity.getAvatar());
 		if(client.isPc())
 			user.setJsessionid(entity.getJsessionidPcBrowser());
-		if(client.isMobile())
+		else if(client.isMobile())
 			user.setJsessionid(entity.getJsessionidMobileBrowser());
-		if(client.isApp())
+		else if(client.isApp())
 			user.setJsessionid(entity.getJsessionidPcBrowser());
 		return user;
 	}
