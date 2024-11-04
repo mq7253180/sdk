@@ -44,14 +44,13 @@ public class UserServiceShardingImpl implements UserService {
 	}
 
 	@Override
-	public void createMapping(String loginName, Long userId) {
-		this.userServiceShardingProxy.createMapping(loginName.hashCode(), loginName, userId);
+	public boolean createMapping(String loginName, Long userId) {
+		return this.userServiceShardingProxy.createMapping(loginName.hashCode(), loginName, userId);
 	}
 
 	@Override
 	public Long createMapping(String loginName) {
 		Long userId = SnowFlake.nextId();
-		this.userServiceShardingProxy.createMapping(loginName.hashCode(), loginName, userId);
-		return userId;
+		return this.userServiceShardingProxy.createMapping(loginName.hashCode(), loginName, userId)?userId:null;
 	}
 }

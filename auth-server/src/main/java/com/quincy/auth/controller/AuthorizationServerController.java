@@ -213,12 +213,7 @@ public class AuthorizationServerController {
 		RequestContext requestContext = new RequestContext(request);
 		Client client = Client.get(request);
 		Result result = new Result();
-		User user = userService.find(userId, client);
-		if(password!=null&&!password.equalsIgnoreCase(user.getPassword())) {
-			result.setStatus(LOGIN_STATUS_PWD_INCORRECT);
-			result.setMsg(requestContext.getMessage("auth.account.pwd_incorrect"));
-			return result;
-		}
+		XSession xsession = null;
 		HttpSession session = request.getSession();//所有身份认证通过，创建session
 		if(appSessionTimeout!=null&&client.isApp()) {//APP设置超时时间
 			session.setMaxInactiveInterval(Integer.parseInt(String.valueOf(Duration.parse(appSessionTimeout).getSeconds())));
@@ -229,27 +224,40 @@ public class AuthorizationServerController {
 			if(maxInactiveInterval!=null)
 				session.setMaxInactiveInterval(Integer.parseInt(maxInactiveInterval.toString()));
 		}
-		String originalJsessionid = user.getJsessionid();
-		user.setJsessionid(session.getId());
-		XSession xsession = xSessionService==null?new XSession():xSessionService.create(user);
+		User user = userService.find(userId, client);
+		if(user==null) {//游客登录，只有映射关系，还没插入用户表信息
+			user = new User();
+			user.setId(userId);
+			user.setName(requestContext.getMessage("auth.tourist"));
+			xsession = new XSession();
+		} else {
+			if(password!=null&&!password.equalsIgnoreCase(user.getPassword())) {
+				result.setStatus(LOGIN_STATUS_PWD_INCORRECT);
+				result.setMsg(requestContext.getMessage("auth.account.pwd_incorrect"));
+				return result;
+			}
+			if(authActions!=null) {
+				Map<String, Serializable> attrs = new HashMap<String, Serializable>();
+				user.setAttributes(attrs);
+				authActions.onLogin(userId, attrs);
+			}
+			if(sessionInvalidation!=null) {//同一user同一类端之间互踢，清除session
+				String originalJsessionid = CommonHelper.trim(user.getJsessionid());
+				if(originalJsessionid!=null&&!originalJsessionid.equals(session.getId())) {
+					if((client.isPc()&&sessionInvalidation.pcBrowserEvict())//PC浏览器互踢
+							||(client.isMobile()&&sessionInvalidation.mobileBrowserEvict())//移动设备浏览器互踢
+							||(client.isApp()&&sessionInvalidation.appEvict())//APP互踢
+						) {
+						sessionInvalidation.invalidate(originalJsessionid);
+						this.updateLastLogin(user.getId(), session.getId(), client);
+					}
+				}
+			}
+			user.setJsessionid(session.getId());
+			xsession = xSessionService==null?new XSession():xSessionService.create(user);
+		}
 		xsession.setUser(user);
 		session.setAttribute(AuthConstants.ATTR_SESSION, xsession);
-		if(authActions!=null) {
-			Map<String, Serializable> attrs = new HashMap<String, Serializable>();
-			user.setAttributes(attrs);
-			authActions.onLogin(userId, attrs);
-		}
-		if(sessionInvalidation!=null) {//同一user同一类端之间互踢，清除session
-			originalJsessionid = CommonHelper.trim(originalJsessionid);
-			if(originalJsessionid!=null&&!originalJsessionid.equals(session.getId())) {
-				if((client.isPc()&&sessionInvalidation.pcBrowserEvict())//PC浏览器互踢
-						||(client.isMobile()&&sessionInvalidation.mobileBrowserEvict())//移动设备浏览器互踢
-						||(client.isApp()&&sessionInvalidation.appEvict())//APP互踢
-					)
-					sessionInvalidation.invalidate(originalJsessionid);
-			}
-		}
-		this.updateLastLogin(user.getId(), session.getId(), client);//互踢还需要应用层配合更新数据库里的jsessionid
 		result.setStatus(1);
 		result.setMsg(requestContext.getMessage("auth.success"));
 		result.setData(client.isJson()?new ObjectMapper().writeValueAsString(xsession):xsession);

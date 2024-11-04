@@ -11,5 +11,5 @@ public interface UserServiceShardingProxy {
 	public User find(@ShardingKey long shardingKey, Long id, Client client);
 	public void updatePassword(@ShardingKey long shardingKey, Long userId, String password);
 	public void add(@ShardingKey long shardingKey, UserEntity vo);
-	public void createMapping(@ShardingKey long shardingKey, String loginName, Long userId);
+	public boolean createMapping(@ShardingKey long shardingKey, String loginName, Long userId);
 }

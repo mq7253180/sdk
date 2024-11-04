@@ -131,18 +131,33 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
-	public void createMapping(String loginName, Long userId) {
-		LoginUserMappingEntity loginUserMappingEntity = new LoginUserMappingEntity();
-		loginUserMappingEntity.setUserId(userId);
-		loginUserMappingEntity.setLoginName(loginName);
-		loginUserMappingRepository.save(loginUserMappingEntity);
+	public boolean createMapping(String loginName, Long userId) {
+		LoginUserMappingEntity po = loginUserMappingRepository.findByLoginName(loginName);
+		if(po!=null) {
+			return false;
+		} else {
+			this.doCreateMapping(loginName, userId);
+			return true;
+		}
 	}
 
 	@Override
 	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
 	public Long createMapping(String loginName) {
-		Long userId = utilsDao.selectAutoIncreament("b_user");
-		this.createMapping(loginName, userId);
-		return userId;
+		LoginUserMappingEntity po = loginUserMappingRepository.findByLoginName(loginName);
+		if(po!=null) {
+			return null;
+		} else {
+			Long userId = utilsDao.selectAutoIncreament("b_user");
+			this.doCreateMapping(loginName, userId);
+			return userId;
+		}
+	}
+
+	private void doCreateMapping(String loginName, Long userId) {
+		LoginUserMappingEntity loginUserMappingEntity = new LoginUserMappingEntity();
+		loginUserMappingEntity.setUserId(userId);
+		loginUserMappingEntity.setLoginName(loginName);
+		loginUserMappingRepository.save(loginUserMappingEntity);
 	}
 }
