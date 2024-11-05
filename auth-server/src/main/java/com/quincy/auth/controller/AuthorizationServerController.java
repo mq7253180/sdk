@@ -267,12 +267,7 @@ public class AuthorizationServerController {
 				String email = CommonHelper.trim(user.getEmail());
 				if(!loginName.equals(email)) {//分片事务补偿，如果换邮箱时删除原映射关系、更新用户表邮箱字段失败情况，单库模式在同一事务中不涉及此问题
 					user.setEmail(loginName);
-					userService.deleteMappingAndUpdateUser(email, new UserUpdation() {
-						@Override
-						public void setLoginName(UserEntity vo) {
-							vo.setEmail(loginName);
-						}
-					}, userId);
+					userService.deleteMappingAndUpdateUser(email, vo->{vo.setEmail(loginName);}, userId);
 				}
 			}
 		}
