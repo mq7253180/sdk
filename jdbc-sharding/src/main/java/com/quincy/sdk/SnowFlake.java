@@ -68,12 +68,12 @@ public class SnowFlake {
     private static int DATA_CENTER_ID_SEQUENCE_FLAXIBLE_BITS;
 
     static {
-//		SHARDING_KEY_LENGTH_RANGE_MAP.put(1, new int[] {0, 7});
+		SHARDING_KEY_LENGTH_RANGE_MAP.put(1, new int[] {0, 7});
 		SHARDING_KEY_LENGTH_RANGE_MAP.put(2, new int[] {16, 63});
 		SHARDING_KEY_LENGTH_RANGE_MAP.put(3, new int[] {128, 511});
 		SHARDING_KEY_LENGTH_RANGE_MAP.put(4, new int[] {1024, 2047});
 //		SHARDING_KEY_LENGTH_RANGE_MAP.put(4, new int[] {1024, 8191});
-//		SHARDING_KEY_LENGTH_RANGE_MAP.put(6, new int[] {131072, 524287});
+		SHARDING_KEY_LENGTH_RANGE_MAP.put(6, new int[] {131072, 524287});
 		setShardingKeyRange(4);
 	}
     /**
@@ -98,7 +98,7 @@ public class SnowFlake {
 
 	public static void setShardingKeyRange(int index) {
 		int[] rangeLowerAndUpper = SHARDING_KEY_LENGTH_RANGE_MAP.get(index);
-		Assert.notNull(rangeLowerAndUpper, "Only 2, 3, 4 are acceptable.");
+		Assert.notNull(rangeLowerAndUpper, "Only 1, 2, 3, 4, 6 are acceptable.");
 		SHARDING_KEY_RANGE_LOWER = rangeLowerAndUpper[0];
 	    SHARDING_KEY_RANGE_UPPER = rangeLowerAndUpper[1];
 		DATA_CENTER_ID_SEQUENCE_FLAXIBLE_BITS = Integer.toString(SHARDING_KEY_RANGE_UPPER, 2).length()-DATA_CENTER_ID_BITS;
@@ -115,6 +115,7 @@ public class SnowFlake {
 //		System.out.println("MAX_DATA_CENTER_ID---"+MAX_DATA_CENTER_ID);
 //		System.out.println("TIMESTAMP_SHIFT---"+TIMESTAMP_SHIFT);
 	}
+
 	public synchronized static long nextId() {
 		int shardingKey = RANDOM.nextInt(SHARDING_KEY_RANGE_LOWER, SHARDING_KEY_RANGE_UPPER);
 		return nextId(shardingKey);

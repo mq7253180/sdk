@@ -117,19 +117,9 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
-	public void add(UserEntity vo) {
-		Long userId = vo.getId();
-		if(userId==null) {
-			userId = utilsDao.selectAutoIncreament("b_user");
-			vo.setId(userId);
-		}
-		if(vo.getMobilePhone()!=null)
-			this.createMapping(vo.getMobilePhone(), userId);
-		if(vo.getEmail()!=null)
-			this.createMapping(vo.getEmail(), userId);
-		if(vo.getUsername()!=null)
-			this.createMapping(vo.getUsername(), userId);
-		userRepository.save(vo);
+	public Long add(UserEntity vo) {
+		UserEntity po = userRepository.save(vo);
+		return po.getId();
 	}
 
 	@Override

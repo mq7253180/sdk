@@ -41,9 +41,12 @@ public class UserServiceShardingImpl implements UserService {
 	}
 
 	@Override
-	public void add(UserEntity vo) {
-		Long shardingKey = SnowFlake.extractShardingKey(vo.getId());
+	public Long add(UserEntity vo) {
+		Long userId = vo.getId();
+		Assert.notNull(userId, "必须先通过SnowFlake.nextId()生成userId！");
+		Long shardingKey = SnowFlake.extractShardingKey(userId);
 		this.userServiceShardingProxy.add(shardingKey, vo);
+		return vo.getId();
 	}
 
 	@Override

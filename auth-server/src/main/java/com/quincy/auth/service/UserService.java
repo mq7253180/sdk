@@ -10,7 +10,7 @@ public interface UserService {
 	public Long findUserId(String loginName);
 	public User find(Long id, Client client);
 	public void updatePassword(Long userId, String password);
-	public void add(UserEntity vo);
+	public Long add(UserEntity vo);
 	public boolean createMapping(String loginName, Long userId);
 	public Long createMapping(String loginName);
 	public Result updateMapping(String oldLoginName, String newLoginName, UserUpdation userUpdation);
