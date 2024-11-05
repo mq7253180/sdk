@@ -447,6 +447,11 @@ public class CommonHelper {
 		return content==null?false:Pattern.matches("^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\\.[a-zA-Z0-9_-]+)+$", content);
 	}
 
+	public static boolean isMobilePhone(String _content) {
+		String content = trim(_content);
+		return content==null?false:Pattern.matches("^1[3456789]\\d{9}$", content);
+	}
+
 	public static StringBuilder appendUriParam(StringBuilder s, String key, String val) {
 		return val==null?s:s.append(s.indexOf("?")<0?"?":"&")
 				.append(key)

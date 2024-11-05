@@ -21,7 +21,6 @@ import com.quincy.auth.AuthConstants;
 import com.quincy.auth.SessionInvalidation;
 import com.quincy.auth.entity.UserEntity;
 import com.quincy.auth.service.UserService;
-import com.quincy.auth.service.UserUpdation;
 import com.quincy.auth.service.XSessionService;
 import com.quincy.core.InnerConstants;
 import com.quincy.core.InnerHelper;
