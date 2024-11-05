@@ -14,4 +14,5 @@ public interface UserService {
 	public boolean createMapping(String loginName, Long userId);
 	public Long createMapping(String loginName);
 	public Result updateMapping(String oldLoginName, String newLoginName, UserUpdation userUpdation);
+	public void deleteMappingAndUpdateUser(String oldLoginName, UserUpdation userUpdation, Long userId);
 }

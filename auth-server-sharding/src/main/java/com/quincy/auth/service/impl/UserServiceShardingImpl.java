@@ -12,12 +12,11 @@ import com.quincy.sdk.o.User;
 import com.quincy.auth.entity.UserEntity;
 import com.quincy.auth.service.UserService;
 import com.quincy.auth.service.UserServiceShardingProxy;
-import com.quincy.auth.service.UserShardingService;
 import com.quincy.auth.service.UserUpdation;
 
 @Primary
 @Service
-public class UserServiceShardingImpl implements UserService, UserShardingService {
+public class UserServiceShardingImpl implements UserService {
 	@Autowired
 	private UserServiceShardingProxy userServiceShardingProxy;
 

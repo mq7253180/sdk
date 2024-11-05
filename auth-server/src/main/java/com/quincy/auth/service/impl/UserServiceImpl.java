@@ -180,4 +180,9 @@ public class UserServiceImpl implements UserService {
 		this.userRepository.save(vo);
 		return new Result(1, "status.success");
 	}
+
+	@Override
+	public void deleteMappingAndUpdateUser(String oldLoginName, UserUpdation userUpdation, Long userId) {
+		
+	}
 }
