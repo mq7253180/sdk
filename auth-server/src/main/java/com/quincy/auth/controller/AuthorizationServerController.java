@@ -262,11 +262,23 @@ public class AuthorizationServerController {
 			xsession = xSessionService==null?new XSession():xSessionService.create(user);
 		}
 		if(!tourist) {
-			if(CommonHelper.isEmail(loginName)) {
+			if(CommonHelper.isMobilePhone(loginName)) {
+				String mobilePhone = CommonHelper.trim(user.getMobilePhone());
+				if(!loginName.equals(mobilePhone)) {//分片事务补偿，如果换邮箱时删除原映射关系、更新用户表邮箱字段失败情况，单库模式在同一事务中不涉及此问题
+					user.setMobilePhone(loginName);
+					userService.deleteMappingAndUpdateUser(mobilePhone, vo->{vo.setMobilePhone(loginName);}, userId);
+				}
+			} else if(CommonHelper.isEmail(loginName)) {
 				String email = CommonHelper.trim(user.getEmail());
-				if(!loginName.equals(email)) {//分片事务补偿，如果换邮箱时删除原映射关系、更新用户表邮箱字段失败情况，单库模式在同一事务中不涉及此问题
+				if(!loginName.equals(email)) {
 					user.setEmail(loginName);
 					userService.deleteMappingAndUpdateUser(email, vo->{vo.setEmail(loginName);}, userId);
+				}
+			} else {
+				String username = CommonHelper.trim(user.getUsername());
+				if(!loginName.equals(username)) {
+					user.setUsername(loginName);
+					userService.deleteMappingAndUpdateUser(username, vo->{vo.setUsername(loginName);}, userId);
 				}
 			}
 		}
