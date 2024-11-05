@@ -52,4 +52,9 @@ public class UserServiceShardingProxyImpl extends UserServiceImpl implements Use
 	public boolean createMapping(long shardingKey, String loginName, Long userId) {
 		return this.createMapping(loginName, userId);
 	}
+
+	@Override
+	public int deleteMapping(long shardingKey, String loginName) {
+		return this.loginUserMappingRepository.deleteByLoginName(loginName);
+	}
 }

@@ -9,4 +9,5 @@ import com.quincy.auth.entity.LoginUserMappingEntity;
 @Repository
 public interface LoginUserMappingRepository extends JpaRepository<LoginUserMappingEntity, Long>, JpaSpecificationExecutor<LoginUserMappingEntity> {
 	public LoginUserMappingEntity findByLoginName(String loginName);
+	public int deleteByLoginName(String loginName);
 }

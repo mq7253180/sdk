@@ -7,14 +7,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 import com.quincy.auth.dao.LoginUserMappingRepository;
 import com.quincy.auth.dao.UserRepository;
 import com.quincy.auth.entity.LoginUserMappingEntity;
 import com.quincy.auth.entity.UserEntity;
 import com.quincy.auth.service.UserService;
+import com.quincy.auth.service.UserUpdation;
 import com.quincy.core.dao.UtilsDao;
 import com.quincy.sdk.Client;
+import com.quincy.sdk.Result;
 import com.quincy.sdk.annotation.jdbc.ReadOnly;
 import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.o.User;
@@ -22,7 +25,7 @@ import com.quincy.sdk.o.User;
 @Service
 public class UserServiceImpl implements UserService {
 	@Autowired
-	private LoginUserMappingRepository loginUserMappingRepository;
+	protected LoginUserMappingRepository loginUserMappingRepository;
 	@Autowired
 	protected UserRepository userRepository;
 	@Autowired
@@ -159,5 +162,22 @@ public class UserServiceImpl implements UserService {
 		loginUserMappingEntity.setUserId(userId);
 		loginUserMappingEntity.setLoginName(loginName);
 		loginUserMappingRepository.save(loginUserMappingEntity);
+	}
+
+	@Override
+	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
+	public Result updateMapping(String oldLoginName, String newLoginName, UserUpdation userUpdation) {
+		LoginUserMappingEntity po = loginUserMappingRepository.findByLoginName(newLoginName);
+		if(po!=null)//验重
+			return new Result(0, "auth.mapping.new");
+		po = loginUserMappingRepository.findByLoginName(oldLoginName);
+		Assert.notNull(po, "开发错误：旧手机号、邮箱、用户名不存在，请检查！");
+		po.setLoginName(newLoginName);
+		loginUserMappingRepository.save(po);
+		UserEntity vo = new UserEntity();
+		vo.setId(po.getUserId());
+		userUpdation.setLoginName(vo);
+		this.userRepository.save(vo);
+		return new Result(1, "status.success");
 	}
 }

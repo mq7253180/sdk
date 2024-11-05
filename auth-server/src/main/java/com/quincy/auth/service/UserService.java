@@ -2,6 +2,7 @@ package com.quincy.auth.service;
 
 import com.quincy.auth.entity.UserEntity;
 import com.quincy.sdk.Client;
+import com.quincy.sdk.Result;
 import com.quincy.sdk.o.User;
 
 public interface UserService {
@@ -12,4 +13,5 @@ public interface UserService {
 	public void add(UserEntity vo);
 	public boolean createMapping(String loginName, Long userId);
 	public Long createMapping(String loginName);
+	public Result updateMapping(String oldLoginName, String newLoginName, UserUpdation userUpdation);
 }
