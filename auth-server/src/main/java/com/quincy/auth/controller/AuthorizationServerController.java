@@ -229,11 +229,13 @@ public class AuthorizationServerController {
 				session.setMaxInactiveInterval(Integer.parseInt(maxInactiveInterval.toString()));
 		}
 		User user = userService.find(userId, client);
+		boolean tourist = false;
 		if(user==null) {//游客登录，只有映射关系，还没插入用户表信息
 			user = new User();
 			user.setId(userId);
 			user.setName(requestContext.getMessage("auth.tourist"));
 			xsession = new XSession();
+			tourist = true;
 		} else {
 			if(password!=null&&!password.equalsIgnoreCase(user.getPassword())) {
 				result.setStatus(LOGIN_STATUS_PWD_INCORRECT);
@@ -260,16 +262,18 @@ public class AuthorizationServerController {
 			user.setJsessionid(session.getId());
 			xsession = xSessionService==null?new XSession():xSessionService.create(user);
 		}
-		if(CommonHelper.isEmail(loginName)) {
-			String email = CommonHelper.trim(user.getEmail());
-			if(!loginName.equals(email)) {//分片事务补偿，如果换邮箱时删除原映射关系、更新用户表邮箱字段失败情况，单库模式在同一事务中不涉及此问题
-				user.setEmail(loginName);
-				userService.deleteMappingAndUpdateUser(email, new UserUpdation() {
-					@Override
-					public void setLoginName(UserEntity vo) {
-						vo.setEmail(loginName);
-					}
-				}, userId);
+		if(!tourist) {
+			if(CommonHelper.isEmail(loginName)) {
+				String email = CommonHelper.trim(user.getEmail());
+				if(!loginName.equals(email)) {//分片事务补偿，如果换邮箱时删除原映射关系、更新用户表邮箱字段失败情况，单库模式在同一事务中不涉及此问题
+					user.setEmail(loginName);
+					userService.deleteMappingAndUpdateUser(email, new UserUpdation() {
+						@Override
+						public void setLoginName(UserEntity vo) {
+							vo.setEmail(loginName);
+						}
+					}, userId);
+				}
 			}
 		}
 		xsession.setUser(user);
