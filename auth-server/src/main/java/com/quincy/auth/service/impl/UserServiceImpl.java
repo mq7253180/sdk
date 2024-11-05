@@ -183,6 +183,6 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public void deleteMappingAndUpdateUser(String oldLoginName, UserUpdation userUpdation, Long userId) {
-		
+		throw new RuntimeException("此方法专门提供给分片库模式，单库模式下禁调此方法！");
 	}
 }
