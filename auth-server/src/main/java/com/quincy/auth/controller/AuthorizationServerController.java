@@ -21,6 +21,7 @@ import com.quincy.auth.AuthConstants;
 import com.quincy.auth.SessionInvalidation;
 import com.quincy.auth.entity.UserEntity;
 import com.quincy.auth.service.UserService;
+import com.quincy.auth.service.UserUpdation;
 import com.quincy.auth.service.XSessionService;
 import com.quincy.core.InnerConstants;
 import com.quincy.core.InnerHelper;
@@ -60,6 +61,7 @@ public class AuthorizationServerController {
 	private String appSessionTimeout;
 	private final static String PARA_NAME_USERNAME = "username";
 	private final static String SESSION_ATTR_NAME_USERID = "userid";
+	private final static String SESSION_ATTR_NAME_LOGINNAME = "loginname";
 	protected final static int LOGIN_STATUS_PWD_INCORRECT = -3;
 	/**
 	 * 进登录页
@@ -131,7 +133,7 @@ public class AuthorizationServerController {
 			return result;
 		}
 		String password = CommonHelper.trim(_password);
-		result = password!=null?login(request, Long.valueOf(result.getData().toString()), password):new Result(0, requestContext.getMessage("auth.null.password"));
+		result = password!=null?login(request, Long.valueOf(result.getData().toString()), password, username):new Result(0, requestContext.getMessage("auth.null.password"));
 		HttpSession session = request.getSession();//如果doPwdLogin没登录成功，session是空的，需要创建session用来保存失败次数，但是session失效后失败次数也随之消失，还是可以继续重试
 		if(result.getStatus()==LOGIN_STATUS_PWD_INCORRECT) {
 			int failuresPp = this.getFailures(request)+1;
@@ -150,7 +152,7 @@ public class AuthorizationServerController {
 		Result result = vCodeOpsRgistry.validate(request, true, VCodeConstants.ATTR_KEY_VCODE_LOGIN);
 		if(result.getStatus()==1) {
 			HttpSession session = request.getSession(false);
-			result = login(request, Long.valueOf(session.getAttribute(SESSION_ATTR_NAME_USERID).toString()));
+			result = login(request, Long.valueOf(session.getAttribute(SESSION_ATTR_NAME_USERID).toString()), session.getAttribute(SESSION_ATTR_NAME_LOGINNAME).toString());
 		}
 		return InnerHelper.modelAndViewResult(request, result, redirectTo!=null?"redirect:"+redirectTo:null);
 	}
@@ -178,7 +180,9 @@ public class AuthorizationServerController {
 				} else {
 					status = 1;
 					msgI18N = Result.I18N_KEY_SUCCESS;
-					request.getSession().setAttribute(SESSION_ATTR_NAME_USERID, result.getData());
+					HttpSession session = request.getSession();
+					session.setAttribute(SESSION_ATTR_NAME_USERID, result.getData());
+					session.setAttribute(SESSION_ATTR_NAME_LOGINNAME, email);
 					vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.MIXED, tmppwdLength, email, tempPwdLoginEmailInfo.getSubject(), tempPwdLoginEmailInfo.getContent());
 				}
 			}
@@ -205,11 +209,11 @@ public class AuthorizationServerController {
 		return result;
 	}
 
-	protected Result login(HttpServletRequest request, Long userId) throws Exception {
-		return this.login(request, userId, null);
+	private Result login(HttpServletRequest request, Long userId, String loginName) throws Exception {
+		return this.login(request, userId, null, loginName);
 	}
 
-	protected Result login(HttpServletRequest request, Long userId, String password) throws Exception {
+	private Result login(HttpServletRequest request, Long userId, String password, String loginName) throws Exception {
 		RequestContext requestContext = new RequestContext(request);
 		Client client = Client.get(request);
 		Result result = new Result();
@@ -255,6 +259,18 @@ public class AuthorizationServerController {
 			}
 			user.setJsessionid(session.getId());
 			xsession = xSessionService==null?new XSession():xSessionService.create(user);
+		}
+		if(CommonHelper.isEmail(loginName)) {
+			String email = CommonHelper.trim(user.getEmail());
+			if(!loginName.equals(email)) {//分片事务补偿，如果换邮箱时删除原映射关系、更新用户表邮箱字段失败情况，单库模式在同一事务中不涉及此问题
+				user.setEmail(loginName);
+				userService.deleteMappingAndUpdateUser(email, new UserUpdation() {
+					@Override
+					public void setLoginName(UserEntity vo) {
+						vo.setEmail(loginName);
+					}
+				}, userId);
+			}
 		}
 		xsession.setUser(user);
 		session.setAttribute(AuthConstants.ATTR_SESSION, xsession);

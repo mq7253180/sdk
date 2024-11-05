@@ -54,7 +54,8 @@ public class UserServiceShardingProxyImpl extends UserServiceImpl implements Use
 	}
 
 	@Override
-	public int deleteMapping(long shardingKey, String loginName) {
+	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
+	public int deleteMapping(@ShardingKey long shardingKey, String loginName) {
 		return this.loginUserMappingRepository.deleteByLoginName(loginName);
 	}
 }
