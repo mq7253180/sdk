@@ -1,7 +1,6 @@
 package com.quincy.auth.controller;
 
 import java.io.Serializable;
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
