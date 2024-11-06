@@ -1,6 +1,7 @@
 package com.quincy.auth.controller;
 
 import java.io.Serializable;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,6 +13,7 @@ import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContext;
 
@@ -300,5 +302,11 @@ public class AuthorizationServerController {
 		if(client.isApp())
 			vo.setJsessionidApp(jessionid);
 		userService.update(vo);
+	}
+
+	@RequestMapping("/register")
+	@ResponseBody
+	public Long register(@RequestParam("loginname") String loginName) {
+		return userService.createMapping(loginName);
 	}
 }

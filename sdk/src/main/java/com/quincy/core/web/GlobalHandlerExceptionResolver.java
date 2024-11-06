@@ -40,15 +40,22 @@ public class GlobalHandlerExceptionResolver {//implements HandlerExceptionResolv
 		StringBuilder msg = new StringBuilder(500)
 				.append("*************")
 				.append(df.format(new Date()))
-				.append("*************")
-				.append(lineBreak).append(e.toString());
-		StackTraceElement[] elements = e.getStackTrace();
-		for(int i=0;i<elements.length;i++) {
-			msg.append(lineBreak);
-			for(int j=0;j<10;j++)
-				msg.append(spaceSymbol);
-			msg.append("at").append(spaceSymbol).append(elements[i].toString());
-		}
+				.append("*************");
+		this.appendCause(e, msg, lineBreak, spaceSymbol);
 		return msg.toString();
+	}
+
+	private void appendCause(Throwable e, StringBuilder msg, String lineBreak, String spaceSymbol) {
+		if(e!=null) {
+			msg.append(lineBreak).append(e.toString());
+			StackTraceElement[] elements = e.getStackTrace();
+			for(StackTraceElement element:elements) {
+				msg.append(lineBreak);
+				for(int j=0;j<10;j++)
+					msg.append(spaceSymbol);
+				msg.append("at").append(spaceSymbol).append(element.toString());
+			}
+			this.appendCause(e.getCause(), msg, lineBreak, spaceSymbol);
+		}
 	}
 }
