@@ -160,20 +160,34 @@ public class AuthorizationServerController {
 	 * 生成临时密码并发送至邮箱
 	 */
 	@RequestMapping("/vcode/email")
-	public ModelAndView vcodeToEmail(HttpServletRequest request, @RequestParam(required = true, name = PARA_NAME_USERNAME)String _email) throws Exception {
+	public ModelAndView vcodeToEmail(HttpServletRequest request, @RequestParam(required = true, name = PARA_NAME_USERNAME)String email) throws Exception {
 		Assert.notNull(tempPwdLoginEmailInfo, "没有设置邮件标题和内容模板");
+		return this.sendVCode(request, email, "email", new Sender() {
+			@Override
+			public boolean validate(String username) {
+				return CommonHelper.isEmail(username);
+			}
+
+			@Override
+			public void send(String username) throws Exception {
+				vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.MIXED, tmppwdLength, username, tempPwdLoginEmailInfo.getSubject(), tempPwdLoginEmailInfo.getContent());
+			}
+		});
+	}
+
+	private ModelAndView sendVCode(HttpServletRequest request, String _username, String i18nPrefix, Sender sender) throws Exception {
 		Integer status = null;
 		String msgI18N = null;
-		String email = CommonHelper.trim(_email);
-		if(email==null) {
+		String username = CommonHelper.trim(_username);
+		if(username==null) {
 			status = 0;
-			msgI18N = "email.null";
+			msgI18N = i18nPrefix+".null";
 		} else {
-			if(!CommonHelper.isEmail(email)) {
+			if(!sender.validate(username)) {
 				status = -3;
-				msgI18N = "email.illegal";
+				msgI18N = i18nPrefix+".illegal";
 			} else {
-				Result result = this.validate(request, email);
+				Result result = this.validate(request, username);
 				if(result.getStatus()<1) {
 					status = result.getStatus();
 					msgI18N = result.getMsg();
@@ -182,12 +196,17 @@ public class AuthorizationServerController {
 					msgI18N = Result.I18N_KEY_SUCCESS;
 					HttpSession session = request.getSession();
 					session.setAttribute(SESSION_ATTR_NAME_USERID, result.getData());
-					session.setAttribute(SESSION_ATTR_NAME_LOGINNAME, email);
-					vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.MIXED, tmppwdLength, email, tempPwdLoginEmailInfo.getSubject(), tempPwdLoginEmailInfo.getContent());
+					session.setAttribute(SESSION_ATTR_NAME_LOGINNAME, username);
+					sender.send(username);
 				}
 			}
 		}
 		return InnerHelper.modelAndViewI18N(request, status, msgI18N);
+	}
+
+	private static interface Sender {
+		public boolean validate(String username);
+		public void send(String username) throws Exception;
 	}
 
 	protected Result validate(HttpServletRequest request, String _username) {
@@ -216,7 +235,6 @@ public class AuthorizationServerController {
 	private Result login(HttpServletRequest request, Long userId, String password, String loginName) throws Exception {
 		RequestContext requestContext = new RequestContext(request);
 		Client client = Client.get(request);
-		Result result = new Result();
 		XSession xsession = null;
 		HttpSession session = request.getSession();//所有身份认证通过，创建session
 		if(appSessionTimeout!=null&&client.isApp()) {//APP设置超时时间
@@ -231,17 +249,16 @@ public class AuthorizationServerController {
 		User user = userService.find(userId, client);
 		boolean tourist = false;
 		if(user==null) {//游客登录，只有映射关系，还没插入用户表信息
+			if(password!=null)
+				return new Result(-4, requestContext.getMessage("auth.tourist.password"));
 			user = new User();
 			user.setId(userId);
 			user.setName(requestContext.getMessage("auth.tourist"));
 			xsession = new XSession();
 			tourist = true;
 		} else {
-			if(password!=null&&!password.equalsIgnoreCase(user.getPassword())) {
-				result.setStatus(LOGIN_STATUS_PWD_INCORRECT);
-				result.setMsg(requestContext.getMessage("auth.account.pwd_incorrect"));
-				return result;
-			}
+			if(password!=null&&!password.equalsIgnoreCase(user.getPassword()))
+				return new Result(LOGIN_STATUS_PWD_INCORRECT, requestContext.getMessage("auth.account.pwd_incorrect"));
 			if(authActions!=null) {
 				Map<String, Serializable> attrs = new HashMap<String, Serializable>();
 				user.setAttributes(attrs);
@@ -285,8 +302,8 @@ public class AuthorizationServerController {
 		}
 		xsession.setUser(user);
 		session.setAttribute(AuthConstants.ATTR_SESSION, xsession);
-		result.setStatus(1);
-		result.setMsg(requestContext.getMessage("auth.success"));
+		Result result = Result.newSuccess();
+		result.setMsg(result.getMsg());
 		result.setData(client.isJson()?new ObjectMapper().writeValueAsString(xsession):xsession);
 		return result;
 	}
@@ -303,9 +320,65 @@ public class AuthorizationServerController {
 		userService.update(vo);
 	}
 
+	@RequestMapping("/register/sms")
+	@ResponseBody
+	public Result sendSms(HttpServletRequest request, @RequestParam(PARA_NAME_USERNAME) String phoneNumber) throws Exception {
+		Assert.notNull(authActions, "AuthActions没有实现");
+		Long userId = userService.findUserId(phoneNumber);
+		Result result = null;
+		if(userId!=null) {
+			result = new Result(0, "auth.mapping.new");
+		} else {
+			vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.DIGITS, 6, (vcode, expireMinuts)->{
+				request.getSession().setAttribute(SESSION_ATTR_NAME_LOGINNAME, phoneNumber);
+				authActions.sms(phoneNumber, new String(vcode), expireMinuts);
+			});
+			result = Result.newSuccess();
+		}
+		result.setMsg(new RequestContext(request).getMessage(result.getMsg()));
+		return result;
+	}
+
 	@RequestMapping("/register")
 	@ResponseBody
-	public Long register(@RequestParam("loginname") String loginName) {
-		return userService.createMapping(loginName);
+	public String register(HttpServletRequest request, @RequestParam("vcode") String vcode) throws Exception {
+		HttpSession session = request.getSession(false);
+		if(session==null) {
+			return "验证码失效，请重新获取";
+		} else {
+			Object cachedVCode = session.getAttribute(VCodeConstants.ATTR_KEY_VCODE_LOGIN);
+			if(cachedVCode==null) {
+				return "验证码失效，请重新获取";
+			} else if(!cachedVCode.equals(vcode)) {
+				return "验证码输入错误";
+			} else {
+				String phoneNumber = session.getAttribute(SESSION_ATTR_NAME_LOGINNAME).toString();
+				Long userId = userService.createMapping(phoneNumber);
+				if(userId==null)
+					return "账号已存在";
+				this.login(request, userId, phoneNumber);
+				return "手机号"+phoneNumber+"注册成功，userId为"+userId+"，在第"+(phoneNumber.hashCode()%8)+"个分片";
+			}
+		}
+	}
+	/**
+	 * 生成临时密码并发送至短信
+	 */
+	@RequestMapping("/vcode/sms")
+	public ModelAndView vcodeToSms(HttpServletRequest request, @RequestParam(required = true, name = PARA_NAME_USERNAME)String phoneNmumer) throws Exception {
+		Assert.notNull(authActions, "AuthActions没有实现");
+		return this.sendVCode(request, phoneNmumer, "email", new Sender() {
+			@Override
+			public boolean validate(String username) {
+				return CommonHelper.isMobilePhone(username);
+			}
+
+			@Override
+			public void send(String username) throws Exception {
+				vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.DIGITS, 6, (vcode, expireMinuts)->{
+					authActions.sms(username, new String(vcode), expireMinuts);
+				});
+			}
+		});
 	}
 }
