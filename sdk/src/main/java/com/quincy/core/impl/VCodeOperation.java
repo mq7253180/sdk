@@ -29,6 +29,7 @@ public class VCodeOperation implements VCodeOpsRgistry {
 	static {
 		I18N_KEYS_HOLDER.put(VCodeConstants.ATTR_KEY_VCODE_ROBOT_FORBIDDEN, "vcode.name.vcode");
 		I18N_KEYS_HOLDER.put(VCodeConstants.ATTR_KEY_VCODE_LOGIN, "vcode.name.password");
+		I18N_KEYS_HOLDER.put(VCodeConstants.ATTR_KEY_VCODE_SIGINUP, "vcode.name.vcode");
 	}
 
 	public char[] generate(VCodeCharsFrom _charsFrom, int length) {
@@ -45,6 +46,10 @@ public class VCodeOperation implements VCodeOpsRgistry {
 	}
 
 	public Result validate(HttpServletRequest request, boolean ignoreCase, String attrKey) throws Exception {
+		return this.validate(request, ignoreCase, attrKey, attrKey);
+	}
+
+	public Result validate(HttpServletRequest request, boolean ignoreCase, String attrKey, String msgKey) throws Exception {
 		HttpSession session = request.getSession(false);
 		String inputedVCode = CommonHelper.trim(request.getParameter(VCodeConstants.PARA_NAME_VCODE));
 		Integer status = null;
@@ -74,7 +79,7 @@ public class VCodeOperation implements VCodeOpsRgistry {
 			status = 1;
 		} else {
 			RequestContext requestContext = new RequestContext(request);
-			msg = requestContext.getMessage(msgI18NKey, new Object[] {requestContext.getMessage(I18N_KEYS_HOLDER.get(attrKey))});
+			msg = requestContext.getMessage(msgI18NKey, new Object[] {requestContext.getMessage(I18N_KEYS_HOLDER.get(msgKey))});
 		}
 		return new Result(status, msg);
 	}

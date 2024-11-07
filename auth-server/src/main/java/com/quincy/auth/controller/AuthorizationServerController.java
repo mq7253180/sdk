@@ -320,7 +320,7 @@ public class AuthorizationServerController {
 		userService.update(vo);
 	}
 
-	@RequestMapping("/register/sms")
+	@RequestMapping("/siginup/sms")
 	@ResponseBody
 	public Result sendSms(HttpServletRequest request, @RequestParam(PARA_NAME_USERNAME) String phoneNumber) throws Exception {
 		Assert.notNull(authActions, "AuthActions没有实现");
@@ -339,38 +339,22 @@ public class AuthorizationServerController {
 		return result;
 	}
 
-	@RequestMapping("/register")
+	@RequestMapping("/siginup")
 	@ResponseBody
-	public Result register(HttpServletRequest request, @RequestParam("vcode") String vcode) throws Exception {
-		HttpSession session = request.getSession(false);
-		RequestContext requestContext = new RequestContext(request);
-		int status = 1;
-		String i18n = null;
-		if(session==null) {
-			status = -1;
-			i18n = "vcode.expire";
-		} else {
-			Object cachedVCode = session.getAttribute(VCodeConstants.ATTR_KEY_VCODE_LOGIN);
-			if(cachedVCode==null) {
-				status = -1;
-				i18n = "vcode.expire";
-			} else if(!cachedVCode.equals(vcode)) {
-				status = -2;
-				i18n = "vcode.not_matched";
+	public Result siginUp(HttpServletRequest request) throws Exception {
+		Result result = vCodeOpsRgistry.validate(request, false, VCodeConstants.ATTR_KEY_VCODE_LOGIN, VCodeConstants.ATTR_KEY_VCODE_SIGINUP);
+		if(result.getStatus()==1) {
+			String phoneNumber = request.getSession(false).getAttribute(SESSION_ATTR_NAME_LOGINNAME).toString();
+			Long userId = userService.createMapping(phoneNumber);
+			if(userId==null) {
+				result = new Result(0, new RequestContext(request).getMessage("auth.mapping.new"));
 			} else {
-				String phoneNumber = session.getAttribute(SESSION_ATTR_NAME_LOGINNAME).toString();
-				Long userId = userService.createMapping(phoneNumber);
-				if(userId==null) {
-					status = 0;
-					i18n = "auth.mapping.new";
-				} else {
-					Result result = this.login(request, userId, phoneNumber);
-					result.setMsg("手机号"+phoneNumber+"注册成功，userId为"+userId+"，在第"+(phoneNumber.hashCode()%8)+"个分片");
-					return result;
-				}
+				result = this.login(request, userId, phoneNumber);
+				result.setMsg("手机号"+phoneNumber+"注册成功，userId为"+userId+"，在第"+(phoneNumber.hashCode()%8)+"个分片");
+				return result;
 			}
 		}
-		return new Result(status, requestContext.getMessage(i18n, new Object[] {requestContext.getMessage("vcode.name.vcode")}));
+		return result;
 	}
 	/**
 	 * 生成临时密码并发送至短信
