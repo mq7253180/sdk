@@ -152,7 +152,8 @@ public class AuthorizationServerController {
 		Result result = vCodeOpsRgistry.validate(request, true, VCodeConstants.ATTR_KEY_VCODE_LOGIN);
 		if(result.getStatus()==1) {
 			HttpSession session = request.getSession(false);
-			result = login(request, Long.valueOf(session.getAttribute(SESSION_ATTR_NAME_USERID).toString()), session.getAttribute(SESSION_ATTR_NAME_LOGINNAME).toString());
+			Object userId = session.getAttribute(SESSION_ATTR_NAME_USERID);
+			result = userId==null?new Result(-9, new RequestContext(request).getMessage("auth.account.vcode_no")):login(request, Long.valueOf(userId.toString()), session.getAttribute(SESSION_ATTR_NAME_LOGINNAME).toString());
 		}
 		return InnerHelper.modelAndViewResult(request, result, redirectTo!=null?"redirect:"+redirectTo:null);
 	}
@@ -250,7 +251,7 @@ public class AuthorizationServerController {
 		boolean tourist = false;
 		if(user==null) {//游客登录，只有映射关系，还没插入用户表信息
 			if(password!=null)
-				return new Result(-4, requestContext.getMessage("auth.tourist.password"));
+				return new Result(-8, requestContext.getMessage("auth.tourist.password"));
 			user = new User();
 			user.setId(userId);
 			user.setName(requestContext.getMessage("auth.tourist"));
