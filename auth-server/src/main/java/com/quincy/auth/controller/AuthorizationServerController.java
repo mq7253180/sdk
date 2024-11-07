@@ -303,7 +303,7 @@ public class AuthorizationServerController {
 		xsession.setUser(user);
 		session.setAttribute(AuthConstants.ATTR_SESSION, xsession);
 		Result result = Result.newSuccess();
-		result.setMsg(result.getMsg());
+		result.setMsg(requestContext.getMessage(result.getMsg()));
 		result.setData(client.isJson()?new ObjectMapper().writeValueAsString(xsession):xsession);
 		return result;
 	}
@@ -341,25 +341,36 @@ public class AuthorizationServerController {
 
 	@RequestMapping("/register")
 	@ResponseBody
-	public String register(HttpServletRequest request, @RequestParam("vcode") String vcode) throws Exception {
+	public Result register(HttpServletRequest request, @RequestParam("vcode") String vcode) throws Exception {
 		HttpSession session = request.getSession(false);
+		RequestContext requestContext = new RequestContext(request);
+		int status = 1;
+		String i18n = null;
 		if(session==null) {
-			return "验证码失效，请重新获取";
+			status = -1;
+			i18n = "vcode.expire";
 		} else {
 			Object cachedVCode = session.getAttribute(VCodeConstants.ATTR_KEY_VCODE_LOGIN);
 			if(cachedVCode==null) {
-				return "验证码失效，请重新获取";
+				status = -1;
+				i18n = "vcode.expire";
 			} else if(!cachedVCode.equals(vcode)) {
-				return "验证码输入错误";
+				status = -2;
+				i18n = "vcode.not_matched";
 			} else {
 				String phoneNumber = session.getAttribute(SESSION_ATTR_NAME_LOGINNAME).toString();
 				Long userId = userService.createMapping(phoneNumber);
-				if(userId==null)
-					return "账号已存在";
-				this.login(request, userId, phoneNumber);
-				return "手机号"+phoneNumber+"注册成功，userId为"+userId+"，在第"+(phoneNumber.hashCode()%8)+"个分片";
+				if(userId==null) {
+					status = 0;
+					i18n = "auth.mapping.new";
+				} else {
+					Result result = this.login(request, userId, phoneNumber);
+					result.setMsg("手机号"+phoneNumber+"注册成功，userId为"+userId+"，在第"+(phoneNumber.hashCode()%8)+"个分片");
+					return result;
+				}
 			}
 		}
+		return new Result(status, requestContext.getMessage(i18n, new Object[] {requestContext.getMessage("vcode.name.vcode")}));
 	}
 	/**
 	 * 生成临时密码并发送至短信
