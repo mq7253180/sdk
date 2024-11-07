@@ -250,7 +250,7 @@ public class AuthorizationServerController {
 		User user = userService.find(userId, client);
 		boolean tourist = false;
 		if(user==null) {//游客登录，只有映射关系，还没插入用户表信息
-			if(password!=null)
+			if(password!=null)//游客还没有设置密码，如果不拦住，可以通过密码登录直接登录进来
 				return new Result(-8, requestContext.getMessage("auth.tourist.password"));
 			user = new User();
 			user.setId(userId);
