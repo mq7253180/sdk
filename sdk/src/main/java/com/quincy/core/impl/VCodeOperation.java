@@ -29,7 +29,7 @@ public class VCodeOperation implements VCodeOpsRgistry {
 	static {
 		I18N_KEYS_HOLDER.put(VCodeConstants.ATTR_KEY_VCODE_ROBOT_FORBIDDEN, "vcode.name.vcode");
 		I18N_KEYS_HOLDER.put(VCodeConstants.ATTR_KEY_VCODE_LOGIN, "vcode.name.password");
-		I18N_KEYS_HOLDER.put(VCodeConstants.ATTR_KEY_VCODE_SIGINUP, "vcode.name.vcode");
+		I18N_KEYS_HOLDER.put(VCodeConstants.ATTR_KEY_VCODE_SIGNUP, "vcode.name.vcode");
 	}
 
 	public char[] generate(VCodeCharsFrom _charsFrom, int length) {

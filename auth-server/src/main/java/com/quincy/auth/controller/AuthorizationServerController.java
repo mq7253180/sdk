@@ -321,37 +321,43 @@ public class AuthorizationServerController {
 		userService.update(vo);
 	}
 
-	@RequestMapping("/siginup/sms")
+	@RequestMapping("/signup/vcode")
 	@ResponseBody
-	public Result sendSms(HttpServletRequest request, @RequestParam(PARA_NAME_USERNAME) String phoneNumber) throws Exception {
+	public Result sendVCode(HttpServletRequest request, @RequestParam(PARA_NAME_USERNAME) String loginName) throws Exception {
 		Assert.notNull(authActions, "AuthActions没有实现");
-		Long userId = userService.findUserId(phoneNumber);
+		Long userId = userService.findUserId(loginName);
 		Result result = null;
 		if(userId!=null) {
 			result = new Result(0, "auth.mapping.new");
 		} else {
-			vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.DIGITS, 6, (vcode, expireMinuts)->{
-				request.getSession().setAttribute(SESSION_ATTR_NAME_LOGINNAME, phoneNumber);
-				authActions.sms(phoneNumber, new String(vcode), expireMinuts);
-			});
+			if(CommonHelper.isEmail(loginName)) {
+				vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.DIGITS, 6, loginName, tempPwdLoginEmailInfo.getSubject(), tempPwdLoginEmailInfo.getContent());
+			} else if(CommonHelper.isMobilePhone(loginName)) {
+				vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.DIGITS, 6, (vcode, expireMinuts)->{
+					authActions.sms(loginName, new String(vcode), expireMinuts);
+				});
+			} else {
+				result = new Result(-1, "auth.signup.valid");
+			}
+			request.getSession().setAttribute(SESSION_ATTR_NAME_LOGINNAME, loginName);
 			result = Result.newSuccess();
 		}
 		result.setMsg(new RequestContext(request).getMessage(result.getMsg()));
 		return result;
 	}
 
-	@RequestMapping("/siginup")
+	@RequestMapping("/signup")
 	@ResponseBody
-	public Result siginUp(HttpServletRequest request) throws Exception {
-		Result result = vCodeOpsRgistry.validate(request, false, VCodeConstants.ATTR_KEY_VCODE_LOGIN, VCodeConstants.ATTR_KEY_VCODE_SIGINUP);
+	public Result signUp(HttpServletRequest request) throws Exception {
+		Result result = vCodeOpsRgistry.validate(request, false, VCodeConstants.ATTR_KEY_VCODE_LOGIN, VCodeConstants.ATTR_KEY_VCODE_SIGNUP);
 		if(result.getStatus()==1) {
-			String phoneNumber = request.getSession(false).getAttribute(SESSION_ATTR_NAME_LOGINNAME).toString();
-			Long userId = userService.createMapping(phoneNumber);
+			String loginName = request.getSession(false).getAttribute(SESSION_ATTR_NAME_LOGINNAME).toString();
+			Long userId = userService.createMapping(loginName);
 			if(userId==null) {
 				result = new Result(0, new RequestContext(request).getMessage("auth.mapping.new"));
 			} else {
-				result = this.login(request, userId, phoneNumber);
-				result.setMsg("手机号"+phoneNumber+"注册成功，userId为"+userId+"，在第"+(phoneNumber.hashCode()%8)+"个分片");
+				result = this.login(request, userId, loginName);
+				result.setMsg(loginName+"注册成功，userId为"+userId+"，在第"+(loginName.hashCode()%8)+"个分片");
 				return result;
 			}
 		}
