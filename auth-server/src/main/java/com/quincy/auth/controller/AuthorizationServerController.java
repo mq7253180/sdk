@@ -359,7 +359,6 @@ public class AuthorizationServerController {
 			} else {
 				result = this.login(request, userId, loginName);
 				result.setMsg(loginName+"注册成功，userId为"+userId+"，在第"+(loginName.hashCode()%8)+"个分片");
-				return result;
 			}
 		}
 		return result;
