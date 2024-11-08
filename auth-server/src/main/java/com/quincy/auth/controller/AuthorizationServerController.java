@@ -336,9 +336,10 @@ public class AuthorizationServerController {
 				vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.DIGITS, 6, (vcode, expireMinuts)->{
 					authActions.sms(loginName, new String(vcode), expireMinuts);
 				});
-			} else {
+			} else
 				result = new Result(-1, "auth.signup.valid");
-			}
+		}
+		if(result==null) {
 			request.getSession().setAttribute(SESSION_ATTR_NAME_LOGINNAME, loginName);
 			result = Result.newSuccess();
 		}
