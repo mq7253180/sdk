@@ -15,8 +15,12 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Stack;
@@ -532,8 +536,9 @@ public class CommonHelper {
 		int minIndex = -1;
 		for(int i=0;i<args.length;i++) {
 			int a = args[i];
+			a = a<0?a*-1:a;
 			if(minValue==null||a<minValue) {
-				minValue = a<0?a*-1:a;
+				minValue = a;
 				minIndex = i;
 			}
 		}
@@ -554,6 +559,32 @@ public class CommonHelper {
 			}
 		}
 		return 1;
+	}
+
+	public static int minCommonMultiple(Integer... args) {
+		List<Integer> sorted = new ArrayList<Integer>(args.length+1);
+		sorted.add(1);
+		sorted.addAll(sort(args));
+		int commonMultiple = sorted.get(sorted.size()-1);
+		for(int i=0;i<sorted.size()-1;i++) {
+			commonMultiple *= sorted.get(i);
+			boolean isMinCommon = true;
+			for(int j=i+1;j<sorted.size()-1;j++) {
+				if(commonMultiple%sorted.get(j)!=0) {
+					isMinCommon = false;
+					break;
+				}
+			}
+			if(isMinCommon)
+				return commonMultiple;
+		}
+		return 0;
+	}
+
+	private static List<Integer> sort(Integer... args) {
+		List<Integer> toSort = Arrays.asList(args);
+		Collections.sort(toSort);
+		return toSort;
 	}
 
 	public static void main(String[] args) throws IOException {
