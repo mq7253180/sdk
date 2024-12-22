@@ -527,6 +527,35 @@ public class CommonHelper {
 		return stack.size()==0;
 	}
 
+	public static int maxCommonDivisor(int... args) {
+		Integer minValue = null;
+		int minIndex = -1;
+		for(int i=0;i<args.length;i++) {
+			int a = args[i];
+			if(minValue==null||a<minValue) {
+				minValue = a;
+				minIndex = i;
+			}
+		}
+		for(int i=1;i<=minValue/2;i++) {
+			if(minValue%i==0) {
+				int divisor = minValue/i;
+				boolean isMaxCommon = true;
+				for(int j=0;j<args.length;j++) {
+					if(j!=minIndex) {
+						if(args[j]%divisor!=0) {
+							isMaxCommon = false;
+							break;
+						}
+					}
+				}
+				if(isMaxCommon)
+					return divisor;
+			}
+		}
+		return 1;
+	}
+
 	public static void main(String[] args) throws IOException {
 //		zip(new String[] {"D:/fxcupload/quincy"}, "D:/fxcupload/quincy.zip");
 //		CommonHelper.unzip("D:/fxcupload/quincy.zip", "D:/fxcupload/xxx", 2*1024*1024);
