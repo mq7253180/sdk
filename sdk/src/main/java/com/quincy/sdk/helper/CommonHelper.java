@@ -19,6 +19,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Stack;
 import java.util.regex.Pattern;
 import java.util.zip.ZipInputStream;
 
@@ -490,6 +491,39 @@ public class CommonHelper {
     		}
     	}
     }
+
+    private final static Map<Character, Character> HEAD_MAP = new HashMap<Character, Character>(4);
+	private final static Map<Character, Character> TAIL_MAP = new HashMap<Character, Character>(4);
+	static {
+		HEAD_MAP.put('{', '}');
+		HEAD_MAP.put('[', ']');
+		HEAD_MAP.put('(', ')');
+		HEAD_MAP.put('<', '>');
+		TAIL_MAP.put('}', '{');
+		TAIL_MAP.put(']', '[');
+		TAIL_MAP.put(')', '(');
+		TAIL_MAP.put('>', '<');
+	}
+
+	public static boolean formatTest(String s) {
+		char[] cc = s.toCharArray();
+		Stack<Character> stack = new Stack<Character>();
+		for(char c:cc) {
+			if(HEAD_MAP.get(c)!=null) {
+				stack.push(c);
+			} else {
+				Character h = TAIL_MAP.get(c);
+				if(h!=null) {
+					if(stack.isEmpty())
+						return false;
+					char p = stack.pop();
+					if(h!=p)
+						return false;
+				}
+			}
+		}
+		return stack.size()==0;
+	}
 
 	public static void main(String[] args) throws IOException {
 //		zip(new String[] {"D:/fxcupload/quincy"}, "D:/fxcupload/quincy.zip");
