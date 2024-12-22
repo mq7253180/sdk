@@ -507,6 +507,8 @@ public class CommonHelper {
 
 	public static boolean formatTest(String s) {
 		char[] cc = s.toCharArray();
+		if(HEAD_MAP.get(cc[0])==null||TAIL_MAP.get(cc[cc.length-1])==null)
+			return false;
 		Stack<Character> stack = new Stack<Character>();
 		for(char c:cc) {
 			if(HEAD_MAP.get(c)!=null) {
