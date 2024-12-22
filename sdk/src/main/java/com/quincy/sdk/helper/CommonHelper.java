@@ -533,7 +533,7 @@ public class CommonHelper {
 		for(int i=0;i<args.length;i++) {
 			int a = args[i];
 			if(minValue==null||a<minValue) {
-				minValue = a;
+				minValue = a<0?a*-1:a;
 				minIndex = i;
 			}
 		}
