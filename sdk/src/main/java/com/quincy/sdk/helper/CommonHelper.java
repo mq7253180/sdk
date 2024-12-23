@@ -561,30 +561,35 @@ public class CommonHelper {
 		return 1;
 	}
 
-	public static int minCommonMultiple(Integer... args) {
-		List<Integer> sorted = new ArrayList<Integer>(args.length+1);
-		sorted.add(1);
-		sorted.addAll(sort(args));
-		int commonMultiple = sorted.get(sorted.size()-1);
-		for(int i=0;i<sorted.size()-1;i++) {
-			commonMultiple *= sorted.get(i);
+	public static int minCommonMultiple(int... args) {
+		Integer maxValue = null;
+		int maxIndex = -1;
+		int exceptMaxMultiple = 1;
+		for(int i=0;i<args.length;i++) {
+			int a = args[i];
+			a = a<0?a*-1:a;
+			if(maxValue==null||a>maxValue) {
+				maxValue = a;
+				maxIndex = i;
+			}
+			exceptMaxMultiple *= a;
+		}
+		exceptMaxMultiple /= maxValue;
+		for(int i=1;i<exceptMaxMultiple;i++) {
+			int multiple = maxValue*i;
 			boolean isMinCommon = true;
-			for(int j=i+1;j<sorted.size()-1;j++) {
-				if(commonMultiple%sorted.get(j)!=0) {
-					isMinCommon = false;
-					break;
+			for(int j=0;j<args.length;j++) {
+				if(j!=maxIndex) {
+					if(multiple%args[j]!=0) {
+						isMinCommon = false;
+						break;
+					}
 				}
 			}
 			if(isMinCommon)
-				return commonMultiple;
+				return multiple;
 		}
-		return 0;
-	}
-
-	private static List<Integer> sort(Integer... args) {
-		List<Integer> toSort = Arrays.asList(args);
-		Collections.sort(toSort);
-		return toSort;
+		return exceptMaxMultiple*maxValue;
 	}
 
 	public static void main(String[] args) throws IOException {
