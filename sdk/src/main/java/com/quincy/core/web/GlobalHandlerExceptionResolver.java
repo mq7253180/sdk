@@ -23,7 +23,7 @@ public class GlobalHandlerExceptionResolver {//implements HandlerExceptionResolv
 		Client client = Client.get(request, handler);
 		String exception = null;
 		if(!client.isJson()) {
-			exception = this.getExceptionStackTrace(e, "<br/>", "&nbsp;");
+			exception = getExceptionStackTrace(e, "<br/>", "&nbsp;");
 		} else {
 			exception = e.toString().replaceAll("\n", "").replaceAll("\r", "").replaceAll("\\\\", "/").replaceAll("\"", "'");
 			response.setHeader("Content-Type", client.getContentType());
@@ -35,17 +35,17 @@ public class GlobalHandlerExceptionResolver {//implements HandlerExceptionResolv
 				.addObject("exception", exception);
 	}
 
-	private String getExceptionStackTrace(Exception e, String lineBreak, String spaceSymbol) {
+	public static String getExceptionStackTrace(Exception e, String lineBreak, String spaceSymbol) {
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		StringBuilder msg = new StringBuilder(500)
 				.append("*************")
 				.append(df.format(new Date()))
 				.append("*************");
-		this.appendCause(e, msg, lineBreak, spaceSymbol);
+		appendCause(e, msg, lineBreak, spaceSymbol);
 		return msg.toString();
 	}
 
-	private void appendCause(Throwable e, StringBuilder msg, String lineBreak, String spaceSymbol) {
+	private static void appendCause(Throwable e, StringBuilder msg, String lineBreak, String spaceSymbol) {
 		if(e!=null) {
 			msg.append(lineBreak).append(e.toString());
 			StackTraceElement[] elements = e.getStackTrace();
@@ -55,7 +55,7 @@ public class GlobalHandlerExceptionResolver {//implements HandlerExceptionResolv
 					msg.append(spaceSymbol);
 				msg.append("at").append(spaceSymbol).append(element.toString());
 			}
-			this.appendCause(e.getCause(), msg, lineBreak, spaceSymbol);
+			appendCause(e.getCause(), msg, lineBreak, spaceSymbol);
 		}
 	}
 }
