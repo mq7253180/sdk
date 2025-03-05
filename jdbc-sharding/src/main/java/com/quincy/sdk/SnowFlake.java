@@ -215,6 +215,13 @@ public class SnowFlake {
         }*/
 //        System.out.println(Math.pow(2, 22));
 //    	SnowFlakeAlgorithm.setShardingKeyRange(3);
+    	System.out.println(2013%8);
+    	System.out.println(1685%8);
+    	System.out.println(1597%8);
+    	System.out.println("mq7253180@126.com==="+"mq7253180@126.com".hashCode()+"==="+"mq7253180@126.com".hashCode()%8);
+    	System.out.println("17810322661==="+"17810322661".hashCode()+"==="+"17810322661".hashCode()%8);
+    	System.out.println("maqiang==="+"maqiang".hashCode()+"==="+"maqiang".hashCode()%8);
+    	System.out.println(2011%8);
     	SnowFlake.setWorkerId(25);
     	for (int i = 0; i < 10; i++) {
     		Long id = SnowFlake.nextId();

@@ -280,6 +280,22 @@ public class CommonHelper {
 		file.delete();
 	}
 
+	public static void deleteFileR(File dir, String name) {
+		if(dir.isDirectory()) {
+			File[] files = dir.listFiles();
+			for(File subFile:files) {
+				if(subFile.isDirectory()) {
+					deleteFileR(subFile, name);
+				} else if(subFile.getName().equals(name))
+					subFile.delete();
+			}
+		}
+	}
+
+	public static void deleteFileR(String dir, String name) {
+		deleteFileR(new File(dir), name);
+	}
+
 	public static void unzip(InputStream in, Charset charset, int buffer, String _dst) throws IOException {
 		String dst = _dst.endsWith("/")?_dst:_dst+"/";
 		ZipInputStream zipIn = null;
@@ -595,7 +611,7 @@ public class CommonHelper {
 	public static void main(String[] args) throws IOException {
 //		zip(new String[] {"D:/fxcupload/quincy"}, "D:/fxcupload/quincy.zip");
 //		CommonHelper.unzip("D:/fxcupload/quincy.zip", "D:/fxcupload/xxx", 2*1024*1024);
-		Charset gbk = Charset.forName("GBK");
+		/*Charset gbk = Charset.forName("GBK");
 		InputStream in = null;
 		try {
 			in = new FileInputStream("D:/fxcupload/quincy.zip");
@@ -603,6 +619,7 @@ public class CommonHelper {
 		} finally {
 			if(in!=null)
 				in.close();
-		}
+		}*/
+		deleteFileR("/Users/maqiang/github/yy", ".DS_Store");
 	}
 }
