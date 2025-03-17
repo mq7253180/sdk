@@ -620,6 +620,11 @@ public class CommonHelper {
 			if(in!=null)
 				in.close();
 		}*/
-		deleteFileR("/Users/maqiang/github/yy", ".DS_Store");
+		String path = "/Users/maqiang/github/quincy/sdk-21";
+		deleteFileR(path, ".DS_Store");
+		deleteFileR(path, ".project");
+		deleteFileR(path, ".classpath");
+		deleteFileR(path, ".settings");
+		deleteFileR(path, "target");
 	}
 }
