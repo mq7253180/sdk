@@ -51,6 +51,11 @@
 			</exclusions>
 		</dependency>
 		<dependency>
+		    <groupId>org.hibernate.validator</groupId>
+		    <artifactId>hibernate-validator</artifactId>
+		    <version>8.0.2.Final</version>
+		</dependency>
+		<dependency>
 			<!-- org.springframework.data.jpa.domain.support.AuditingEntityListener -->
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-jpa</artifactId>
