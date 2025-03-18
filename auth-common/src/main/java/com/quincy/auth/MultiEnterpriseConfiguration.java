@@ -11,7 +11,7 @@ import com.quincy.sdk.AuthHelper;
 import com.quincy.sdk.annotation.CustomizedInterceptor;
 import com.quincy.sdk.annotation.auth.LoginRequired;
 import com.quincy.sdk.o.Enterprise;
-import com.quincy.sdk.o.XSession;
+import com.quincy.sdk.o.User;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -23,12 +23,12 @@ public class MultiEnterpriseConfiguration extends HandlerInterceptorAdapter {
 
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-		XSession xsession = AuthHelper.getSession(request);
-		if(xsession==null) {
+		User user = AuthHelper.getUser(request);
+		if(user==null) {
 			InnerHelper.outputOrRedirect(request, response, handler, 0, new RequestContext(request).getMessage("auth.timeout.ajax"), null, authCenter+"/auth/signin/broker", true);
 			return false;
-		} else if(xsession.getUser().getCurrentEnterprise()==null) {
-			List<Enterprise> enterprises = xsession.getUser().getEnterprises();
+		} else if(user.getCurrentEnterprise()==null) {
+			List<Enterprise> enterprises = user.getEnterprises();
 			/*enterprises = new ArrayList<>();
 			Enterprise e = new Enterprise();
 			e.setId(1l);
@@ -58,12 +58,12 @@ public class MultiEnterpriseConfiguration extends HandlerInterceptorAdapter {
 
 	@LoginRequired
 	public void selectEnterprise(HttpServletRequest request, Long enterpriseId) {
-		XSession xsession = AuthHelper.getSession(request);
-		List<Enterprise> list = xsession.getUser().getEnterprises();
+		User user = AuthHelper.getUser(request);
+		List<Enterprise> list = user.getEnterprises();
 		for(Enterprise e:list) {
 			if(e.getId().equals(enterpriseId)) {
-				xsession.getUser().setCurrentEnterprise(e);
-				AuthHelper.setSession(request, xsession);
+				user.setCurrentEnterprise(e);
+				AuthHelper.setUser(request, user);
 				break;
 			}
 		}

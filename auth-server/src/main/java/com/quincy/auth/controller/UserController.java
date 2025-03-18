@@ -9,7 +9,6 @@ import com.quincy.auth.service.UserService;
 import com.quincy.sdk.AuthHelper;
 import com.quincy.sdk.annotation.auth.LoginRequired;
 import com.quincy.sdk.o.User;
-import com.quincy.sdk.o.XSession;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -28,8 +27,7 @@ public class UserController {
 	@LoginRequired
 	@RequestMapping("/pwdset/update")
 	public void pwdUpdate(HttpServletRequest request, @RequestParam(required = true, name = "password")String password) {
-		XSession xsession = AuthHelper.getSession(request);
-		User user = xsession.getUser();
+		User user = AuthHelper.getUser(request);
 		userService.updatePassword(user.getId(), password);
 	}
 }

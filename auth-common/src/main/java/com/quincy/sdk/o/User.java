@@ -26,8 +26,10 @@ public class User implements Serializable {
 	private String nickName;
 	private Byte gender;
 	private String avatar;
+	private List<String> roles;
+	private List<String> permissions;
+	private List<Menu> menus;
 	private Enterprise currentEnterprise;//当前已选租户
 	private List<Enterprise> enterprises;//多租户
 	private Map<String, BigDecimal> currencyAccounts;
-	private Map<String, Serializable> attributes;
 }

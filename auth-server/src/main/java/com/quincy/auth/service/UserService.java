@@ -6,6 +6,7 @@ import com.quincy.sdk.Result;
 import com.quincy.sdk.o.User;
 
 public interface UserService {
+	public void loadAuth(User user);
 	public UserEntity update(UserEntity vo);
 	public Long findUserId(String loginName);
 	public User find(Long id, Client client);

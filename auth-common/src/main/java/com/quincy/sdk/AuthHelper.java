@@ -2,30 +2,30 @@ package com.quincy.sdk;
 
 import com.quincy.auth.AuthConstants;
 import com.quincy.sdk.helper.CommonHelper;
-import com.quincy.sdk.o.XSession;
+import com.quincy.sdk.o.User;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 public class AuthHelper {
-	public static XSession getSession(HttpServletRequest request) {
+	public static User getUser(HttpServletRequest request) {
 		HttpSession session = request.getSession(false);
-		XSession xsession = session==null?null:(XSession)session.getAttribute(AuthConstants.ATTR_SESSION);
-		return xsession;
+		User user = session==null?null:(User)session.getAttribute(AuthConstants.ATTR_SESSION);
+		return user;
 	}
 
-	public static XSession getSession() {
+	public static User getUser() {
 		HttpServletRequest request = CommonHelper.getRequest();
-		return getSession(request);
+		return getUser(request);
 	}
 
-	public static void setSession(HttpServletRequest request, XSession xsession) {
+	public static void setUser(HttpServletRequest request, User user) {
 		HttpSession session = request.getSession(false);
-		session.setAttribute(AuthConstants.ATTR_SESSION, xsession);
+		session.setAttribute(AuthConstants.ATTR_SESSION, user);
 	}
 
-	public static void setSession(XSession xsession) {
+	public static void setUser(User user) {
 		HttpServletRequest request = CommonHelper.getRequest();
-		setSession(request, xsession);
+		setUser(request, user);
 	}
 }

@@ -10,7 +10,7 @@ import com.quincy.auth.AuthConstants;
 import com.quincy.core.InnerHelper;
 import com.quincy.core.web.QuincyAuthInterceptor;
 import com.quincy.sdk.AuthHelper;
-import com.quincy.sdk.o.XSession;
+import com.quincy.sdk.o.User;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,13 +20,13 @@ public abstract class AuthorizationInterceptorSupport extends HandlerInterceptor
 	private String authCenter;
 
 	protected boolean doAuth(HttpServletRequest request, HttpServletResponse response, Object handler, String permissionNeeded) throws Exception {
-		XSession xsession = AuthHelper.getSession(request);//authorizationService.getSession(request);
-		if(xsession==null) {
+		User user = AuthHelper.getUser(request);//authorizationService.getSession(request);
+		if(user==null) {
 			InnerHelper.outputOrRedirect(request, response, handler, 0, new RequestContext(request).getMessage("auth.timeout.ajax"), null, authCenter+"/auth/signin/broker", true);
 			return false;
 		} else {
 			if(permissionNeeded!=null) {
-				List<String> permissions = xsession.getPermissions();
+				List<String> permissions = user.getPermissions();
 				boolean hasPermission = false;
 				for(String permission:permissions) {
 					if(permission.equals(permissionNeeded)) {

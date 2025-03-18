@@ -5,6 +5,7 @@ import com.quincy.sdk.Client;
 import com.quincy.sdk.o.User;
 
 public interface UserServiceShardingProxy {
+	public void loadAuth(long shardingKey, User user);
 	public UserEntity update(long shardingKey, UserEntity vo);
 	public Long findUserId(long shardingKey, String loginName);
 	public User find(long shardingKey, Long id, Client client);

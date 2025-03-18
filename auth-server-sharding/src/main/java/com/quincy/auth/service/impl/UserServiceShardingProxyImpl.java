@@ -15,6 +15,12 @@ import com.quincy.sdk.o.User;
 @Service
 public class UserServiceShardingProxyImpl extends UserServiceImpl implements UserServiceShardingProxy {
 	@Override
+	@ReadOnly
+	public void loadAuth(@ShardingKey long shardingKey, User user) {
+		this.loadAuth(user);
+	}
+
+	@Override
 	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
 	public UserEntity update(@ShardingKey long shardingKey, UserEntity vo) {
 		return this.update(vo);

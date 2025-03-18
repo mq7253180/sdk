@@ -21,6 +21,11 @@ public class UserServiceShardingImpl implements UserService {
 	private UserServiceShardingProxy userServiceShardingProxy;
 
 	@Override
+	public void loadAuth(User user) {
+		userServiceShardingProxy.loadAuth(SnowFlake.extractShardingKey(user.getId()), user);
+	}
+
+	@Override
 	public UserEntity update(UserEntity vo) {
 		return this.userServiceShardingProxy.update(SnowFlake.extractShardingKey(vo.getId()), vo);
 	}

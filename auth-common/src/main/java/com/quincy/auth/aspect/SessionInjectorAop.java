@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 import com.quincy.sdk.AuthHelper;
 import com.quincy.sdk.helper.AopHelper;
-import com.quincy.sdk.o.XSession;
+import com.quincy.sdk.o.User;
 
 @Order(10)
 @Aspect
@@ -42,13 +42,13 @@ public class SessionInjectorAop {
     	List<Integer> index = new ArrayList<Integer>(classes.length);
     	for(int i=0;i<classes.length;i++) {
     		String className = classes[i].getName();
-    		if(XSession.class.getName().equals(className)&&(args[i]==null||AopHelper.isControllerMethod(joinPoint)))
+    		if(User.class.getName().equals(className)&&(args[i]==null||AopHelper.isControllerMethod(joinPoint)))
     			index.add(i);
     	}
     	if(index.size()>0) {
-    		XSession session = AuthHelper.getSession();
+    		User user = AuthHelper.getUser();
     		for(Integer i:index)
-    			args[i] = session;
+    			args[i] = user;
     	}
     	return joinPoint.proceed(args);
 	}

@@ -1,9 +1,6 @@
 package com.quincy.auth.controller;
 
-import java.io.Serializable;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,7 +19,6 @@ import com.quincy.auth.AuthConstants;
 import com.quincy.auth.SessionInvalidation;
 import com.quincy.auth.entity.UserEntity;
 import com.quincy.auth.service.UserService;
-import com.quincy.auth.service.XSessionService;
 import com.quincy.core.InnerConstants;
 import com.quincy.core.InnerHelper;
 import com.quincy.sdk.AuthActions;
@@ -33,7 +29,6 @@ import com.quincy.sdk.VCodeCharsFrom;
 import com.quincy.sdk.VCodeOpsRgistry;
 import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.o.User;
-import com.quincy.sdk.o.XSession;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -47,10 +42,10 @@ public class AuthorizationServerController {
 	private TempPwdLoginEmailInfo tempPwdLoginEmailInfo;
 	@Value("${auth.tmppwd.length:32}")
 	private int tmppwdLength;
+	@Value("${auth.permissionAndRole:false}")
+	private boolean enablePermissionAndRole;
 	@Autowired(required = false)
 	private UserService userService;
-	@Autowired(required = false)
-	private XSessionService xSessionService;
 	@Autowired(required = false)
 	private SessionInvalidation sessionInvalidation;
 	@Autowired(required = false)
@@ -236,7 +231,6 @@ public class AuthorizationServerController {
 	private Result login(HttpServletRequest request, Long userId, String password, String loginName) throws Exception {
 		RequestContext requestContext = new RequestContext(request);
 		Client client = Client.get(request);
-		XSession xsession = null;
 		HttpSession session = request.getSession();//所有身份认证通过，创建session
 		if(appSessionTimeout!=null&&client.isApp()) {//APP设置超时时间
 			session.setMaxInactiveInterval(Integer.parseInt(String.valueOf(Duration.parse(appSessionTimeout).getSeconds())));
@@ -255,16 +249,12 @@ public class AuthorizationServerController {
 			user = new User();
 			user.setId(userId);
 			user.setName(requestContext.getMessage("auth.tourist"));
-			xsession = new XSession();
 			tourist = true;
 		} else {
 			if(password!=null&&!password.equalsIgnoreCase(user.getPassword()))
 				return new Result(LOGIN_STATUS_PWD_INCORRECT, requestContext.getMessage("auth.account.pwd_incorrect"));
-			if(authActions!=null) {
-				Map<String, Serializable> attrs = new HashMap<String, Serializable>();
-				user.setAttributes(attrs);
-				authActions.onLogin(userId, attrs);
-			}
+			if(authActions!=null)
+				authActions.onLogin(userId);
 			if(sessionInvalidation!=null) {//同一user同一类端之间互踢，清除session
 				String originalJsessionid = CommonHelper.trim(user.getJsessionid());
 				if(originalJsessionid!=null&&!originalJsessionid.equals(session.getId())) {
@@ -278,7 +268,8 @@ public class AuthorizationServerController {
 				}
 			}
 			user.setJsessionid(session.getId());
-			xsession = xSessionService==null?new XSession():xSessionService.create(user);
+			if(enablePermissionAndRole)
+				userService.loadAuth(user);
 		}
 		if(!tourist) {
 			if(CommonHelper.isMobilePhone(loginName)) {
@@ -301,11 +292,10 @@ public class AuthorizationServerController {
 				}
 			}
 		}
-		xsession.setUser(user);
-		session.setAttribute(AuthConstants.ATTR_SESSION, xsession);
+		session.setAttribute(AuthConstants.ATTR_SESSION, user);
 		Result result = Result.newSuccess();
 		result.setMsg(requestContext.getMessage(result.getMsg()));
-		result.setData(client.isJson()?new ObjectMapper().writeValueAsString(xsession):xsession);
+		result.setData(client.isJson()?new ObjectMapper().writeValueAsString(user):user);
 		return result;
 	}
 

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.quincy.sdk.AuthHelper;
-import com.quincy.sdk.o.XSession;
+import com.quincy.sdk.o.User;
 
 import freemarker.core.Environment;
 import freemarker.template.TemplateDirectiveBody;
@@ -26,8 +26,8 @@ public abstract class AbstractHtmlTemplateDirectiveModel implements TemplateDire
 			output = true;
 		} else {
 			String permissionName = permission.toString();
-			XSession session = AuthHelper.getSession();
-			List<String> permissions = session.getPermissions();
+			User user = AuthHelper.getUser();
+			List<String> permissions = user.getPermissions();
 			for(String p:permissions) {
 				if(p.equalsIgnoreCase(permissionName)) {
 					output = true;
