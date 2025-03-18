@@ -253,8 +253,6 @@ public class AuthorizationServerController {
 		} else {
 			if(password!=null&&!password.equalsIgnoreCase(user.getPassword()))
 				return new Result(LOGIN_STATUS_PWD_INCORRECT, requestContext.getMessage("auth.account.pwd_incorrect"));
-			if(authActions!=null)
-				authActions.onLogin(userId);
 			if(sessionInvalidation!=null) {//同一user同一类端之间互踢，清除session
 				String originalJsessionid = CommonHelper.trim(user.getJsessionid());
 				if(originalJsessionid!=null&&!originalJsessionid.equals(session.getId())) {
