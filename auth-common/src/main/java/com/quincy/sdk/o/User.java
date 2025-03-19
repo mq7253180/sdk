@@ -29,7 +29,5 @@ public class User implements Serializable {
 	private List<String> roles;
 	private List<String> permissions;
 	private List<Menu> menus;
-	private Enterprise currentEnterprise;//当前已选租户
-	private List<Enterprise> enterprises;//多租户
 	private Map<String, BigDecimal> currencyAccounts;
 }

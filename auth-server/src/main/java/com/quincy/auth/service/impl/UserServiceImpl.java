@@ -21,10 +21,10 @@ import com.quincy.auth.entity.LoginUserMappingEntity;
 import com.quincy.auth.entity.Permission;
 import com.quincy.auth.entity.Role;
 import com.quincy.auth.entity.UserEntity;
-import com.quincy.auth.mapper.AuthMapper;
 import com.quincy.auth.service.UserService;
 import com.quincy.auth.service.UserUpdation;
 import com.quincy.core.dao.UtilsDao;
+import com.quincy.sdk.AuthServerActions;
 import com.quincy.sdk.Client;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.annotation.jdbc.ReadOnly;
@@ -34,21 +34,22 @@ import com.quincy.sdk.o.User;
 
 @Service
 public class UserServiceImpl implements UserService {
-	@Autowired
-	private AuthMapper authMapper;
+//	@Autowired
+//	private AuthMapper authMapper;
 	@Autowired
 	protected LoginUserMappingRepository loginUserMappingRepository;
 	@Autowired
 	protected UserRepository userRepository;
 	@Autowired
 	private UtilsDao utilsDao;
+	@Autowired
+	private AuthServerActions authServerActions;
 
 	@ReadOnly
 	@Override
 	public void loadAuth(User user) {
-		Long enterpriseId = user.getCurrentEnterprise()==null?null:user.getCurrentEnterprise().getId();
 		//角色
-		List<Role> roleList = authMapper.findRolesByUserIdAndEnterpriseId(user.getId(), enterpriseId);
+		List<Role> roleList = authServerActions.findRoles(user.getId());
 		Map<Long, String> roleMap = new HashMap<Long, String>(roleList.size());
 		for(Role role:roleList)//去重
 			roleMap.put(role.getId(), role.getName());
@@ -56,7 +57,7 @@ public class UserServiceImpl implements UserService {
 		roles.addAll(roleMap.values());
 		user.setRoles(roles);
 		//权限
-		List<Permission> permissionList = authMapper.findPermissionsByUserIdAndEnterpriseId(user.getId(), enterpriseId);
+		List<Permission> permissionList = authServerActions.findPermissions(user.getId());
 		Map<Long, String> permissionMap = new HashMap<Long, String>(permissionList.size());
 		for(Permission permission:permissionList)//去重
 			permissionMap.put(permission.getId(), permission.getName());
@@ -64,12 +65,12 @@ public class UserServiceImpl implements UserService {
 		permissions.addAll(permissionMap.values());
 		user.setPermissions(permissions);
 		//菜单
-		List<Menu> rootMenus = this.findMenusByUserIdAndEnterpriseId(user.getId(), enterpriseId);
+		List<Menu> rootMenus = this.findMenusByUserIdAndEnterpriseId(user.getId());
 		user.setMenus(rootMenus);
 	}
 
-	private List<Menu> findMenusByUserIdAndEnterpriseId(Long userId, Long enterpriseId) {
-		List<Menu> allMenus = authMapper.findMenusByUserIdAndEnterpriseId(userId, enterpriseId);
+	private List<Menu> findMenusByUserIdAndEnterpriseId(Long userId) {
+		List<Menu> allMenus = authServerActions.findMenus(userId);
 		Map<Long, Menu> duplicateRemovedMenus = new HashMap<Long, Menu>(allMenus.size());
 		for(Menu menu:allMenus)
 			duplicateRemovedMenus.put(menu.getId(), menu);

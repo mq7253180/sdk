@@ -21,7 +21,7 @@ import com.quincy.auth.entity.UserEntity;
 import com.quincy.auth.service.UserService;
 import com.quincy.core.InnerConstants;
 import com.quincy.core.InnerHelper;
-import com.quincy.sdk.AuthActions;
+import com.quincy.sdk.AuthServerActions;
 import com.quincy.sdk.Client;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.TempPwdLoginEmailInfo;
@@ -42,14 +42,12 @@ public class AuthorizationServerController {
 	private TempPwdLoginEmailInfo tempPwdLoginEmailInfo;
 	@Value("${auth.tmppwd.length:32}")
 	private int tmppwdLength;
-	@Value("${auth.permissionAndRole:false}")
-	private boolean enablePermissionAndRole;
 	@Autowired(required = false)
 	private UserService userService;
 	@Autowired(required = false)
 	private SessionInvalidation sessionInvalidation;
 	@Autowired(required = false)
-	private AuthActions authActions;
+	private AuthServerActions authActions;
 	@Value("${server.servlet.session.timeout.mobile:#{null}}")
 	private String mobileSessionTimeout;
 	@Value("${server.servlet.session.timeout.app:#{null}}")
@@ -266,8 +264,7 @@ public class AuthorizationServerController {
 				}
 			}
 			user.setJsessionid(session.getId());
-			if(enablePermissionAndRole)
-				userService.loadAuth(user);
+			userService.loadAuth(user);
 		}
 		if(!tourist) {
 			if(CommonHelper.isMobilePhone(loginName)) {
