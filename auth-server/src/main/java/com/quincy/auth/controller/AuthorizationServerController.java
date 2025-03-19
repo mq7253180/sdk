@@ -47,7 +47,7 @@ public class AuthorizationServerController {
 	@Autowired(required = false)
 	private SessionInvalidation sessionInvalidation;
 	@Autowired(required = false)
-	private AuthServerActions authActions;
+	private AuthServerActions authServerActions;
 	@Value("${server.servlet.session.timeout.mobile:#{null}}")
 	private String mobileSessionTimeout;
 	@Value("${server.servlet.session.timeout.app:#{null}}")
@@ -265,6 +265,10 @@ public class AuthorizationServerController {
 			}
 			user.setJsessionid(session.getId());
 			userService.loadAuth(user);
+			Assert.notNull(authServerActions, "AuthServerActions没有实现");
+			Object userExt = authServerActions.userExt(user);
+			if(userExt!=null)
+				session.setAttribute(AuthConstants.ATTR_USER_EXT, userExt);
 		}
 		if(!tourist) {
 			if(CommonHelper.isMobilePhone(loginName)) {
@@ -309,7 +313,7 @@ public class AuthorizationServerController {
 	@RequestMapping("/signup/vcode")
 	@ResponseBody
 	public Result sendVCode(HttpServletRequest request, @RequestParam(PARA_NAME_USERNAME) String loginName) throws Exception {
-		Assert.notNull(authActions, "AuthActions没有实现");
+		Assert.notNull(authServerActions, "AuthServerActions没有实现");
 		Long userId = userService.findUserId(loginName);
 		Result result = null;
 		if(userId!=null) {
@@ -319,7 +323,7 @@ public class AuthorizationServerController {
 				vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.DIGITS, 6, loginName, tempPwdLoginEmailInfo.getSubject(), tempPwdLoginEmailInfo.getContent());
 			} else if(CommonHelper.isMobilePhone(loginName)) {
 				vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.DIGITS, 6, (vcode, expireMinuts)->{
-					authActions.sms(loginName, new String(vcode), expireMinuts);
+					authServerActions.sms(loginName, new String(vcode), expireMinuts);
 				});
 			} else
 				result = new Result(-1, "auth.signup.valid");
@@ -353,7 +357,7 @@ public class AuthorizationServerController {
 	 */
 	@RequestMapping("/vcode/sms")
 	public ModelAndView vcodeToSms(HttpServletRequest request, @RequestParam(required = true, name = PARA_NAME_USERNAME)String phoneNmumer) throws Exception {
-		Assert.notNull(authActions, "AuthActions没有实现");
+		Assert.notNull(authServerActions, "AuthServerActions没有实现");
 		return this.sendVCode(request, phoneNmumer, "email", new Sender() {
 			@Override
 			public boolean validate(String username) {
@@ -363,7 +367,7 @@ public class AuthorizationServerController {
 			@Override
 			public void send(String username) throws Exception {
 				vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.DIGITS, 6, (vcode, expireMinuts)->{
-					authActions.sms(username, new String(vcode), expireMinuts);
+					authServerActions.sms(username, new String(vcode), expireMinuts);
 				});
 			}
 		});
