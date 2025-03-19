@@ -24,4 +24,6 @@ public class Role {
 //	private Set<Permission> permissions;
 	@Column(name="name")
 	private String name;
+	@Column(name="enterprise_id")
+	private Long enterpriseId;
 }
