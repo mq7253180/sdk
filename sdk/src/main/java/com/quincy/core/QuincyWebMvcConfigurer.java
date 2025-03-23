@@ -24,6 +24,7 @@ import com.quincy.core.web.freemarker.I18NTemplateDirectiveModelBean;
 import com.quincy.core.web.freemarker.LocaleTemplateDirectiveModelBean;
 import com.quincy.core.web.freemarker.PropertiesTemplateDirectiveModelBean;
 import com.quincy.sdk.Constants;
+import com.quincy.sdk.annotation.CustomizedBeforeAuthInterceptor;
 import com.quincy.sdk.annotation.CustomizedInterceptor;
 
 @Configuration
@@ -47,6 +48,17 @@ public class QuincyWebMvcConfigurer implements WebMvcConfigurer {
 		if(Constants.ENV_DEV.equals(env))
 			registry.addInterceptor(new StaticInterceptor()).addPathPatterns("/static/**");
 		registry.addInterceptor(new GeneralInterceptor(accessControlAllowOrigin)).addPathPatterns("/**");
+		Map<String, Object> map = applicationContext.getBeansWithAnnotation(CustomizedBeforeAuthInterceptor.class);
+		for(Object interceptor:map.values()) {
+			CustomizedBeforeAuthInterceptor annotation = interceptor.getClass().getDeclaredAnnotation(CustomizedBeforeAuthInterceptor.class);
+			InterceptorRegistration registration = registry.addInterceptor((HandlerInterceptor)interceptor)
+					.addPathPatterns(annotation.pathPatterns())
+					.excludePathPatterns(EXCLUDE_PATH_PATTERNS)
+					.order(annotation.order());
+			String[] excludePathPatterns = annotation.excludePathPatterns();
+			if(excludePathPatterns!=null&&excludePathPatterns.length>0)
+				registration.excludePathPatterns(excludePathPatterns);
+		}
 		if(publicKeyGetter!=null)
 			registry.addInterceptor(new SignatureInterceptor(publicKeyGetter)).addPathPatterns("/**").excludePathPatterns(EXCLUDE_PATH_PATTERNS);
 		registry.addInterceptor(vCodeInterceptor).addPathPatterns("/**").excludePathPatterns(EXCLUDE_PATH_PATTERNS);
@@ -54,7 +66,7 @@ public class QuincyWebMvcConfigurer implements WebMvcConfigurer {
 			HandlerInterceptorAdapter handlerInterceptorAdapter = (HandlerInterceptorAdapter)quincyAuthInterceptor;
 			registry.addInterceptor(handlerInterceptorAdapter).addPathPatterns("/**").excludePathPatterns(EXCLUDE_PATH_PATTERNS);
 		}
-		Map<String, Object> map = applicationContext.getBeansWithAnnotation(CustomizedInterceptor.class);
+		map = applicationContext.getBeansWithAnnotation(CustomizedInterceptor.class);
 		for(Object interceptor:map.values()) {
 			CustomizedInterceptor annotation = interceptor.getClass().getDeclaredAnnotation(CustomizedInterceptor.class);
 			InterceptorRegistration registration = registry.addInterceptor((HandlerInterceptor)interceptor)
