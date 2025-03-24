@@ -620,7 +620,7 @@ public class CommonHelper {
 			if(in!=null)
 				in.close();
 		}*/
-		String path = "/Users/maqiang/github/quincy/sdk-21";
+		String path = "/Users/maqiang/github/ccm/tiger-upper-cut";
 		deleteFileR(path, ".DS_Store");
 		deleteFileR(path, ".project");
 		deleteFileR(path, ".classpath");

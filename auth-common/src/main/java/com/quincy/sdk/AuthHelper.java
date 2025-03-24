@@ -19,13 +19,14 @@ public class AuthHelper {
 		return getUser(request);
 	}
 
-	public static void setUser(HttpServletRequest request, User user) {
+	public static Object getUserExt(HttpServletRequest request) {
 		HttpSession session = request.getSession(false);
-		session.setAttribute(AuthConstants.ATTR_SESSION, user);
+		Object userExt = session==null?null:session.getAttribute(AuthConstants.ATTR_USER_EXT);
+		return userExt;
 	}
 
-	public static void setUser(User user) {
+	public static Object getUserExt() {
 		HttpServletRequest request = CommonHelper.getRequest();
-		setUser(request, user);
+		return getUserExt(request);
 	}
 }
