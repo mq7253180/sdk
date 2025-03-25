@@ -19,6 +19,10 @@ public class AuthHelper {
 		return getUser(request);
 	}
 
+	public static void setUser(HttpServletRequest request, User user) {
+		request.getSession(false).setAttribute(AuthConstants.ATTR_SESSION, user);
+	}
+
 	public static Object getUserExt(HttpServletRequest request) {
 		HttpSession session = request.getSession(false);
 		Object userExt = session==null?null:session.getAttribute(AuthConstants.ATTR_USER_EXT);
