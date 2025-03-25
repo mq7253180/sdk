@@ -291,6 +291,7 @@ public class AuthorizationServerController {
 				}
 			}
 		}
+		user.setPassword(null);
 		session.setAttribute(AuthConstants.ATTR_SESSION, user);
 		Result result = Result.newSuccess();
 		result.setMsg(requestContext.getMessage(result.getMsg()));
