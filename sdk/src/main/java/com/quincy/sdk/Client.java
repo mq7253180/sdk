@@ -11,7 +11,8 @@ public enum Client {
 	PC_Ajax("pc_ajax", "j", ContentType.APPLICATION_JSON.toString()), 
 	Mobile_Page("mobile_page", "m", null), 
 	Mobile_Ajax("mobile_ajax", "j", ContentType.APPLICATION_JSON.toString()), 
-	Simple_Json("simple_json", "j", ContentType.APPLICATION_JSON.toString()), 
+	ResponseBody_Json("ResponseBody_json", "j", ContentType.APPLICATION_JSON.toString()),
+	ContentType_Json("ContentType_json", "j", ContentType.APPLICATION_JSON.toString()),
 	Android("android", "j", ContentType.APPLICATION_JSON.toString()), 
 	iOS("ios", "j", ContentType.APPLICATION_JSON.toString());
 	
@@ -99,8 +100,10 @@ public enum Client {
 				HandlerMethod method = (HandlerMethod)handler;
 				ResponseBody annotation = method.getMethod().getDeclaredAnnotation(ResponseBody.class);
 				if(annotation!=null)
-					return Simple_Json;
+					return ResponseBody_Json;
 			}
+			if(ContentType.APPLICATION_JSON.toString().indexOf(request.getContentType())>=0)
+				return ContentType_Json;
 		}
 		String flag = a+"_"+b;
 		for (Client c : Client.values()) { 
