@@ -20,6 +20,7 @@ import com.quincy.auth.dao.UserRepository;
 import com.quincy.auth.entity.LoginUserMappingEntity;
 import com.quincy.auth.entity.Permission;
 import com.quincy.auth.entity.Role;
+import com.quincy.auth.entity.UserDto;
 import com.quincy.auth.entity.UserEntity;
 import com.quincy.auth.service.UserService;
 import com.quincy.auth.service.UserUpdation;

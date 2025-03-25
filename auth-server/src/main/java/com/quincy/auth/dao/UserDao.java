@@ -1,6 +1,6 @@
 package com.quincy.auth.dao;
 
-import com.quincy.auth.service.impl.UserDto;
+import com.quincy.auth.entity.UserDto;
 import com.quincy.sdk.annotation.jdbc.ExecuteQuery;
 import com.quincy.sdk.annotation.jdbc.JDBCDao;
 

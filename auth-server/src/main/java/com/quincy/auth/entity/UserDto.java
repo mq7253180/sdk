@@ -1,4 +1,4 @@
-package com.quincy.auth.service.impl;
+package com.quincy.auth.entity;
 
 import java.io.Serializable;
 import java.util.Date;
