@@ -102,7 +102,7 @@ public enum Client {
 				if(annotation!=null)
 					return ResponseBody_Json;
 			}
-			if(ContentType.APPLICATION_JSON.toString().indexOf(request.getContentType())>=0)
+			if(request.getContentType()!=null&&ContentType.APPLICATION_JSON.toString().indexOf(request.getContentType())>=0)
 				return ContentType_Json;
 		}
 		String flag = a+"_"+b;
