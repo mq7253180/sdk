@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.Map.Entry;
 
@@ -16,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import com.quincy.auth.dao.LoginUserMappingRepository;
+import com.quincy.auth.dao.UserDao;
 import com.quincy.auth.dao.UserRepository;
 import com.quincy.auth.entity.LoginUserMappingEntity;
 import com.quincy.auth.entity.Permission;
@@ -34,14 +34,14 @@ import com.quincy.sdk.o.User;
 
 @Service
 public class UserServiceImpl implements UserService {
-//	@Autowired
-//	private AuthMapper authMapper;
 	@Autowired
 	protected LoginUserMappingRepository loginUserMappingRepository;
 	@Autowired
 	protected UserRepository userRepository;
 	@Autowired
 	private UtilsDao utilsDao;
+	@Autowired
+	private UserDao userDao;
 	@Autowired
 	private AuthServerActions authServerActions;
 
@@ -50,40 +50,48 @@ public class UserServiceImpl implements UserService {
 	public void loadAuth(User user) {
 		//角色
 		List<Role> roleList = authServerActions.findRoles(user.getId());
-		Map<Long, String> roleMap = new HashMap<Long, String>(roleList.size());
-		for(Role role:roleList)//去重
-			roleMap.put(role.getId(), role.getName());
-		List<String> roles = new ArrayList<String>(roleMap.size());
-		roles.addAll(roleMap.values());
-		user.setRoles(roles);
+		if(roleList!=null&&roleList.size()>0) {
+			Map<Long, String> roleMap = new HashMap<Long, String>(roleList.size());
+			for(Role role:roleList)//去重
+				roleMap.put(role.getId(), role.getName());
+			List<String> roles = new ArrayList<String>(roleMap.size());
+			roles.addAll(roleMap.values());
+			user.setRoles(roles);
+		}
 		//权限
 		List<Permission> permissionList = authServerActions.findPermissions(user.getId());
-		Map<Long, String> permissionMap = new HashMap<Long, String>(permissionList.size());
-		for(Permission permission:permissionList)//去重
-			permissionMap.put(permission.getId(), permission.getName());
-		List<String> permissions = new ArrayList<String>(permissionMap.size());
-		permissions.addAll(permissionMap.values());
-		user.setPermissions(permissions);
+		if(permissionList!=null&&permissionList.size()>0) {
+			Map<Long, String> permissionMap = new HashMap<Long, String>(permissionList.size());
+			for(Permission permission:permissionList)//去重
+				permissionMap.put(permission.getId(), permission.getName());
+			List<String> permissions = new ArrayList<String>(permissionMap.size());
+			permissions.addAll(permissionMap.values());
+			user.setPermissions(permissions);
+		}
 		//菜单
 		List<Menu> rootMenus = this.findMenusByUserIdAndEnterpriseId(user.getId());
-		user.setMenus(rootMenus);
+		if(rootMenus!=null&&rootMenus.size()>0)
+			user.setMenus(rootMenus);
 	}
 
 	private List<Menu> findMenusByUserIdAndEnterpriseId(Long userId) {
 		List<Menu> allMenus = authServerActions.findMenus(userId);
-		Map<Long, Menu> duplicateRemovedMenus = new HashMap<Long, Menu>(allMenus.size());
-		for(Menu menu:allMenus)
-			duplicateRemovedMenus.put(menu.getId(), menu);
-		List<Menu> rootMenus = new ArrayList<Menu>(duplicateRemovedMenus.size());
-		Set<Entry<Long, Menu>> entrySet = duplicateRemovedMenus.entrySet();
-		for(Entry<Long, Menu> entry:entrySet) {
-			Menu menu = entry.getValue();
-			if(menu.getPId()==null) {
-				rootMenus.add(menu);
-				this.loadChildrenMenus(menu, entrySet);
+		if(allMenus!=null&&allMenus.size()>0) {
+			Map<Long, Menu> duplicateRemovedMenus = new HashMap<Long, Menu>(allMenus.size());
+			for(Menu menu:allMenus)
+				duplicateRemovedMenus.put(menu.getId(), menu);
+			List<Menu> rootMenus = new ArrayList<Menu>(duplicateRemovedMenus.size());
+			Set<Entry<Long, Menu>> entrySet = duplicateRemovedMenus.entrySet();
+			for(Entry<Long, Menu> entry:entrySet) {
+				Menu menu = entry.getValue();
+				if(menu.getPId()==null) {
+					rootMenus.add(menu);
+					this.loadChildrenMenus(menu, entrySet);
+				}
 			}
-		}
-		return rootMenus;
+			return rootMenus;
+		} 
+		return null;
 	}
 
 	private void loadChildrenMenus(Menu parent, Set<Entry<Long, Menu>> entrySet) {
@@ -165,12 +173,8 @@ public class UserServiceImpl implements UserService {
 	@Override
 	@ReadOnly
 	public User find(Long id, Client client) {
-		Optional<UserEntity> optional = userRepository.findById(id);
-		if(optional.isPresent()) {
-			UserEntity entity = optional.get();
-			return this.toUser(entity, client);
-		} else
-			return null;
+		UserDto dto = userDao.find(id);
+		return dto==null?null:this.toUser(dto, client);
 	}
 
 	@Override
@@ -180,6 +184,26 @@ public class UserServiceImpl implements UserService {
 		vo.setId(userId);
 		vo.setPassword(password);
 		this.update(vo);
+	}
+
+	protected User toUser(UserDto entity, Client client) {
+		User user = new User();
+		user.setId(entity.getId());
+		user.setCreationTime(entity.getCreationTime());
+		user.setName(entity.getName());
+		user.setUsername(entity.getUsername());
+		user.setMobilePhone(entity.getMobilePhone());
+		user.setEmail(entity.getEmail());
+		user.setPassword(entity.getPassword());
+		user.setGender(entity.getGender());
+		user.setAvatar(entity.getAvatar());
+		if(client.isPc())
+			user.setJsessionid(entity.getPcBrowserJsessionid());
+		else if(client.isMobile())
+			user.setJsessionid(entity.getMobileBrowserJsessionid());
+		else if(client.isApp())
+			user.setJsessionid(entity.getAppJsessionid());
+		return user;
 	}
 
 	protected User toUser(UserEntity entity, Client client) {
