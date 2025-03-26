@@ -66,6 +66,7 @@ public class ShardingAop {
 	    		Assert.isTrue(index>-1, "Sharding key must be specified using @ShardingKey before parameter, and with type of Integer or Long!!!");
 	    		Object[] args = joinPoint.getArgs();
 		    	Object shardingArgObj = args[index];
+		    	Assert.notNull(shardingArgObj, "The value of @ShardingKey specified can not be null.");
 		    	Assert.isTrue(shardingArgObj instanceof Integer||shardingArgObj instanceof Long, "Only Long or Integer are acceptable as parameter of sharding key!!!");
 		    	Long shardingArg = Long.valueOf(shardingArgObj.toString());
 		    	Long shardingKey = snowFlake?SnowFlake.extractShardingKey(shardingArg):shardingArg;
