@@ -1,6 +1,5 @@
 package com.quincy.sdk;
 
-import java.io.Serializable;
 import java.util.List;
 
 import com.quincy.auth.entity.Permission;
@@ -9,7 +8,7 @@ import com.quincy.sdk.o.Menu;
 import com.quincy.sdk.o.User;
 
 public interface AuthServerActions {
-	public abstract <T extends Serializable> T userExt(User user);
+	public abstract Object userExt(User user);
 	public abstract void sms(String mobilePhone, String vcode, int expireMinuts);
 	public abstract List<Role> findRoles(Long userId);
 	public abstract List<Permission> findPermissions(Long userId);

@@ -52,7 +52,7 @@ public class AuthorizationServerController {
 	private String mobileSessionTimeout;
 	@Value("${server.servlet.session.timeout.app:#{null}}")
 	private String appSessionTimeout;
-	private final static String PARA_NAME_USERNAME = "username";
+	public final static String PARA_NAME_USERNAME = "username";
 	private final static String SESSION_ATTR_NAME_USERID = "userid";
 	private final static String SESSION_ATTR_NAME_LOGINNAME = "loginname";
 	protected final static int LOGIN_STATUS_PWD_INCORRECT = -3;
@@ -118,7 +118,7 @@ public class AuthorizationServerController {
 		return InnerHelper.modelAndViewResult(request, result, redirectTo!=null?"redirect:"+redirectTo:null);
 	}
 
-	private Result pwdLogin(HttpServletRequest request, String username, String _password) throws Exception {
+	public Result pwdLogin(HttpServletRequest request, String username, String _password) throws Exception {
 		RequestContext requestContext = new RequestContext(request);
 		Result result = this.validate(request, username);
 		if(result.getStatus()<1) {
