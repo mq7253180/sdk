@@ -337,6 +337,9 @@ public class AuthorizationServerController {
 		return result;
 	}
 
+	@Value("${spring.datasource.sharding.count}")
+	private int shardingCount;
+
 	@RequestMapping("/signup")
 	@ResponseBody
 	public Result signUp(HttpServletRequest request) throws Exception {
@@ -348,7 +351,7 @@ public class AuthorizationServerController {
 				result = new Result(0, new RequestContext(request).getMessage("auth.mapping.new"));
 			} else {
 				result = this.login(request, userId, loginName);
-				result.setMsg(loginName+"注册成功，userId为"+userId+"，在第"+(loginName.hashCode()%8)+"个分片");
+				result.setMsg(loginName+"注册成功，userId为"+userId+"，在第"+(loginName.hashCode()%shardingCount)+"个分片");
 			}
 		}
 		return result;
