@@ -4,13 +4,13 @@ import com.quincy.sdk.annotation.jdbc.Column;
 import com.quincy.sdk.annotation.jdbc.DTO;
 
 @DTO
-public class Role {
+public class PermissionAllShards {
 	@Column("id")
 	private Long id;
 	@Column("name")
 	private String name;
-	@Column("enterprise_id")
-	private Long enterpriseId;
+	@Column("des")
+	private String des;
 	public Long getId() {
 		return id;
 	}
@@ -23,10 +23,10 @@ public class Role {
 	public void setName(String name) {
 		this.name = name;
 	}
-	public Long getEnterpriseId() {
-		return enterpriseId;
+	public String getDes() {
+		return des;
 	}
-	public void setEnterpriseId(Long enterpriseId) {
-		this.enterpriseId = enterpriseId;
+	public void setDes(String des) {
+		this.des = des;
 	}
 }

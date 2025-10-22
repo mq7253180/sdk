@@ -9,6 +9,7 @@ import org.springframework.web.servlet.support.RequestContext;
 
 import com.quincy.sdk.Client;
 import com.quincy.sdk.Result;
+import com.quincy.sdk.SelfException;
 import com.quincy.sdk.helper.HttpClientHelper;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,7 +20,17 @@ import lombok.extern.slf4j.Slf4j;
 public class GlobalHandlerExceptionResolver {//implements HandlerExceptionResolver {
 //	@Override
 	public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object handler, Exception e) {
-		log.error(HttpClientHelper.getRequestURIOrURL(request, HttpClientHelper.FLAG_URL), e);
+		String viewName = "/error_";
+		String msg = null;
+		boolean self = e instanceof SelfException;
+		if(self) {
+			msg = e.getMessage();
+			viewName += "self_exception_";
+		} else {
+			RequestContext requestContext = new RequestContext(request);
+			msg = requestContext.getMessage(Result.I18N_KEY_EXCEPTION);
+			log.error(HttpClientHelper.getRequestURIOrURL(request, HttpClientHelper.FLAG_URL), e);
+		}
 		Client client = Client.get(request, handler);
 		String exception = null;
 		if(!client.isJson()) {
@@ -29,9 +40,8 @@ public class GlobalHandlerExceptionResolver {//implements HandlerExceptionResolv
 			response.setHeader("Content-Type", client.getContentType());
 		}
 //		response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-		RequestContext requestContext = new RequestContext(request);
-		return new ModelAndView("/error_"+client.getSuffix())
-				.addObject("msg", requestContext.getMessage(Result.I18N_KEY_EXCEPTION))
+		return new ModelAndView(viewName+client.getSuffix())
+				.addObject("msg", msg)
 				.addObject("exception", exception);
 	}
 

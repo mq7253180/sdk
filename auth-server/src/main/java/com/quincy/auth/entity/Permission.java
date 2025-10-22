@@ -1,26 +1,32 @@
 package com.quincy.auth.entity;
 
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import com.quincy.sdk.annotation.jdbc.Column;
+import com.quincy.sdk.annotation.jdbc.DTO;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.Id;
-import lombok.Data;
-
-@Data
-@DynamicInsert
-@DynamicUpdate
-@EntityListeners({AuditingEntityListener.class})
-@Entity(name = "s_permission")
+@DTO
 public class Permission {
-	@Id
-	@Column(name="id")
+	@Column("id")
 	private Long id;
-	@Column(name="name")
+	@Column("name")
 	private String name;
-	@Column(name="des")
+	@Column("des")
 	private String des;
+	public Long getId() {
+		return id;
+	}
+	public void setId(Long id) {
+		this.id = id;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public String getDes() {
+		return des;
+	}
+	public void setDes(String des) {
+		this.des = des;
+	}
 }

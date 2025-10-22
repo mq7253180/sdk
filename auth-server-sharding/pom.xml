@@ -3,7 +3,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>quincy-auth-server-sharding</artifactId>
-	<name>Auth-Server Sharding</name>
+	<name>Auth Server Sharding</name>
 	<url>https://github.com/mq7253180/sdk/tree/master/auth-server</url>
 	<parent>
 		<groupId>com.quincy</groupId>

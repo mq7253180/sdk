@@ -1,7 +1,7 @@
 package com.quincy.auth.service;
 
-import com.quincy.auth.entity.UserEntity;
+import com.quincy.auth.entity.UserDto;
 
 public interface UserUpdation {
-	public void setLoginName(UserEntity vo);
+	public void setLoginName(UserDto vo);
 }

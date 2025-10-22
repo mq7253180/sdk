@@ -12,19 +12,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import com.quincy.auth.controller.RootController;
-import com.quincy.auth.dao.PermissionRepository;
+import com.quincy.auth.dao.PermissionDao;
 import com.quincy.auth.entity.Permission;
+import com.quincy.core.JdbcHolder;
 import com.quincy.sdk.RootControllerHandler;
 import com.quincy.sdk.helper.RSASecurityHelper;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+@DependsOn(JdbcHolder.INIT_CONFIGURATION_BEAN_NAME)
 @Configuration
 public class AuthServerInitialization {//implements BeanDefinitionRegistryPostProcessor {
 	@Autowired
@@ -52,10 +55,10 @@ public class AuthServerInitialization {//implements BeanDefinitionRegistryPostPr
 	}
 
 	@Autowired
-	private PermissionRepository permissionRepository;
+	private PermissionDao permissionDao;
 
 	private void loadPermissions() {
-		List<Permission> permissoins = permissionRepository.findAll();
+		List<Permission> permissoins = permissionDao.findAll();
 		AuthConstants.PERMISSIONS = new HashMap<String, String>(permissoins.size());
 		for(Permission permission:permissoins) {
 			AuthConstants.PERMISSIONS.put(permission.getName(), permission.getDes());

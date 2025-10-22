@@ -9,7 +9,7 @@ import com.quincy.sdk.Client;
 import com.quincy.sdk.Result;
 import com.quincy.sdk.SnowFlake;
 import com.quincy.sdk.o.User;
-import com.quincy.auth.entity.UserEntity;
+import com.quincy.auth.entity.UserDto;
 import com.quincy.auth.service.UserService;
 import com.quincy.auth.service.UserServiceShardingProxy;
 import com.quincy.auth.service.UserUpdation;
@@ -26,7 +26,7 @@ public class UserServiceShardingImpl implements UserService {
 	}
 
 	@Override
-	public UserEntity update(UserEntity vo) {
+	public UserDto update(UserDto vo) {
 		return this.userServiceShardingProxy.update(SnowFlake.extractShardingKey(vo.getId()), vo);
 	}
 
@@ -42,11 +42,11 @@ public class UserServiceShardingImpl implements UserService {
 
 	@Override
 	public void updatePassword(Long userId, String password) {
-		this.userServiceShardingProxy.updatePassword(SnowFlake.extractShardingKey(userId), userId, password);
+		this.userServiceShardingProxy.updatePassword(userId, password);
 	}
 
 	@Override
-	public Long add(UserEntity vo) {
+	public Long add(UserDto vo) {
 		Long userId = vo.getId();
 		Assert.notNull(userId, "必须先通过SnowFlake.nextId()生成userId！");
 		Long shardingKey = SnowFlake.extractShardingKey(userId);
@@ -78,9 +78,24 @@ public class UserServiceShardingImpl implements UserService {
 	@Override
 	public void deleteMappingAndUpdateUser(String oldLoginName, UserUpdation userUpdation, Long userId) {
 		this.userServiceShardingProxy.deleteMapping(oldLoginName.hashCode(), oldLoginName);
-		UserEntity vo = new UserEntity();
+		UserDto vo = new UserDto();
 		vo.setId(userId);
 		userUpdation.setLoginName(vo);
-		this.userServiceShardingProxy.update(SnowFlake.extractShardingKey(userId), vo);
+		userServiceShardingProxy.update(SnowFlake.extractShardingKey(userId), vo);
+	}
+
+	@Override
+	public int updateJsessionidPcBrowser(Long id, String jsessionid) {
+		return this.userServiceShardingProxy.updateJsessionidPcBrowser(id, jsessionid);
+	}
+
+	@Override
+	public int updateJsessionidMobileBrowser(Long id, String jsessionid) {
+		return this.userServiceShardingProxy.updateJsessionidMobileBrowser(id, jsessionid);
+	}
+
+	@Override
+	public int updateJsessionidApp(Long id, String jsessionid) {
+		return this.userServiceShardingProxy.updateJsessionidApp(id, jsessionid);
 	}
 }

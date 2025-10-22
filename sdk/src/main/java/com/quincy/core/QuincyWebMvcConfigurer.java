@@ -35,7 +35,7 @@ public class QuincyWebMvcConfigurer implements WebMvcConfigurer {
 	private ApplicationContext applicationContext;
 	@Value("${env}")
 	private String env;
-	@Value("${access-control-allow-origin}")
+	@Value("${access-control-allow-origin:#{null}}")
 	private String accessControlAllowOrigin;
 	@Autowired(required = false)
 	private QuincyAuthInterceptor quincyAuthInterceptor;
@@ -43,7 +43,7 @@ public class QuincyWebMvcConfigurer implements WebMvcConfigurer {
 	private PublicKeyGetter publicKeyGetter;
 	@Autowired
 	private VCodeController vCodeInterceptor;
-	@Value("#{'${uris.interceptor-exclusion}'.split(',')}")
+	@Value("#{'${uris.interceptor-exclusion:#{null}}'.split(',')}")
 	private String[] flexibleExclusionUris;
 	private final static String[] FIXED_EXCLUSION_PATH_PATTERN_S = new String[] {"/static/**", "/vcode/**", "/auth/**", "/failure", "/success"};
 	private static String[] EXCLUSION_PATH_PATTERN_S = null;
@@ -94,7 +94,8 @@ public class QuincyWebMvcConfigurer implements WebMvcConfigurer {
 					if(flexibleExclusionUris!=null&&flexibleExclusionUris.length>0) {
 						for(String _uriPatten:flexibleExclusionUris) {
 							String uriPatten = _uriPatten.trim();
-							list.add(uriPatten);
+							if(uriPatten.length()>0)
+								list.add(uriPatten);
 						}
 					}
 					EXCLUSION_PATH_PATTERN_S = list.toArray(new String[] {});
@@ -121,5 +122,18 @@ public class QuincyWebMvcConfigurer implements WebMvcConfigurer {
 		freemarkerCfg.setSharedVariable("i18n", new I18NTemplateDirectiveModelBean(applicationContext.getEnvironment()));
 		freemarkerCfg.setSharedVariable("property", new PropertiesTemplateDirectiveModelBean(applicationContext.getEnvironment()));
 		freemarkerCfg.setSharedVariable("locale", new LocaleTemplateDirectiveModelBean());
+    }
+   
+    public static void main(String[] args) {
+    	List<String> list = new ArrayList<>();
+    	list.add("aaa");
+    	list.add("bbb");
+    	list.add("ccc");
+    	list.add("ddd");
+    	list.add("eee");
+    	String[] ss = list.toArray(new String[] {"111", "222", "333"});
+    	for(String s:ss) {
+    		System.out.println("S---------------"+s);
+    	}
     }
 }

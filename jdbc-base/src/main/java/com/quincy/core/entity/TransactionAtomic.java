@@ -2,55 +2,123 @@ package com.quincy.core.entity;
 
 import java.util.List;
 
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import com.quincy.sdk.annotation.jdbc.Column;
+import com.quincy.sdk.annotation.jdbc.DTO;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Transient;
-import lombok.Data;
-
-@Data
-@DynamicInsert
-@DynamicUpdate
-@EntityListeners({AuditingEntityListener.class})
-@Entity(name = "s_transaction_atomic")
+@DTO
 public class TransactionAtomic {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name="id")
+	@Column("id")
 	private Long id;
-	@Column(name="tx_id")
+	@Column("tx_id")
 	private Long txId;
-	@Column(name="bean_name")
+	@Column("bean_name")
 	private String beanName;
-	@Column(name="method_name")
+	@Column("method_name")
 	private String methodName;//确认或撤消方法名
-	@Column(name="status")
+	@Column("status")
 	private Integer status;//1执行成功; 0还未执行或执行失败
-	@Column(name="sort")
+	@Column("sort")
 	private Integer sort;
-	@Column(name="ret_class")
+	@Column("ret_class")
 	private String retClass;
-	@Column(name="ret_value")
+	@Column("ret_value")
 	private String retValue;
-	@Column(name="msg")
+	@Column("msg")
 	private String msg;
-	@Transient
 	private String confirmMethodName;
-	@Transient
 	private Object[] args;
-	@Transient
 	private Class<?>[] parameterTypes;
-	@Transient
 	private String[] parameterTypeNames;
-	@Transient
 	private List<TransactionArg> argList;
-	@Transient
 	private Class<?> returnType;
+	public Long getId() {
+		return id;
+	}
+	public void setId(Long id) {
+		this.id = id;
+	}
+	public Long getTxId() {
+		return txId;
+	}
+	public void setTxId(Long txId) {
+		this.txId = txId;
+	}
+	public String getBeanName() {
+		return beanName;
+	}
+	public void setBeanName(String beanName) {
+		this.beanName = beanName;
+	}
+	public String getMethodName() {
+		return methodName;
+	}
+	public void setMethodName(String methodName) {
+		this.methodName = methodName;
+	}
+	public Integer getStatus() {
+		return status;
+	}
+	public void setStatus(Integer status) {
+		this.status = status;
+	}
+	public Integer getSort() {
+		return sort;
+	}
+	public void setSort(Integer sort) {
+		this.sort = sort;
+	}
+	public String getRetClass() {
+		return retClass;
+	}
+	public void setRetClass(String retClass) {
+		this.retClass = retClass;
+	}
+	public String getRetValue() {
+		return retValue;
+	}
+	public void setRetValue(String retValue) {
+		this.retValue = retValue;
+	}
+	public String getMsg() {
+		return msg;
+	}
+	public void setMsg(String msg) {
+		this.msg = msg;
+	}
+	public String getConfirmMethodName() {
+		return confirmMethodName;
+	}
+	public void setConfirmMethodName(String confirmMethodName) {
+		this.confirmMethodName = confirmMethodName;
+	}
+	public Object[] getArgs() {
+		return args;
+	}
+	public void setArgs(Object[] args) {
+		this.args = args;
+	}
+	public Class<?>[] getParameterTypes() {
+		return parameterTypes;
+	}
+	public void setParameterTypes(Class<?>[] parameterTypes) {
+		this.parameterTypes = parameterTypes;
+	}
+	public String[] getParameterTypeNames() {
+		return parameterTypeNames;
+	}
+	public void setParameterTypeNames(String[] parameterTypeNames) {
+		this.parameterTypeNames = parameterTypeNames;
+	}
+	public List<TransactionArg> getArgList() {
+		return argList;
+	}
+	public void setArgList(List<TransactionArg> argList) {
+		this.argList = argList;
+	}
+	public Class<?> getReturnType() {
+		return returnType;
+	}
+	public void setReturnType(Class<?> returnType) {
+		this.returnType = returnType;
+	}
 }

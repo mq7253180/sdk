@@ -14,45 +14,12 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
 	<distributionManagement>
-		<!--snapshotRepository>
-			<id>ossrh</id>
-			<name>snapshots</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-		</snapshotRepository>
 		<repository>
-			<id>ossrh</id>
-			<name>staging</name>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-		</repository-->
-		<snapshotRepository>
-			<id>quincy</id>
-			<name>snapshots</name>
-			<url>https://nexus.maqiang777.com/repository/maven-snapshots</url>
-		</snapshotRepository>
-		<repository>
-			<id>quincy</id>
+			<id>2526661-release-4z2rdh</id>
 			<name>releases</name>
-			<url>https://nexus.maqiang777.com/repository/maven-releases</url>
+			<url>https://packages.aliyun.com/67dd0a5db10c4deb4e8d64aa/maven/2526657-release-7mwbjg</url>
 		</repository>
 	</distributionManagement>
-	<licenses>
-		<license>
-			<name>Apache License, Version 2.0</name>
-			<url>https://www.apache.org/licenses/LICENSE-2.0</url>
-			<distribution>repo</distribution>
-		</license>
-	</licenses>
-	<scm>
-		<connection>scm:git:git://github.com/mq7253180/sdk</connection>
-		<developerConnection>scm:git:git://github.com/mq7253180/sdk</developerConnection>
-		<url>https://github.com/mq7253180/sdk</url>
-	</scm>
-	<developers>
-		<developer>
-			<name>Qiang Ma</name>
-			<email>mq7253180@126.com</email>
-		</developer>
-	</developers>
 	<build>
 		<plugins>
 			<plugin>
@@ -147,8 +114,6 @@
 		<module>jdbc</module>
 		<module>jdbc-sharding</module>
 		<module>redis</module>
-		<module>zookeeper</module>
-		<module>sftp</module>
 		<module>auth-common</module>
 		<module>auth-server</module>
 		<module>auth-server-redis</module>

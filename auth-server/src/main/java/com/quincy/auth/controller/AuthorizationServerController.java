@@ -17,7 +17,6 @@ import com.quincy.core.VCodeConstants;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quincy.auth.AuthConstants;
 import com.quincy.auth.SessionInvalidation;
-import com.quincy.auth.entity.UserEntity;
 import com.quincy.auth.service.UserService;
 import com.quincy.core.InnerConstants;
 import com.quincy.core.InnerHelper;
@@ -55,7 +54,7 @@ public class AuthorizationServerController {
 	public final static String PARA_NAME_USERNAME = "username";
 	private final static String SESSION_ATTR_NAME_USERID = "userid";
 	private final static String SESSION_ATTR_NAME_LOGINNAME = "loginname";
-	protected final static int LOGIN_STATUS_PWD_INCORRECT = -3;
+	protected final static int LOGIN_STATUS_PWD_INCORRECT = -23;
 	/**
 	 * 进登录页
 	 */
@@ -146,7 +145,7 @@ public class AuthorizationServerController {
 		if(result.getStatus()==1) {
 			HttpSession session = request.getSession(false);
 			Object userId = session.getAttribute(SESSION_ATTR_NAME_USERID);
-			result = userId==null?new Result(-9, new RequestContext(request).getMessage("auth.account.vcode_no")):login(request, Long.valueOf(userId.toString()), session.getAttribute(SESSION_ATTR_NAME_LOGINNAME).toString());
+			result = userId==null?new Result(-29, new RequestContext(request).getMessage("auth.account.vcode_no")):login(request, Long.valueOf(userId.toString()), session.getAttribute(SESSION_ATTR_NAME_LOGINNAME).toString());
 		}
 		return InnerHelper.modelAndViewResult(request, result, redirectTo!=null?"redirect:"+redirectTo:null);
 	}
@@ -174,11 +173,11 @@ public class AuthorizationServerController {
 		String msgI18N = null;
 		String username = CommonHelper.trim(_username);
 		if(username==null) {
-			status = 0;
+			status = -20;
 			msgI18N = i18nPrefix+".null";
 		} else {
 			if(!sender.validate(username)) {
-				status = -3;
+				status = -23;
 				msgI18N = i18nPrefix+".illegal";
 			} else {
 				Result result = this.validate(request, username);
@@ -207,13 +206,13 @@ public class AuthorizationServerController {
 		Result result = new Result();
 		String username = CommonHelper.trim(_username);
 		if(username==null) {
-			result.setStatus(-1);
+			result.setStatus(-21);
 			result.setMsg("auth.null.username");
 			return result;
 		}
 		Long userId = userService.findUserId(username);
 		if(userId==null) {
-			result.setStatus(-2);
+			result.setStatus(-22);
 			result.setMsg("auth.account.no");
 			return result;
 		}
@@ -243,7 +242,7 @@ public class AuthorizationServerController {
 		boolean tourist = false;
 		if(user==null) {//游客登录，只有映射关系，还没插入用户表信息
 			if(password!=null)//游客还没有设置密码，如果不拦住，可以通过密码登录直接登录进来
-				return new Result(-8, requestContext.getMessage("auth.tourist.password"));
+				return new Result(-28, requestContext.getMessage("auth.tourist.password"));
 			user = new User();
 			user.setId(userId);
 			user.setName(requestContext.getMessage("auth.tourist"));
@@ -291,7 +290,6 @@ public class AuthorizationServerController {
 				}
 			}
 		}
-		user.setPassword(null);
 		session.setAttribute(AuthConstants.ATTR_SESSION, user);
 		Result result = Result.newSuccess();
 		result.setMsg(requestContext.getMessage(result.getMsg()));
@@ -300,15 +298,12 @@ public class AuthorizationServerController {
 	}
 
 	private void updateLastLogin(Long userId, String jessionid, Client client) {
-		UserEntity vo = new UserEntity();
-		vo.setId(userId);
 		if(client.isPc())
-			vo.setJsessionidPcBrowser(jessionid);
+			userService.updateJsessionidPcBrowser(userId, jessionid);
 		if(client.isMobile())
-			vo.setJsessionidMobileBrowser(jessionid);
+			userService.updateJsessionidMobileBrowser(userId, jessionid);
 		if(client.isApp())
-			vo.setJsessionidApp(jessionid);
-		userService.update(vo);
+			userService.updateJsessionidApp(userId, jessionid);
 	}
 
 	@RequestMapping("/signup/vcode")
@@ -318,7 +313,7 @@ public class AuthorizationServerController {
 		Long userId = userService.findUserId(loginName);
 		Result result = null;
 		if(userId!=null) {
-			result = new Result(0, "auth.mapping.new");
+			result = new Result(-20, "auth.mapping.new");
 		} else {
 			if(CommonHelper.isEmail(loginName)) {
 				vCodeOpsRgistry.genAndSend(request, VCodeCharsFrom.DIGITS, 6, loginName, tempPwdLoginEmailInfo.getSubject(), tempPwdLoginEmailInfo.getContent());
@@ -327,7 +322,7 @@ public class AuthorizationServerController {
 					authServerActions.sms(loginName, new String(vcode), expireMinuts);
 				});
 			} else
-				result = new Result(-1, "auth.signup.valid");
+				result = new Result(-21, "auth.signup.valid");
 		}
 		if(result==null) {
 			request.getSession().setAttribute(SESSION_ATTR_NAME_LOGINNAME, loginName);
@@ -348,7 +343,7 @@ public class AuthorizationServerController {
 			String loginName = request.getSession(false).getAttribute(SESSION_ATTR_NAME_LOGINNAME).toString();
 			Long userId = userService.createMapping(loginName);
 			if(userId==null) {
-				result = new Result(0, new RequestContext(request).getMessage("auth.mapping.new"));
+				result = new Result(-20, new RequestContext(request).getMessage("auth.mapping.new"));
 			} else {
 				result = this.login(request, userId, loginName);
 				result.setMsg(loginName+"注册成功，userId为"+userId+"，在第"+(loginName.hashCode()%shardingCount)+"个分片");

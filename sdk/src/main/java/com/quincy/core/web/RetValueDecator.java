@@ -18,8 +18,10 @@ public class RetValueDecator implements InitializingBean {
     private RequestMappingHandlerAdapter adapter;
 	@Autowired
 	private ApplicationContext applicationContext;
-	@Value("#{'${uris.no-wrapper}'.split(',')}")
+	@Value("#{'${uris.no-wrapper:#{null}}'.split(',')}")
 	private String[] noWrapperUris;
+	@Value("${result.no-inner-wrapper:#{false}}")
+	private boolean noInnerWrapper;
 
 	@Override
     public void afterPropertiesSet() throws Exception {
@@ -32,7 +34,7 @@ public class RetValueDecator implements InitializingBean {
     private void decorateHandlers(List<HandlerMethodReturnValueHandler> handlers) {
         for(HandlerMethodReturnValueHandler handler:handlers) {
             if(handler instanceof RequestResponseBodyMethodProcessor) {
-            	HandlerMethodReturnValueHandler decorator = new GlobalHandlerMethodReturnValueHandler(handler, applicationContext, noWrapperUris);
+            	HandlerMethodReturnValueHandler decorator = new GlobalHandlerMethodReturnValueHandler(handler, applicationContext, noWrapperUris, noInnerWrapper);
                 int index = handlers.indexOf(handler);
                 handlers.set(index, decorator);
                 break;

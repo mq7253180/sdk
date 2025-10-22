@@ -3,7 +3,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>quincy-auth-server-redis</artifactId>
-	<name>Redis Session</name>
+	<name>Auth Redis Session</name>
 	<url>https://github.com/mq7253180/sdk/tree/master/redis</url>
 	<parent>
 		<groupId>com.quincy</groupId>

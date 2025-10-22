@@ -1,35 +1,56 @@
 package com.quincy.core.entity;
 
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import com.quincy.sdk.annotation.jdbc.Column;
+import com.quincy.sdk.annotation.jdbc.DTO;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import lombok.Data;
-
-@Data
-@DynamicInsert
-@DynamicUpdate
-@EntityListeners({AuditingEntityListener.class})
-@Entity(name = "s_transaction_arg")
+@DTO
 public class TransactionArg {
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name="id")
+	@Column("id")
 	private Long id;
-	@Column(name="parent_id")
+	@Column("parent_id")
 	private Long parentId;
-	@Column(name="class")
+	@Column("class")
 	private String clazz;
-	@Column(name="_value")
+	@Column("_value")
 	private String value;
-	@Column(name="sort")
+	@Column("sort")
 	private Integer sort;
-	@Column(name="type")
+	@Column("type")
 	private Integer type;
+	public Long getId() {
+		return id;
+	}
+	public void setId(Long id) {
+		this.id = id;
+	}
+	public Long getParentId() {
+		return parentId;
+	}
+	public void setParentId(Long parentId) {
+		this.parentId = parentId;
+	}
+	public String getClazz() {
+		return clazz;
+	}
+	public void setClazz(String clazz) {
+		this.clazz = clazz;
+	}
+	public String getValue() {
+		return value;
+	}
+	public void setValue(String value) {
+		this.value = value;
+	}
+	public Integer getSort() {
+		return sort;
+	}
+	public void setSort(Integer sort) {
+		this.sort = sort;
+	}
+	public Integer getType() {
+		return type;
+	}
+	public void setType(Integer type) {
+		this.type = type;
+	}
 }

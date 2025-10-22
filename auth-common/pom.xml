@@ -3,7 +3,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>quincy-auth-common</artifactId>
-	<name>Auth-Common</name>
+	<name>Auth Common</name>
 	<url>https://github.com/mq7253180/sdk/tree/master/auth-common</url>
 	<parent>
 		<groupId>com.quincy</groupId>

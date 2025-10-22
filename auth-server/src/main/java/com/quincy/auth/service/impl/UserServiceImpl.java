@@ -14,14 +14,12 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import com.quincy.auth.dao.LoginUserMappingRepository;
+import com.quincy.auth.dao.LoginUserMappingDao;
 import com.quincy.auth.dao.UserDao;
-import com.quincy.auth.dao.UserRepository;
-import com.quincy.auth.entity.LoginUserMappingEntity;
+import com.quincy.auth.entity.LoginUserMapping;
 import com.quincy.auth.entity.Permission;
 import com.quincy.auth.entity.Role;
 import com.quincy.auth.entity.UserDto;
-import com.quincy.auth.entity.UserEntity;
 import com.quincy.auth.service.UserService;
 import com.quincy.auth.service.UserUpdation;
 import com.quincy.core.dao.UtilsDao;
@@ -36,13 +34,11 @@ import com.quincy.sdk.o.User;
 @Service
 public class UserServiceImpl implements UserService {
 	@Autowired
-	protected LoginUserMappingRepository loginUserMappingRepository;
-	@Autowired
-	protected UserRepository userRepository;
+	protected LoginUserMappingDao loginUserMappingDao;
 	@Autowired
 	private UtilsDao utilsDao;
 	@Autowired
-	private UserDao userDao;
+	protected UserDao userDao;
 	@Autowired
 	private AuthServerActions authServerActions;
 
@@ -129,8 +125,9 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
-	public UserEntity update(UserEntity vo) {
-		UserEntity po = userRepository.findById(vo.getId()).get();
+	public UserDto update(UserDto vo) {
+		UserDto po = userDao.find(vo.getId());
+//		UserEntity po = userRepository.findById(vo.getId()).get();
 		String username = CommonHelper.trim(vo.getUsername());
 		if(username!=null)
 			po.setUsername(username);
@@ -161,14 +158,15 @@ public class UserServiceImpl implements UserService {
 		String jsessionidApp = CommonHelper.trim(vo.getJsessionidApp());
 		if(jsessionidApp!=null)
 			po.setJsessionidApp(jsessionidApp);
-		userRepository.save(po);
+//		userRepository.save(po);
+		userDao.update(po.getName(), po.getUsername(), po.getGender(), po.getPassword(), po.getMobilePhone(), po.getEmail(), po.getAvatar(), po.getJsessionidPcBrowser(), po.getMobileBrowserJsessionid(), po.getAppJsessionid(), vo.getId());
 		return po;
 	}
 
 	@Override
 	public Long findUserId(String loginName) {
-		LoginUserMappingEntity loginUserMappingEntity = loginUserMappingRepository.findByLoginName(loginName);
-		return loginUserMappingEntity==null?null:loginUserMappingEntity.getUserId();
+		LoginUserMapping loginUserMapping = loginUserMappingDao.findByLoginName(loginName);
+		return loginUserMapping==null?null:loginUserMapping.getUserId();
 	}
 
 	@Override
@@ -181,10 +179,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
 	public void updatePassword(Long userId, String password) {
-		UserEntity vo = new UserEntity();
-		vo.setId(userId);
-		vo.setPassword(password);
-		this.update(vo);
+		userDao.updatePassword(password, userId);
 	}
 
 	protected User toUser(UserDto entity, Client client) {
@@ -207,38 +202,18 @@ public class UserServiceImpl implements UserService {
 		return user;
 	}
 
-	protected User toUser(UserEntity entity, Client client) {
-		User user = new User();
-		user.setId(entity.getId());
-		user.setCreationTime(entity.getCreationTime());
-		user.setName(entity.getName());
-		user.setUsername(entity.getUsername());
-		user.setMobilePhone(entity.getMobilePhone());
-		user.setEmail(entity.getEmail());
-		user.setPassword(entity.getPassword());
-		user.setGender(entity.getGender());
-		user.setAvatar(entity.getAvatar());
-		if(client.isPc())
-			user.setJsessionid(entity.getJsessionidPcBrowser());
-		else if(client.isMobile())
-			user.setJsessionid(entity.getJsessionidMobileBrowser());
-		else if(client.isApp())
-			user.setJsessionid(entity.getJsessionidPcBrowser());
-		return user;
-	}
-
 	@Override
 	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
-	public Long add(UserEntity vo) {
-		UserEntity po = userRepository.save(vo);
-		return po.getId();
+	public Long add(UserDto vo) {
+		this.userDao.save(vo.getId(), vo.getUsername(), vo.getName(), vo.getGender(), vo.getPassword(), vo.getMobilePhone(), vo.getEmail(), vo.getAvatar());
+		return vo.getId();
 	}
 
 	@Override
 	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
 	public boolean createMapping(String loginName, Long userId) {
-		LoginUserMappingEntity po = loginUserMappingRepository.findByLoginName(loginName);
-		if(po!=null) {
+		LoginUserMapping loginUserMapping = loginUserMappingDao.findByLoginName(loginName);
+		if(loginUserMapping!=null) {
 			return false;
 		} else {
 			this.doCreateMapping(loginName, userId);
@@ -249,42 +224,54 @@ public class UserServiceImpl implements UserService {
 	@Override
 	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
 	public Long createMapping(String loginName) {
-		LoginUserMappingEntity po = loginUserMappingRepository.findByLoginName(loginName);
-		if(po!=null) {
+		LoginUserMapping loginUserMapping = loginUserMappingDao.findByLoginName(loginName);
+		if(loginUserMapping!=null) {
 			return null;
 		} else {
-			Long userId = utilsDao.selectAutoIncreament("b_user");
+			Long userId = utilsDao.selectAutoIncreament("b_user").longValue();
 			this.doCreateMapping(loginName, userId);
 			return userId;
 		}
 	}
 
 	private void doCreateMapping(String loginName, Long userId) {
-		LoginUserMappingEntity loginUserMappingEntity = new LoginUserMappingEntity();
-		loginUserMappingEntity.setUserId(userId);
-		loginUserMappingEntity.setLoginName(loginName);
-		loginUserMappingRepository.save(loginUserMappingEntity);
+		loginUserMappingDao.save(loginName, userId);
 	}
 
 	@Override
 	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
 	public Result updateMapping(String oldLoginName, String newLoginName, UserUpdation userUpdation) {
-		LoginUserMappingEntity po = loginUserMappingRepository.findByLoginName(newLoginName);
-		if(po!=null)//验重
+		LoginUserMapping loginUserMapping = loginUserMappingDao.findByLoginName(newLoginName);
+		if(loginUserMapping!=null)//验重
 			return new Result(0, "auth.mapping.new");
-		po = loginUserMappingRepository.findByLoginName(oldLoginName);
-		Assert.notNull(po, "开发错误：旧手机号、邮箱、用户名不存在，请检查！");
-		po.setLoginName(newLoginName);
-		loginUserMappingRepository.save(po);
-		UserEntity vo = new UserEntity();
-		vo.setId(po.getUserId());
+		loginUserMapping = loginUserMappingDao.findByLoginName(oldLoginName);
+		Assert.notNull(loginUserMapping, "开发错误：旧手机号、邮箱、用户名不存在，请检查！");
+		loginUserMappingDao.updateLoginName(newLoginName, loginUserMapping.getId());
+		UserDto vo = new UserDto();
+		vo.setId(loginUserMapping.getUserId());
 		userUpdation.setLoginName(vo);
-		this.userRepository.save(vo);
+//		this.userRepository.save(vo);
+		this.update(vo);
 		return new Result(1, "status.success");
 	}
 
 	@Override
 	public void deleteMappingAndUpdateUser(String oldLoginName, UserUpdation userUpdation, Long userId) {
 		throw new RuntimeException("此方法专门提供给分片库模式，单库模式下禁调此方法！");
+	}
+
+	@Override
+	public int updateJsessionidPcBrowser(Long id, String jsessionid) {
+		return userDao.updateJsessionidPcBrowser(jsessionid, id);
+	}
+
+	@Override
+	public int updateJsessionidMobileBrowser(Long id, String jsessionid) {
+		return userDao.updateJsessionidMobileBrowser(jsessionid, id);
+	}
+
+	@Override
+	public int updateJsessionidApp(Long id, String jsessionid) {
+		return userDao.updateJsessionidApp(jsessionid, id);
 	}
 }

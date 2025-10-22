@@ -33,6 +33,12 @@ public class UserDto implements Serializable {
 	private Byte gender;
 	@Column("avatar")
 	private String avatar;
+	@Column("jsessionid_pc_browser")
+	private String jsessionidPcBrowser;
+	@Column("jsessionid_mobile_browser")
+	private String jsessionidMobileBrowser;
+	@Column("jsessionid_app")
+	private String jsessionidApp;
 	public Long getId() {
 		return id;
 	}
@@ -104,5 +110,23 @@ public class UserDto implements Serializable {
 	}
 	public void setAvatar(String avatar) {
 		this.avatar = avatar;
+	}
+	public String getJsessionidPcBrowser() {
+		return jsessionidPcBrowser;
+	}
+	public void setJsessionidPcBrowser(String jsessionidPcBrowser) {
+		this.jsessionidPcBrowser = jsessionidPcBrowser;
+	}
+	public String getJsessionidMobileBrowser() {
+		return jsessionidMobileBrowser;
+	}
+	public void setJsessionidMobileBrowser(String jsessionidMobileBrowser) {
+		this.jsessionidMobileBrowser = jsessionidMobileBrowser;
+	}
+	public String getJsessionidApp() {
+		return jsessionidApp;
+	}
+	public void setJsessionidApp(String jsessionidApp) {
+		this.jsessionidApp = jsessionidApp;
 	}
 }

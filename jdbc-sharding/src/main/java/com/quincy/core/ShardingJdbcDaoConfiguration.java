@@ -8,6 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -159,6 +160,8 @@ public class ShardingJdbcDaoConfiguration implements BeanDefinitionRegistryPostP
 			throws SQLException, IOException, InstantiationException, IllegalAccessException, IllegalArgumentException,
 			InvocationTargetException, NoSuchMethodException, SecurityException, InterruptedException, ExecutionException {
 		Map<String, Method> map = classMethodMap.get(returnItemType);
+		if(!this.typeSupported(returnItemType))
+			Assert.isTrue(map!=null, returnItemType.getName()+" must be marked by @DTO.");
 		int shardCount = dataSource.getResolvedDataSources().size()>>1;
 		boolean returnDto = returnType.getName().equals(returnItemType.getName());
 		List<FutureTask<List<Object>>> tasks = new ArrayList<>(shardCount);
@@ -180,61 +183,19 @@ public class ShardingJdbcDaoConfiguration implements BeanDefinitionRegistryPostP
 								statment.setObject(j+1, args[j]);
 						}
 						rs = statment.executeQuery();
+						ResultSetMetaData rsmd = rs.getMetaData();
+						int columnCount = rsmd.getColumnCount();
 						while(rs.next()) {
-							Object item = returnItemType.getDeclaredConstructor().newInstance();
-							ResultSetMetaData rsmd = rs.getMetaData();
-							int columnCount = rsmd.getColumnCount();
-							for(int j=1;j<=columnCount;j++) {
-								String columnName = rsmd.getColumnLabel(j);
-								Method setterMethod = map.get(columnName);
-								if(setterMethod!=null) {
-									Object v = rs.getObject(j);
-									Class<?> parameterType = setterMethod.getParameterTypes()[0];
-									if(!parameterType.isInstance(v)) {
-										if(String.class.isAssignableFrom(parameterType)) {
-											v = rs.getString(j);
-										} else if(boolean.class.isAssignableFrom(parameterType)||Boolean.class.isAssignableFrom(parameterType)) {
-											v = rs.getBoolean(j);
-										} else if(byte.class.isAssignableFrom(parameterType)||Byte.class.isAssignableFrom(parameterType)) {
-											v = rs.getByte(j);
-										} else if(short.class.isAssignableFrom(parameterType)||Short.class.isAssignableFrom(parameterType)) {
-											v = rs.getShort(j);
-										} else if(int.class.isAssignableFrom(parameterType)||Integer.class.isAssignableFrom(parameterType)) {
-											v = rs.getInt(j);
-										} else if(long.class.isAssignableFrom(parameterType)||Long.class.isAssignableFrom(parameterType)) {
-											v = rs.getLong(j);
-										} else if(float.class.isAssignableFrom(parameterType)||Float.class.isAssignableFrom(parameterType)) {
-											v = rs.getFloat(j);
-										} else if(double.class.isAssignableFrom(parameterType)||Double.class.isAssignableFrom(parameterType)) {
-											v = rs.getDouble(j);
-										} else if(BigDecimal.class.isAssignableFrom(parameterType)) {
-											v = rs.getBigDecimal(j);
-										} else if(Timestamp.class.isAssignableFrom(parameterType)) {
-											v = rs.getTimestamp(j);
-										} else if(Time.class.isAssignableFrom(parameterType)) {
-											v = rs.getTime(j);
-										} else if(Date.class.isAssignableFrom(parameterType)) {
-											v = rs.getDate(j);
-										} else if(Array.class.isAssignableFrom(parameterType)) {
-											v = rs.getArray(j);
-										} else if(Blob.class.isAssignableFrom(parameterType)) {
-											v = rs.getBlob(j);
-										} else if(Clob.class.isAssignableFrom(parameterType)) {
-											v = rs.getClob(j);
-										} else if(byte[].class.isAssignableFrom(parameterType)) {
-											InputStream in = null;
-											try {
-												in = rs.getBinaryStream(j);
-												byte[] buf = new byte[in.available()];
-												in.read(buf);
-												v = buf;
-											} finally {
-												if(in!=null)
-													in.close();
-											}
-										}
-									}
-									setterMethod.invoke(item, v);
+							Object item = null;
+							if(typeSupported(returnType)) {
+								item = toObjectByType(rs, 1, returnType);
+							} else {
+								if(typeSupported(returnItemType)) {
+									item = toObjectByType(rs, 1, returnItemType);
+								} else {
+									item = returnItemType.getDeclaredConstructor().newInstance();
+									for(int i=1;i<=columnCount;i++)
+										loadItem(map, item, rsmd, rs, i);
 								}
 							}
 							list.add(item);
@@ -299,6 +260,78 @@ public class ShardingJdbcDaoConfiguration implements BeanDefinitionRegistryPostP
 			}
 			return lists;
 		}
+	}
+
+	private boolean typeSupported(Class<?> type) {
+		return int.class.isAssignableFrom(type)||Integer.class.isAssignableFrom(type)||
+		long.class.isAssignableFrom(type)||Long.class.isAssignableFrom(type)||BigInteger.class.isAssignableFrom(type)||
+		String.class.isAssignableFrom(type)||
+		BigDecimal.class.isAssignableFrom(type)||
+		Date.class.isAssignableFrom(type)||Timestamp.class.isAssignableFrom(type)||
+		Time.class.isAssignableFrom(type)||
+		float.class.isAssignableFrom(type)||Float.class.isAssignableFrom(type)||
+		double.class.isAssignableFrom(type)||Double.class.isAssignableFrom(type)||
+		boolean.class.isAssignableFrom(type)||Boolean.class.isAssignableFrom(type)||
+		byte.class.isAssignableFrom(type)||Byte.class.isAssignableFrom(type)||
+		short.class.isAssignableFrom(type)||Short.class.isAssignableFrom(type)||
+		Array.class.isAssignableFrom(type)||
+		Blob.class.isAssignableFrom(type)||
+		Clob.class.isAssignableFrom(type)||
+		byte[].class.isAssignableFrom(type);
+	}
+
+	private Object toObjectByType(ResultSet rs, int columnIndex, Class<?> type) throws SQLException, IOException {
+		Object v = rs.getObject(columnIndex);
+		if(!type.isInstance(v)) {
+			if(String.class.isAssignableFrom(type)) {
+				v = rs.getString(columnIndex);
+			} else if(boolean.class.isAssignableFrom(type)||Boolean.class.isAssignableFrom(type)) {
+				v = rs.getBoolean(columnIndex);
+			} else if(byte.class.isAssignableFrom(type)||Byte.class.isAssignableFrom(type)) {
+				v = rs.getByte(columnIndex);
+			} else if(short.class.isAssignableFrom(type)||Short.class.isAssignableFrom(type)) {
+				v = rs.getShort(columnIndex);
+			} else if(int.class.isAssignableFrom(type)||Integer.class.isAssignableFrom(type)) {
+				v = rs.getInt(columnIndex);
+			} else if(long.class.isAssignableFrom(type)||Long.class.isAssignableFrom(type)||BigInteger.class.isAssignableFrom(type)) {
+				v = rs.getLong(columnIndex);
+			} else if(float.class.isAssignableFrom(type)||Float.class.isAssignableFrom(type)) {
+				v = rs.getFloat(columnIndex);
+			} else if(double.class.isAssignableFrom(type)||Double.class.isAssignableFrom(type)) {
+				v = rs.getDouble(columnIndex);
+			} else if(BigDecimal.class.isAssignableFrom(type)) {
+				v = rs.getBigDecimal(columnIndex);
+			} else if(Date.class.isAssignableFrom(type)||Timestamp.class.isAssignableFrom(type)) {
+				v = rs.getTimestamp(columnIndex);
+			} else if(Time.class.isAssignableFrom(type)) {
+				v = rs.getTime(columnIndex);
+			} else if(Array.class.isAssignableFrom(type)) {
+				v = rs.getArray(columnIndex);
+			} else if(Blob.class.isAssignableFrom(type)) {
+				v = rs.getBlob(columnIndex);
+			} else if(Clob.class.isAssignableFrom(type)) {
+				v = rs.getClob(columnIndex);
+			} else if(byte[].class.isAssignableFrom(type)) {
+				InputStream in = null;
+				try {
+					in = rs.getBinaryStream(columnIndex);
+					byte[] buf = new byte[in.available()];
+					in.read(buf);
+					v = buf;
+				} finally {
+					if(in!=null)
+						in.close();
+				}
+			}
+		}
+		return v;
+	}
+
+	private void loadItem(Map<String, Method> map, Object item, ResultSetMetaData rsmd, ResultSet rs, int i) throws SQLException, IOException, IllegalAccessException, InvocationTargetException {
+		String columnName = rsmd.getColumnLabel(i);
+		Method setterMethod = map.get(columnName);
+		if(setterMethod!=null)
+			setterMethod.invoke(item, this.toObjectByType(rs, i, setterMethod.getParameterTypes()[0]));
 	}
 
 	@Override

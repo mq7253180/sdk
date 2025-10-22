@@ -7,6 +7,7 @@ import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,9 +15,7 @@ import org.springframework.context.annotation.Configuration;
 
 import com.quincy.core.db.RoutingDataSource;
 
-import jakarta.annotation.PostConstruct;
-
-@Configuration
+@Configuration(ShardingJdbcHolder.INIT_CONFIGURATION_BEAN_NAME)
 public class ShardingJdbcInitializationConfiguration {
 	@Autowired
 	private DataSource dataSource;

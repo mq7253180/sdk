@@ -6,7 +6,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 public interface JdbcDao {
-	public Object executeQuery(String sql, Class<?> returnType, Class<?> returnItemType, boolean newConn, Object... args) throws SQLException, IOException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException;
+	public Object executeQuery(String sql, Class<?> returnItemType, Class<?> returnType, boolean newConn, Object... args) throws SQLException, IOException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException;
 	/**
 	 * f.name,f.sort,v.value_decimal and primary key as id must be presented in sqlFrontHalf.
 	 */

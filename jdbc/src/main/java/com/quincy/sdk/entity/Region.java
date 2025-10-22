@@ -2,40 +2,82 @@ package com.quincy.sdk.entity;
 
 import java.io.Serializable;
 
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import com.quincy.sdk.annotation.jdbc.Column;
+import com.quincy.sdk.annotation.jdbc.DTO;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.Id;
-import lombok.Data;
-
-@Data
-@DynamicInsert
-@DynamicUpdate
-@EntityListeners({AuditingEntityListener.class})
-@Entity(name = "b_region")
+@DTO
 public class Region implements Serializable {
 	private static final long serialVersionUID = -7160794018694023343L;
-	@Id
-	@Column(name="id")
+	@Column("id")
 	private Long id;
-	@Column(name="en_name")
+	@Column("en_name")
 	private String enName;
-	@Column(name="cn_name")
+	@Column("cn_name")
 	private String cnName;
-	@Column(name="tel_prefix")
+	@Column("tel_prefix")
 	private String telPrefix;
-	@Column(name="code")
+	@Column("code")
 	private String code;
-	@Column(name="code2")
+	@Column("code2")
 	private String code2;
-	@Column(name="currency")
+	@Column("currency")
 	private String currency;
-	@Column(name="locale")
+	@Column("locale")
 	private String locale;
-	@Column(name="parent_id")
+	@Column("parent_id")
 	private Long parentId;
+	public Long getId() {
+		return id;
+	}
+	public void setId(Long id) {
+		this.id = id;
+	}
+	public String getEnName() {
+		return enName;
+	}
+	public void setEnName(String enName) {
+		this.enName = enName;
+	}
+	public String getCnName() {
+		return cnName;
+	}
+	public void setCnName(String cnName) {
+		this.cnName = cnName;
+	}
+	public String getTelPrefix() {
+		return telPrefix;
+	}
+	public void setTelPrefix(String telPrefix) {
+		this.telPrefix = telPrefix;
+	}
+	public String getCode() {
+		return code;
+	}
+	public void setCode(String code) {
+		this.code = code;
+	}
+	public String getCode2() {
+		return code2;
+	}
+	public void setCode2(String code2) {
+		this.code2 = code2;
+	}
+	public String getCurrency() {
+		return currency;
+	}
+	public void setCurrency(String currency) {
+		this.currency = currency;
+	}
+	public String getLocale() {
+		return locale;
+	}
+	public void setLocale(String locale) {
+		this.locale = locale;
+	}
+	public Long getParentId() {
+		return parentId;
+	}
+	public void setParentId(Long parentId) {
+		this.parentId = parentId;
+	}
 }
