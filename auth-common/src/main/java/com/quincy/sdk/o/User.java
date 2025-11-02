@@ -13,6 +13,7 @@ public class User implements Serializable {
 	private static final long serialVersionUID = 3068671906589197352L;
 	private Long id;
 	private Long shardingKey;
+	private Integer tbShardingKey;
 	private String username;
 	private String email;
 	private String mobilePhone;
