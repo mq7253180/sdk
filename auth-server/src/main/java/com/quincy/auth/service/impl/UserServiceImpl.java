@@ -216,7 +216,7 @@ public class UserServiceImpl implements UserService {
 		if(loginUserMapping!=null) {
 			return false;
 		} else {
-			this.doCreateMapping(loginName, userId);
+			loginUserMappingDao.save(loginName, userId);
 			return true;
 		}
 	}
@@ -229,13 +229,9 @@ public class UserServiceImpl implements UserService {
 			return null;
 		} else {
 			Long userId = utilsDao.selectAutoIncreament("b_user").longValue();
-			this.doCreateMapping(loginName, userId);
+			loginUserMappingDao.save(loginName, userId);
 			return userId;
 		}
-	}
-
-	private void doCreateMapping(String loginName, Long userId) {
-		loginUserMappingDao.save(loginName, userId);
 	}
 
 	@Override
