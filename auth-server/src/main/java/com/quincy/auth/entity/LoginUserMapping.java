@@ -14,6 +14,10 @@ public class LoginUserMapping implements Serializable {
 	private String loginName;
 	@Column("user_id")
 	private Long userId;
+	@Column("sharding_key")
+	private Long shardingKey;
+	@Column("tb_sharding_key")
+	private Integer tbShardingKey;
 	public Long getId() {
 		return id;
 	}
@@ -31,5 +35,17 @@ public class LoginUserMapping implements Serializable {
 	}
 	public void setUserId(Long userId) {
 		this.userId = userId;
+	}
+	public Long getShardingKey() {
+		return shardingKey;
+	}
+	public void setShardingKey(Long shardingKey) {
+		this.shardingKey = shardingKey;
+	}
+	public Integer getTbShardingKey() {
+		return tbShardingKey;
+	}
+	public void setTbShardingKey(Integer tbShardingKey) {
+		this.tbShardingKey = tbShardingKey;
 	}
 }
