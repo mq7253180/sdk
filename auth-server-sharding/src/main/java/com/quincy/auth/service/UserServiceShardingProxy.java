@@ -11,7 +11,7 @@ public interface UserServiceShardingProxy {
 	public User find(long shardingKey, Long id, Client client);
 	public void updatePassword(Long id, String password);
 	public void add(long shardingKey, UserDto vo);
-	public boolean createMapping(long shardingKey, String loginName, Long userId);
+	public Long createMapping(long shardingKey, String loginName);
 	public int deleteMapping(long shardingKey, String loginName);
 	public int updateJsessionidPcBrowser(Long id, String jsessionid);
 	public int updateJsessionidMobileBrowser(Long id, String jsessionid);

@@ -55,21 +55,15 @@ public class UserServiceShardingImpl implements UserService {
 	}
 
 	@Override
-	public boolean createMapping(String loginName, Long userId) {
-		return this.userServiceShardingProxy.createMapping(loginName.hashCode(), loginName, userId);
-	}
-
-	@Override
 	public Long createMapping(String loginName) {
-		Long userId = SnowFlake.nextId();
-		return this.userServiceShardingProxy.createMapping(loginName.hashCode(), loginName, userId)?userId:null;
+		return this.userServiceShardingProxy.createMapping(loginName.hashCode(), loginName);
 	}
 
 	@Override
 	public Result updateMapping(String oldLoginName, String newLoginName, UserUpdation userUpdation) {
 		Long userId = this.userServiceShardingProxy.findUserId(oldLoginName.hashCode(), oldLoginName);
 		Assert.notNull(userId, "开发错误：旧手机号、邮箱、用户名不存在，请检查！");
-		if(!this.userServiceShardingProxy.createMapping(newLoginName.hashCode(), newLoginName, userId))
+		if(this.userServiceShardingProxy.createMapping(newLoginName.hashCode(), newLoginName)==null)
 			return new Result(0, "auth.mapping.new");
 		this.deleteMappingAndUpdateUser(oldLoginName, userUpdation, userId);
 		return new Result(1, "status.success");

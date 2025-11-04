@@ -22,10 +22,10 @@ import com.quincy.auth.entity.Role;
 import com.quincy.auth.entity.UserDto;
 import com.quincy.auth.service.UserService;
 import com.quincy.auth.service.UserUpdation;
-import com.quincy.core.dao.UtilsDao;
 import com.quincy.sdk.AuthServerActions;
 import com.quincy.sdk.Client;
 import com.quincy.sdk.Result;
+import com.quincy.sdk.SnowFlake;
 import com.quincy.sdk.annotation.jdbc.ReadOnly;
 import com.quincy.sdk.helper.CommonHelper;
 import com.quincy.sdk.o.Menu;
@@ -35,8 +35,6 @@ import com.quincy.sdk.o.User;
 public class UserServiceImpl implements UserService {
 	@Autowired
 	protected LoginUserMappingDao loginUserMappingDao;
-	@Autowired
-	private UtilsDao utilsDao;
 	@Autowired
 	protected UserDao userDao;
 	@Autowired
@@ -211,24 +209,13 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
-	public boolean createMapping(String loginName, Long userId) {
-		LoginUserMapping loginUserMapping = loginUserMappingDao.findByLoginName(loginName);
-		if(loginUserMapping!=null) {
-			return false;
-		} else {
-			loginUserMappingDao.save(loginName, userId);
-			return true;
-		}
-	}
-
-	@Override
-	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
 	public Long createMapping(String loginName) {
 		LoginUserMapping loginUserMapping = loginUserMappingDao.findByLoginName(loginName);
 		if(loginUserMapping!=null) {
 			return null;
 		} else {
-			Long userId = utilsDao.selectAutoIncreament("b_user").longValue();
+			Long userId = SnowFlake.nextId();
+//			Long userId = utilsDao.selectAutoIncreament("b_user").longValue();
 			loginUserMappingDao.save(loginName, userId);
 			return userId;
 		}
