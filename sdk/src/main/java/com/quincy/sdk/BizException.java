@@ -1,9 +1,9 @@
 package com.quincy.sdk;
 
-public class SelfException extends RuntimeException {
+public class BizException extends RuntimeException {
 	private static final long serialVersionUID = -4979927675359782691L;
 
-	public SelfException(String message) {
+	public BizException(String message) {
         super(message);
     }
 }

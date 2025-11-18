@@ -7,9 +7,9 @@ import java.util.Date;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContext;
 
+import com.quincy.sdk.BizException;
 import com.quincy.sdk.Client;
 import com.quincy.sdk.Result;
-import com.quincy.sdk.SelfException;
 import com.quincy.sdk.helper.HttpClientHelper;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,8 +22,8 @@ public class GlobalHandlerExceptionResolver {//implements HandlerExceptionResolv
 	public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object handler, Exception e) {
 		String viewName = "/error_";
 		String msg = null;
-		boolean self = e instanceof SelfException;
-		if(self) {
+		boolean biz = e instanceof BizException;
+		if(biz) {
 			msg = e.getMessage();
 			viewName += "self_exception_";
 		} else {
