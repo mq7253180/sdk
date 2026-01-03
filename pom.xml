@@ -15,10 +15,15 @@
 	</properties>
 	<distributionManagement>
 		<repository>
-			<id>2526661-release-4z2rdh</id>
+			<id>2526657-release-7mWbjg</id>
 			<name>releases</name>
 			<url>https://packages.aliyun.com/67dd0a5db10c4deb4e8d64aa/maven/2526657-release-7mwbjg</url>
 		</repository>
+		<snapshotRepository>
+			<id>2526657-snapshot-hCVnW4</id>
+			<name>snapshot</name>
+			<url>https://packages.aliyun.com/67dd0a5db10c4deb4e8d64aa/maven/2526657-snapshot-hcvnw4</url>
+		</snapshotRepository>
 	</distributionManagement>
 	<build>
 		<plugins>
