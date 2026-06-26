@@ -30,7 +30,7 @@ import redis.clients.jedis.util.Pool;
 public class JedisSourceConfiguration {
 	@Value("${spring.application.name}")
 	private String applicationName;
-	@Value("#{'${spring.redis.nodes}'.split(',')}")
+	@Value("#{'${redis.nodes}'.split(',')}")
 	private String[] _clusterNodes;
 	@Value("${spring.data.redis.password}")
 	private String redisPwd;
@@ -38,9 +38,9 @@ public class JedisSourceConfiguration {
 	private int connectionTimeout;
 	@Value("${spring.data.redis.sentinel.master:#{null}}")
 	private String sentinelMaster;
-	@Value("${spring.redis.cluster.soTimeout}")
+	@Value("${redis.cluster.soTimeout}")
 	private int soTimeout;
-	@Value("${spring.redis.cluster.maxAttempts}")
+	@Value("${redis.cluster.maxAttempts}")
 	private int maxAttempts;
 	@Autowired
 	private GenericObjectPoolConfig poolCfg;

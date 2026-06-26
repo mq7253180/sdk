@@ -26,7 +26,7 @@ import redis.clients.jedis.Jedis;
 @Aspect
 @Component
 public class SecondaryCacheAop {
-	@Value("${spring.redis.key.prefix}")
+	@Value("${redis.key.prefix}")
 	private String keyPrefix;
 	@Autowired
 	@Qualifier(RedisConstants.BEAN_NAME_SYS_JEDIS_SOURCE)

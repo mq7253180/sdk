@@ -38,10 +38,14 @@ public class AuthServerInitialization {//implements BeanDefinitionRegistryPostPr
 	private RootControllerHandler rootControllerHandler;
 	@Value("${secret.rsa.privateKey}")
 	private String privateKeyStr;
+	@Value("${loadPermissions:false}")
+	private boolean loadPermissions;
 
 	@PostConstruct
 	public void init() throws NoSuchMethodException, SecurityException {
-		this.loadPermissions();
+		if(loadPermissions) {
+			this.loadPermissions();
+		}
 		if(rootControllerHandler!=null) {
 			RequestMappingInfo.BuilderConfiguration config = new RequestMappingInfo.BuilderConfiguration();
 	        config.setPatternParser(requestMappingHandlerMapping.getPatternParser());

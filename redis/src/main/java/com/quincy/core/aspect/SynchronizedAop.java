@@ -30,7 +30,7 @@ public class SynchronizedAop extends JedisNeededBaseAop<Synchronized> {
 	private final static String LOCK_MAP_KEY = "lockKey";
 	private final static String TOPIC_MAP_KEY = "topicKey:";
 	private final static String WATCH_DOG_KEY = "watchDog";
-	@Value("${spring.redis.key.prefix}")
+	@Value("${redis.key.prefix}")
 	private String keyPrefix;
 
 	@Pointcut("@annotation(com.quincy.sdk.annotation.Synchronized)")

@@ -31,7 +31,7 @@ import redis.clients.jedis.Transaction;
 public class UserRedisController {
 	@Value("${auth.center:}")
 	private String authCenter;
-	@Value("${spring.redis.key.prefix}")
+	@Value("${redis.key.prefix}")
 	private String keyPrefix;
 	@Value("${auth.vcode.timeout:180}")
 	private int vcodeTimeoutSeconds;
