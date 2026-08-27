@@ -49,7 +49,7 @@ public class ShardingTest {
 		PreparedStatement stat = null;
 		ResultSet rs = null;
 		try {
-			TbShardingConnection.setShard(1);
+			TbShardingConnection.setShard(0);
 			conn = DriverManager.getConnection(TbShardingDriver.URL_PREFIX+"jdbc:mysql://192.168.8.33:3306/ducati?zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT%2B8", "admin", "1qazXSW@3edc");
 			stat = conn.prepareStatement("SELECT * FROM b_region");
 			rs = stat.executeQuery();
