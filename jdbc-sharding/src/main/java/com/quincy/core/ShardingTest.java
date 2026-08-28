@@ -6,8 +6,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import com.mysql.cj.jdbc.Driver;
-import com.quincy.core.jdbc.OriginalDriverClassHolder;
 import com.quincy.core.jdbc.TbShardingConnection;
 import com.quincy.core.jdbc.TbShardingDriver;
 
@@ -45,10 +43,9 @@ public class ShardingTest {
 */
 		String url = "jdbc:mysql://192.168.8.33:3306/ducati?zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT%2B8";
 
-		OriginalDriverClassHolder.set(Driver.class);
-		java.sql.Driver driver = DriverManager.getDriver(TbShardingDriver.URL_PREFIX+url);
-		System.out.println(driver.getClass().getName());
-/*
+//		java.sql.Driver driver = DriverManager.getDriver(TbShardingDriver.URL_PREFIX+url);
+//		System.out.println(driver.getClass().getName());
+
 //		Class.forName("com.quincy.core.jdbc.TbShardingDriver");
 		TbShardingConnection.setTableNames(new String[] {"b_region"});
 		Connection conn = null;
@@ -75,6 +72,6 @@ public class ShardingTest {
 				conn.close();
 			}
 		}
-*/
+
 	}
 }
