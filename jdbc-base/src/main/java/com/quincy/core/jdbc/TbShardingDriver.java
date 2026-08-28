@@ -41,7 +41,7 @@ public class TbShardingDriver implements Driver {
 
 	@Override
 	public boolean acceptsURL(String url) throws SQLException {
-		if(url.startsWith(URL_PREFIX)) {
+		if(URL_PREFIX.startsWith(url)) {
 			return this.originalDriver.acceptsURL(url.replaceFirst(URL_PREFIX, ""));
 		}
 		return false;

@@ -71,7 +71,7 @@ public class TbShardingConnection implements Connection {
 
 	@Override
 	public CallableStatement prepareCall(String sql) throws SQLException {
-		return this.original.prepareCall(this.relpaceAll(sql));
+		return this.original.prepareCall(sql);
 	}
 
 	@Override
@@ -167,7 +167,7 @@ public class TbShardingConnection implements Connection {
 
 	@Override
 	public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
-		return this.original.prepareCall(this.relpaceAll(sql), resultSetType, resultSetConcurrency);
+		return this.original.prepareCall(sql, resultSetType, resultSetConcurrency);
 	}
 
 	@Override
@@ -225,7 +225,7 @@ public class TbShardingConnection implements Connection {
 	@Override
 	public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency,
 			int resultSetHoldability) throws SQLException {
-		return this.original.prepareCall(this.relpaceAll(sql), resultSetType, resultSetConcurrency, resultSetHoldability);
+		return this.original.prepareCall(sql, resultSetType, resultSetConcurrency, resultSetHoldability);
 	}
 
 	@Override
