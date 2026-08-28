@@ -32,7 +32,7 @@ public class TbShardingDriver implements Driver {
 
 	@Override
 	public Connection connect(String url, Properties info) throws SQLException {
-		if(url.startsWith(URL_PREFIX)) {
+		if(url!=null&&url.startsWith(URL_PREFIX)) {
 			Connection originalConnection = this.originalDriver.connect(url.replaceFirst(URL_PREFIX, ""), info);
 			return originalConnection==null?null:new TbShardingConnection(originalConnection);
 		}
@@ -41,7 +41,7 @@ public class TbShardingDriver implements Driver {
 
 	@Override
 	public boolean acceptsURL(String url) throws SQLException {
-		if(URL_PREFIX.startsWith(url)) {
+		if(url!=null&&url.startsWith(URL_PREFIX)) {
 			return this.originalDriver.acceptsURL(url.replaceFirst(URL_PREFIX, ""));
 		}
 		return false;
