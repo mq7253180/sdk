@@ -13,6 +13,7 @@ import com.quincy.core.jdbc.TbShardingDriver;
 
 public class ShardingTest {
 	public static void main(String[] args) throws ClassNotFoundException, SQLException {
+/*
 //		String phone = "18411055336";
 //		String email = "mq7253180@126.com";
 //		String idcard = "220203198307253019";
@@ -41,8 +42,13 @@ public class ShardingTest {
 		System.out.println((username2+salt).hashCode()%mPatitions);
 		System.out.println((salt+username2).hashCode()%mPatitions);
 		System.out.println("-----------------");
+*/
+		String url = "jdbc:mysql://192.168.8.33:3306/ducati?zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT%2B8";
 
 		OriginalDriverClassHolder.set(Driver.class);
+		java.sql.Driver driver = DriverManager.getDriver(TbShardingDriver.URL_PREFIX+url);
+		System.out.println(driver.getClass().getName());
+/*
 //		Class.forName("com.quincy.core.jdbc.TbShardingDriver");
 		TbShardingConnection.setTableNames(new String[] {"b_region"});
 		Connection conn = null;
@@ -50,7 +56,7 @@ public class ShardingTest {
 		ResultSet rs = null;
 		try {
 			TbShardingConnection.setShard(0);
-			conn = DriverManager.getConnection(TbShardingDriver.URL_PREFIX+"jdbc:mysql://192.168.8.33:3306/ducati?zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT%2B8", "admin", "1qazXSW@3edc");
+			conn = DriverManager.getConnection(TbShardingDriver.URL_PREFIX+url, "admin", "1qazXSW@3edc");
 			stat = conn.prepareStatement("SELECT * FROM b_region");
 			rs = stat.executeQuery();
 			while(rs.next()) {
@@ -69,5 +75,6 @@ public class ShardingTest {
 				conn.close();
 			}
 		}
+*/
 	}
 }
