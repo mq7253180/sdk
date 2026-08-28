@@ -17,7 +17,6 @@ import com.quincy.core.db.DataSourceHolder;
 import com.quincy.sdk.MasterOrSlave;
 import com.quincy.sdk.SnowFlake;
 import com.quincy.sdk.annotation.jdbc.ReadOnly;
-import com.quincy.sdk.annotation.sharding.Sharding;
 import com.quincy.sdk.annotation.sharding.ShardingKey;
 
 @Order(6)
@@ -27,8 +26,6 @@ public class ShardingAop {
 	@Value("${spring.datasource.sharding.count}")
 	private int shardingCount;
 
-	@Pointcut("@annotation(com.quincy.sdk.annotation.sharding.Sharding)")
-    public void shardingPointCut() {}
 	@Pointcut("@annotation(org.springframework.transaction.annotation.Transactional)")
     public void transactionalPointCut() {}
 	@Pointcut("@annotation(com.quincy.sdk.annotation.jdbc.ReadOnly)")
@@ -41,8 +38,7 @@ public class ShardingAop {
 			MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
     		Method method = clazz.getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
     		ReadOnly readOnly = method.getDeclaredAnnotation(ReadOnly.class);
-    		Sharding sharding = method.getAnnotation(Sharding.class);
-    		boolean reRoute = (readOnly!=null&&readOnly.reRoute())||(sharding!=null&&sharding.reRoute());
+    		boolean reRoute = (readOnly!=null&&readOnly.reRoute());
 			if(reRoute||DataSourceHolder.getDetermineCurrentLookupKey()==null) {
 				stackRoot = true;
 	    		Annotation[][] annotationss = method.getParameterAnnotations();
@@ -80,11 +76,6 @@ public class ShardingAop {
 			if(stackRoot)
 				DataSourceHolder.remove();
 		}
-	}
-
-	@Around("shardingPointCut()")
-    public Object doShardingAround(ProceedingJoinPoint joinPoint) throws Throwable {
-		return this.doAround(joinPoint, MasterOrSlave.MASTER.value());
 	}
 
 	@Around("transactionalPointCut()")

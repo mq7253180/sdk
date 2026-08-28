@@ -30,7 +30,7 @@ public class TbShardingDriver implements Driver {
 	}
 
 	private synchronized String initOriginalDriver(String url) throws SQLException {
-		String originalUrl = url.replaceFirst(URL_PREFIX, "");;
+		String originalUrl = url.replaceFirst(URL_PREFIX, "");
 		if(this.originalDriver==null) {
 			synchronized(this) {
 				this.originalDriver = DriverManager.getDriver(originalUrl);
