@@ -42,7 +42,7 @@ public class TbShardingAop {
 
 	@PostConstruct
 	public void init() {
-		Assert.isTrue(shardingCount!=null&&shardingCount>0, "spring.datasource.tdsharding.count must be specified when TbSharding is enabled!!!");
+		Assert.isTrue(shardingCount!=null&&shardingCount>0, "spring.datasource.tdsharding.count must be specified and greater than 0 when TbSharding is enabled!!!");
 		Assert.isTrue(tableNames!=null&&tableNames.length>0, "spring.datasource.tdsharding.tableNames must be specified when TbSharding is enabled!!!");
 		TbShardingConnection.setTableNames(tableNames);
 	}

@@ -11,8 +11,6 @@ import com.quincy.sdk.SnowFlake;
 import com.quincy.sdk.annotation.jdbc.ShardingKey;
 
 public class ShardingKeyHolder {
-	private final static ThreadLocal<Long> KEY = new ThreadLocal<Long>();
-
 	public static long get(JoinPoint joinPoint) throws NoSuchMethodException, SecurityException {
 		Class<?> clazz = joinPoint.getTarget().getClass();
 		MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
@@ -21,15 +19,6 @@ public class ShardingKeyHolder {
 	}
 
 	public static long get(Annotation[][] annotationss, Object[] args) {
-		Long key = KEY.get();
-		if(key==null) {
-			key = ShardingKeyHolder.extract(annotationss, args);
-			KEY.set(key);
-		}
-		return key;
-	}
-
-	private static long extract(Annotation[][] annotationss, Object[] args) {
 		int index = -1;
 		boolean snowFlake = false;
 		for(int i=0;i<annotationss.length;i++) {
