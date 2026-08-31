@@ -10,7 +10,7 @@ import org.springframework.util.Assert;
 import com.quincy.sdk.SnowFlake;
 import com.quincy.sdk.annotation.jdbc.ShardingKey;
 
-public class ShardingKeyHolder {
+public class ShardingKeyUtil {
 	public static long get(JoinPoint joinPoint) throws NoSuchMethodException, SecurityException {
 		Class<?> clazz = joinPoint.getTarget().getClass();
 		MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
@@ -47,7 +47,7 @@ public class ShardingKeyHolder {
     	return shardingKey;
 	}
 
-	public static long reShard(long key, int count) {
-		return (key+"a").hashCode()%count;
+	public static long shard(long key, int count) {
+		return key&(count-1);
 	}
 }
