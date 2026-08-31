@@ -17,7 +17,7 @@ import com.quincy.core.db.DataSourceHolder;
 import com.quincy.sdk.MasterOrSlave;
 import com.quincy.sdk.SnowFlake;
 import com.quincy.sdk.annotation.jdbc.ReadOnly;
-import com.quincy.sdk.annotation.sharding.ShardingKey;
+import com.quincy.sdk.annotation.jdbc.ShardingKey;
 
 @Order(6)
 @Aspect

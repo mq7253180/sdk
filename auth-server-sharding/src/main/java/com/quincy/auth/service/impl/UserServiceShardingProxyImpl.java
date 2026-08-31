@@ -9,7 +9,7 @@ import com.quincy.auth.entity.UserDto;
 import com.quincy.auth.service.UserServiceShardingProxy;
 import com.quincy.sdk.Client;
 import com.quincy.sdk.annotation.jdbc.ReadOnly;
-import com.quincy.sdk.annotation.sharding.ShardingKey;
+import com.quincy.sdk.annotation.jdbc.ShardingKey;
 import com.quincy.sdk.o.User;
 
 @Service

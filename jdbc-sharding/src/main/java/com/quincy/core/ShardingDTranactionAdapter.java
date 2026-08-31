@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.quincy.core.aspect.DistributedTransactionAop;
 import com.quincy.sdk.ShardingDTranactionOptRegistry;
-import com.quincy.sdk.annotation.sharding.ShardingKey;
+import com.quincy.sdk.annotation.jdbc.ShardingKey;
 
 @Primary
 @Component

@@ -11,6 +11,9 @@ import com.quincy.core.jdbc.TbShardingDriver;
 
 public class ShardingTest {
 	public static void main(String[] args) throws ClassNotFoundException, SQLException {
+		int patitions = 8;
+		int mPatitions = patitions*4;
+		String salt = "a";
 /*
 //		String phone = "18411055336";
 //		String email = "mq7253180@126.com";
@@ -18,9 +21,6 @@ public class ShardingTest {
 		String username = "mq7253180";
 		String username1 = "mqsmart";
 		String username2 = "maqiang";
-		int patitions = 8;
-		int mPatitions = patitions*4;
-		String salt = "a";
 //		System.out.println((phone+salt).hashCode()%mPatitions);
 //		System.out.println((email+salt).hashCode()%mPatitions);
 //		System.out.println((idcard+salt).hashCode()%mPatitions);
@@ -41,13 +41,38 @@ public class ShardingTest {
 		System.out.println((salt+username2).hashCode()%mPatitions);
 		System.out.println("-----------------");
 */
+//		int shard0 = 1024;
+//		int shard1 = 1056;
+//		int shard2 = 1088;
+//		int shard3 = 1120;
+//		int shard4 = 1152;
+//		int shard5 = 1184;
+//		int shard6 = 1216;
+//		int shard7 = 1248;
+		int shard0 = 1025;
+		int shard1 = 1057;
+		int shard2 = 1089;
+		int shard3 = 1121;
+		int shard4 = 1153;
+		int shard5 = 1185;
+		int shard6 = 1217;
+		int shard7 = 1249;
+		printResult(salt, mPatitions, shard0);
+		printResult(salt, mPatitions, shard1);
+		printResult(salt, mPatitions, shard2);
+		printResult(salt, mPatitions, shard3);
+		printResult(salt, mPatitions, shard4);
+		printResult(salt, mPatitions, shard5);
+		printResult(salt, mPatitions, shard6);
+		printResult(salt, mPatitions, shard7);
+/*
 		String url = "jdbc:mysql://192.168.8.33:3306/ducati?zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT%2B8";
 
 //		java.sql.Driver driver = DriverManager.getDriver(TbShardingDriver.URL_PREFIX+url);
 //		System.out.println(driver.getClass().getName());
 
 //		Class.forName("com.quincy.core.jdbc.TbShardingDriver");
-		TbShardingConnection.setTableNames(new String[] {"b_region"});
+		TbShardingConnection.setTableNames("b_region");
 		Connection conn = null;
 		PreparedStatement stat = null;
 		ResultSet rs = null;
@@ -72,6 +97,10 @@ public class ShardingTest {
 				conn.close();
 			}
 		}
+*/
+	}
 
+	private static void printResult(String salt, int patitions, int shard) {
+		System.out.println(shard%patitions+"-----"+(shard+salt).hashCode()%patitions+"-----"+(salt+shard).hashCode()%patitions);
 	}
 }

@@ -1,4 +1,4 @@
-package com.quincy.sdk.annotation.sharding;
+package com.quincy.sdk.annotation.jdbc;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
