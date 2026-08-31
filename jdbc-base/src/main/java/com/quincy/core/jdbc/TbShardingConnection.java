@@ -21,7 +21,7 @@ import java.util.concurrent.Executor;
 
 public class TbShardingConnection implements Connection {
 	private static String[] TABLE_NAMES = null;
-	private final static ThreadLocal<Integer> SHARD = new ThreadLocal<Integer>();
+	private final static ThreadLocal<Long> SHARD = new ThreadLocal<Long>();
 	private Connection original;
 
 	public TbShardingConnection(Connection original) {
@@ -32,7 +32,7 @@ public class TbShardingConnection implements Connection {
 		TABLE_NAMES = tableNames;
 	}
 
-	public static void setShard(int shard) {
+	public static void setShard(long shard) {
 		SHARD.set(shard);
 	}
 
