@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.util.Assert;
 
+import com.quincy.core.jdbc.ShardingUtil;
 import com.quincy.core.jdbc.TbShardingConnection;
 
 @Order(7)
@@ -26,8 +27,12 @@ public class TbShardingAop {
     public void readOnlyPointCut() {}
 
 	private Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
-		long shardingKey = ShardingKeyUtil.get(joinPoint);
-		TbShardingConnection.setShard(ShardingKeyUtil.shard((shardingKey+"a").hashCode(), shardingCount));
+		Long shard = ShardingUtil.getTbShard();
+		if(shard==null) {
+			long shardingKey = ShardingUtil.extractShardingKey(joinPoint);
+			shard = ShardingUtil.tbShard(shardingKey, shardingCount);
+		}
+		TbShardingConnection.setShard(shard);
 		return joinPoint.proceed();
 	}
 
