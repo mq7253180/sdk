@@ -36,8 +36,6 @@ public class UserServiceShardingProxyImpl extends UserServiceImpl implements Use
 	@ReadOnly
 	public User find(@ShardingKey long shardingKey, Long id, Client client) {
 		User user = this.find(id, client);
-		if(user!=null)
-			user.setShardingKey(shardingKey);
 		return user;
 	}
 
