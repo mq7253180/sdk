@@ -38,11 +38,8 @@ public class ShardingAop {
     		boolean reRoute = (readOnly!=null&&readOnly.reRoute());
 			if(reRoute||DataSourceHolder.getDetermineCurrentLookupKey()==null) {
 				stackRoot = true;
-				Long shard = ShardingUtil.getDbShard();
-				if(shard==null) {
-					Long shardingKey = ShardingUtil.extractShardingKey(method.getParameterAnnotations(), joinPoint.getArgs());
-			    	shard = ShardingUtil.shard(shardingKey, shardingCount);
-				}
+				Long shardingKey = ShardingUtil.extractShardingKey(method.getParameterAnnotations(), joinPoint.getArgs());
+				Long shard = shardingKey!=null?ShardingUtil.shard(shardingKey, shardingCount):ShardingUtil.getDbShard();
 		    	DataSourceHolder.set(masterOrSlave+shard);
 			}
 			return joinPoint.proceed();

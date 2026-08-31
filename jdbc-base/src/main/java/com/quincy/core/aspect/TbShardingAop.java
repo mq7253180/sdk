@@ -27,11 +27,8 @@ public class TbShardingAop {
     public void readOnlyPointCut() {}
 
 	private Object doAround(ProceedingJoinPoint joinPoint) throws Throwable {
-		Long shard = ShardingUtil.getTbShard();
-		if(shard==null) {
-			long shardingKey = ShardingUtil.extractShardingKey(joinPoint);
-			shard = ShardingUtil.tbShard(shardingKey, shardingCount);
-		}
+		Long shardingKey = ShardingUtil.extractShardingKey(joinPoint);
+		Long shard = shardingKey!=null?ShardingUtil.tbShard(shardingKey, shardingCount):ShardingUtil.getTbShard();
 		TbShardingConnection.setShard(shard);
 		return joinPoint.proceed();
 	}

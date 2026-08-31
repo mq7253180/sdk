@@ -16,24 +16,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 public class ShardingUtil {
-	public static long extractShardingKey(JoinPoint joinPoint) throws NoSuchMethodException, SecurityException {
-		Long shardingKey = doExtractShardingKey();
-		if(shardingKey!=null) {
-			return shardingKey;
-		} else {
-			Class<?> clazz = joinPoint.getTarget().getClass();
-			MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
-			Method method = clazz.getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
-			return doExtractShardingKey(method.getParameterAnnotations(), joinPoint.getArgs());
-		}
+	public static Long extractShardingKey(JoinPoint joinPoint) throws NoSuchMethodException, SecurityException {
+		Class<?> clazz = joinPoint.getTarget().getClass();
+		MethodSignature methodSignature = (MethodSignature)joinPoint.getSignature();
+		Method method = clazz.getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
+		return extractShardingKey(method.getParameterAnnotations(), joinPoint.getArgs());
 	}
 
-	public static long extractShardingKey(Annotation[][] annotationss, Object[] args) {
-		Long shardingKey = doExtractShardingKey();
-		return shardingKey==null?null:doExtractShardingKey(annotationss, args);
-	}
-
-	private static long doExtractShardingKey(Annotation[][] annotationss, Object[] args) {
+	public static Long extractShardingKey(Annotation[][] annotationss, Object[] args) {
 		int index = -1;
 		boolean snowFlake = false;
 		for(int i=0;i<annotationss.length;i++) {
@@ -51,8 +41,10 @@ public class ShardingUtil {
 			if(stopLoop)
 				break;
 		}
-		Assert.isTrue(index>-1, "Sharding key must be specified using @ShardingKey before parameter, and with type of Integer or Long!!!");
-    	Object shardingArgObj = args[index];
+//		Assert.isTrue(index>-1, "Sharding key must be specified using @ShardingKey before parameter, and with type of Integer or Long!!!");
+    	if(index==-1)
+    		return null;
+		Object shardingArgObj = args[index];
     	Assert.notNull(shardingArgObj, "The value of @ShardingKey specified can not be null.");
     	Assert.isTrue(shardingArgObj instanceof Integer||shardingArgObj instanceof Long, "Only Long or Integer are acceptable as parameter of sharding key!!!");
     	Long shardingArg = Long.valueOf(shardingArgObj.toString());
@@ -70,13 +62,8 @@ public class ShardingUtil {
 		return shard((key+"a").hashCode(), count);
 	}
 
-	public final static String SESSION_KEY_SHARDING = "SHARDING_KEY";
 	public final static String SESSION_KEY_DB_SHARD = "DB_SHARD";
 	public final static String SESSION_KEY_TB_SHARD = "TB_SHARD";
-
-	private static Long doExtractShardingKey() {
-		return getLongAttrFromSession(SESSION_KEY_SHARDING);
-	}
 
 	public static Long getDbShard() {
 		return getLongAttrFromSession(SESSION_KEY_DB_SHARD);
@@ -89,10 +76,6 @@ public class ShardingUtil {
 	private static Long getLongAttrFromSession(String key) {
 		Object longObj = getSession().getAttribute(key);
 		return longObj==null?null:Long.valueOf(longObj.toString());
-	}
-
-	public static void setShardingKey(Long value) {
-		getSession().setAttribute(SESSION_KEY_SHARDING, value);
 	}
 
 	public static void setDbShard(Long value) {
