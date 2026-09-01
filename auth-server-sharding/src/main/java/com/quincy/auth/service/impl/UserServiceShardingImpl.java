@@ -18,6 +18,11 @@ public class UserServiceShardingImpl extends UserServiceImpl implements UserServ
 	private UserServiceShardingProxy userServiceShardingProxy;
 
 	@Override
+	public Long findUserId(String loginName) {
+		return this.userServiceShardingProxy.findUserId(loginName.hashCode(), loginName);
+	}
+
+	@Override
 	public Long add(UserDto vo) {
 		Long userId = vo.getId();
 		Assert.notNull(userId, "必须先通过SnowFlake.nextId()生成userId！");
