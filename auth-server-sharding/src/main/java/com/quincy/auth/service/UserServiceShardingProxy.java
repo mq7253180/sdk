@@ -1,19 +1,11 @@
 package com.quincy.auth.service;
 
 import com.quincy.auth.entity.UserDto;
-import com.quincy.sdk.Client;
-import com.quincy.sdk.o.User;
 
 public interface UserServiceShardingProxy {
-	public void loadAuth(long shardingKey, User user);
-	public UserDto update(long shardingKey, UserDto vo);
-	public Long findUserId(long shardingKey, String loginName);
-	public User find(long shardingKey, Long id, Client client);
-	public void updatePassword(Long id, String password);
-	public void add(long shardingKey, UserDto vo);
-	public Long createMapping(long shardingKey, String loginName);
-	public int deleteMapping(long shardingKey, String loginName);
-	public int updateJsessionidPcBrowser(Long id, String jsessionid);
-	public int updateJsessionidMobileBrowser(Long id, String jsessionid);
-	public int updateJsessionidApp(Long id, String jsessionid);
+	public UserDto update(long userId, UserDto vo);
+	public Long findUserId(long loginNameHashCode, String loginName);
+	public void add(long userId, UserDto vo);
+	public Long createMapping(long loginNameHashCode, String loginName);
+	public int deleteMapping(long loginNameHashCode, String loginName);
 }

@@ -39,9 +39,9 @@ public class UserServiceImpl implements UserService {
 	protected UserDao userDao;
 	@Autowired
 	private AuthServerActions authServerActions;
-
-	@ReadOnly
+	
 	@Override
+	@ReadOnly
 	public void loadAuth(User user) {
 		//角色
 		List<Role> roleList = authServerActions.findRoles(user.getId());
@@ -125,7 +125,6 @@ public class UserServiceImpl implements UserService {
 	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
 	public UserDto update(UserDto vo) {
 		UserDto po = userDao.find(vo.getId());
-//		UserEntity po = userRepository.findById(vo.getId()).get();
 		String username = CommonHelper.trim(vo.getUsername());
 		if(username!=null)
 			po.setUsername(username);
@@ -156,12 +155,12 @@ public class UserServiceImpl implements UserService {
 		String jsessionidApp = CommonHelper.trim(vo.getJsessionidApp());
 		if(jsessionidApp!=null)
 			po.setJsessionidApp(jsessionidApp);
-//		userRepository.save(po);
 		userDao.update(po.getName(), po.getUsername(), po.getGender(), po.getPassword(), po.getMobilePhone(), po.getEmail(), po.getAvatar(), po.getJsessionidPcBrowser(), po.getMobileBrowserJsessionid(), po.getAppJsessionid(), vo.getId());
 		return po;
 	}
 
 	@Override
+	@ReadOnly
 	public Long findUserId(String loginName) {
 		LoginUserMapping loginUserMapping = loginUserMappingDao.findByLoginName(loginName);
 		return loginUserMapping==null?null:loginUserMapping.getUserId();
@@ -233,7 +232,6 @@ public class UserServiceImpl implements UserService {
 		UserDto vo = new UserDto();
 		vo.setId(loginUserMapping.getUserId());
 		userUpdation.setLoginName(vo);
-//		this.userRepository.save(vo);
 		this.update(vo);
 		return new Result(1, "status.success");
 	}
@@ -244,16 +242,19 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
 	public int updateJsessionidPcBrowser(Long id, String jsessionid) {
 		return userDao.updateJsessionidPcBrowser(jsessionid, id);
 	}
 
 	@Override
+	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
 	public int updateJsessionidMobileBrowser(Long id, String jsessionid) {
 		return userDao.updateJsessionidMobileBrowser(jsessionid, id);
 	}
 
 	@Override
+	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
 	public int updateJsessionidApp(Long id, String jsessionid) {
 		return userDao.updateJsessionidApp(jsessionid, id);
 	}
