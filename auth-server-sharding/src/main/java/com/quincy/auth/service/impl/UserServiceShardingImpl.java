@@ -25,7 +25,8 @@ public class UserServiceShardingImpl extends UserServiceImpl implements UserServ
 	@Override
 	public Long findUserId(String loginName) {
 		Long userId = this.userServiceShardingProxy.findUserId(loginName.hashCode(), loginName);
-		ShardingUtil.setDbShard(SnowFlake.extractShardingKey(userId), shardingCount);
+		if(userId!=null)
+			ShardingUtil.setDbShard(SnowFlake.extractShardingKey(userId), shardingCount);
 		return userId;
 	}
 
