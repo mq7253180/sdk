@@ -15,12 +15,8 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Stack;
@@ -41,6 +37,7 @@ import com.quincy.core.InnerConstants;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 public class CommonHelper {
 	private static ParamSupport paramSupportHead;
@@ -162,12 +159,20 @@ public class CommonHelper {
 		return null;
 	}
 
+	public static ServletRequestAttributes getServletRequestAttributes() {
+		return (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
+	}
+
 	public static HttpServletRequest getRequest() {
-		return ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getRequest();
+		return getServletRequestAttributes().getRequest();
 	}
 
 	public static HttpServletResponse getResponse() {
-		return ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getResponse();
+		return getServletRequestAttributes().getResponse();
+	}
+
+	public static HttpSession getSession() {
+		return getRequest().getSession();
 	}
 
 	public static String getValueFromCookie(HttpServletRequest request, String key) {

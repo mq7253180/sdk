@@ -6,14 +6,10 @@ import java.lang.reflect.Method;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.util.Assert;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.quincy.sdk.SnowFlake;
 import com.quincy.sdk.annotation.jdbc.ShardingKey;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
+import com.quincy.sdk.helper.CommonHelper;
 
 public class ShardingUtil {
 	public static Long extractShardingKey(JoinPoint joinPoint) throws NoSuchMethodException, SecurityException {
@@ -62,8 +58,8 @@ public class ShardingUtil {
 		return shard((key+"a").hashCode(), count);
 	}
 
-	public final static String SESSION_KEY_DB_SHARD = "DB_SHARD";
-	public final static String SESSION_KEY_TB_SHARD = "TB_SHARD";
+	private final static String SESSION_KEY_DB_SHARD = "DB_SHARD";
+	private final static String SESSION_KEY_TB_SHARD = "TB_SHARD";
 
 	public static Long getDbShard() {
 		return getLongAttrFromSession(SESSION_KEY_DB_SHARD);
@@ -74,20 +70,15 @@ public class ShardingUtil {
 	}
 
 	private static Long getLongAttrFromSession(String key) {
-		Object longObj = getSession().getAttribute(key);
+		Object longObj = CommonHelper.getSession().getAttribute(key);
 		return longObj==null?null:Long.valueOf(longObj.toString());
 	}
 
 	public static void setDbShard(Long value) {
-		getSession().setAttribute(SESSION_KEY_DB_SHARD, value);
+		CommonHelper.getSession().setAttribute(SESSION_KEY_DB_SHARD, value);
 	}
 
 	public static void setTbShard(Long value) {
-		getSession().setAttribute(SESSION_KEY_TB_SHARD, value);
-	}
-
-	private static HttpSession getSession() {
-		HttpServletRequest request = ((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getRequest();
-		return request.getSession();
+		CommonHelper.getSession().setAttribute(SESSION_KEY_TB_SHARD, value);
 	}
 }
