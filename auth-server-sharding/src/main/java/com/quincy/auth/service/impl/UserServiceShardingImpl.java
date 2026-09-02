@@ -46,6 +46,6 @@ public class UserServiceShardingImpl extends UserServiceImpl implements UserServ
 		UserDto vo = new UserDto();
 		vo.setId(userId);
 		userUpdation.setLoginName(vo);
-		userServiceShardingProxy.update(userId, vo);
+		this.update(vo);
 	}
 }

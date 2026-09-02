@@ -13,12 +13,6 @@ import com.quincy.sdk.annotation.jdbc.ShardingKey;
 @Service
 public class UserServiceShardingProxyImpl extends UserServiceImpl implements UserServiceShardingProxy {
 	@Override
-	@Transactional(isolation = Isolation.READ_COMMITTED, propagation = Propagation.REQUIRED, rollbackFor = Throwable.class)
-	public UserDto update(@ShardingKey(snowFlake = true)long userId, UserDto vo) {
-		return this.update(vo);
-	}
-
-	@Override
 	@ReadOnly
 	public Long findUserId(@ShardingKey long loginNameHashCode, String loginName) {
 		return this.findUserId(loginName);
