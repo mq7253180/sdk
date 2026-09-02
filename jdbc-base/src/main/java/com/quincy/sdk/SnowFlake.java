@@ -60,8 +60,8 @@ public class SnowFlake {
     private static long DATA_CENTER_ID_SHIFT = SEQUENCE_BITS + WORKER_ID_BITS;
     // 时间戳需要左移的位数 12+5+5
     private static final long TIMESTAMP_SHIFT = SEQUENCE_BITS + WORKER_ID_BITS + DATA_CENTER_ID_BITS;
-//    private static long dataCenterId = 1;
-    private static int workerId = 1;
+//    private static long dataCenterId = 0;
+    private static int workerId = 0;
     
     private static int SHARDING_KEY_RANGE_LOWER;
     private static int SHARDING_KEY_RANGE_UPPER;

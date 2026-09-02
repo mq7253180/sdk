@@ -41,7 +41,7 @@ public class ShardingUtil {
     	if(index==-1)
     		return null;
 		Object shardingArgObj = args[index];
-    	Assert.notNull(shardingArgObj, "The value of @ShardingKey specified can not be null.");
+    	Assert.notNull(shardingArgObj, "The value qualified by @ShardingKey can not be null.");
     	Assert.isTrue(shardingArgObj instanceof Integer||shardingArgObj instanceof Long, "Only Long or Integer are acceptable as parameter of sharding key!!!");
     	Long shardingArg = Long.valueOf(shardingArgObj.toString());
     	Long shardingKey = snowFlake?SnowFlake.extractShardingKey(shardingArg):shardingArg;
@@ -74,11 +74,11 @@ public class ShardingUtil {
 		return longObj==null?null:Long.valueOf(longObj.toString());
 	}
 
-	public static void setDbShard(Long value) {
-		CommonHelper.getSession().setAttribute(SESSION_KEY_DB_SHARD, value);
+	public static void setDbShard(long key, int count) {
+		CommonHelper.getSession().setAttribute(SESSION_KEY_DB_SHARD, shard(key, count));
 	}
 
-	public static void setTbShard(Long value) {
-		CommonHelper.getSession().setAttribute(SESSION_KEY_TB_SHARD, value);
+	public static void setTbShard(long key, int count) {
+		CommonHelper.getSession().setAttribute(SESSION_KEY_TB_SHARD, tbShard(key, count));
 	}
 }

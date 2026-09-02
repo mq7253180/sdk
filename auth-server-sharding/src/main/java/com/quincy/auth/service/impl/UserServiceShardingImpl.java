@@ -1,25 +1,32 @@
 package com.quincy.auth.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import com.quincy.sdk.Result;
+import com.quincy.sdk.SnowFlake;
 import com.quincy.auth.entity.UserDto;
 import com.quincy.auth.service.UserService;
 import com.quincy.auth.service.UserServiceShardingProxy;
 import com.quincy.auth.service.UserUpdation;
+import com.quincy.core.jdbc.ShardingUtil;
 
 @Primary
 @Service
 public class UserServiceShardingImpl extends UserServiceImpl implements UserService {
 	@Autowired
 	private UserServiceShardingProxy userServiceShardingProxy;
+	@Value("${spring.datasource.sharding.count}")
+	private int shardingCount;
 
 	@Override
 	public Long findUserId(String loginName) {
-		return this.userServiceShardingProxy.findUserId(loginName.hashCode(), loginName);
+		Long userId = this.userServiceShardingProxy.findUserId(loginName.hashCode(), loginName);
+		ShardingUtil.setDbShard(SnowFlake.extractShardingKey(userId), shardingCount);
+		return userId;
 	}
 
 	@Override

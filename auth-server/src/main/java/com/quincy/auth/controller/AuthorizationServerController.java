@@ -14,6 +14,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.RequestContext;
 
 import com.quincy.core.VCodeConstants;
+import com.quincy.core.jdbc.ShardingUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quincy.auth.AuthConstants;
 import com.quincy.auth.SessionInvalidation;
@@ -23,6 +24,7 @@ import com.quincy.core.InnerHelper;
 import com.quincy.sdk.AuthServerActions;
 import com.quincy.sdk.Client;
 import com.quincy.sdk.Result;
+import com.quincy.sdk.SnowFlake;
 import com.quincy.sdk.TempPwdLoginEmailInfo;
 import com.quincy.sdk.VCodeCharsFrom;
 import com.quincy.sdk.VCodeOpsRgistry;
@@ -51,6 +53,8 @@ public class AuthorizationServerController {
 	private String mobileSessionTimeout;
 	@Value("${server.servlet.session.timeout.app:#{null}}")
 	private String appSessionTimeout;
+	@Value("${spring.datasource.tdsharding.count:#{null}}")
+	private Integer shardingCount;
 	public final static String PARA_NAME_USERNAME = "username";
 	private final static String SESSION_ATTR_NAME_USERID = "userid";
 	private final static String SESSION_ATTR_NAME_LOGINNAME = "loginname";
@@ -119,7 +123,7 @@ public class AuthorizationServerController {
 
 	public Result pwdLogin(HttpServletRequest request, String username, String _password) throws Exception {
 		RequestContext requestContext = new RequestContext(request);
-		Result result = this.validate(request, username);
+		Result result = this.validateUsername(username);
 		if(result.getStatus()<1) {
 			result.setMsg(requestContext.getMessage(result.getMsg()));
 			return result;
@@ -180,7 +184,7 @@ public class AuthorizationServerController {
 				status = -23;
 				msgI18N = i18nPrefix+".illegal";
 			} else {
-				Result result = this.validate(request, username);
+				Result result = this.validateUsername(username);
 				if(result.getStatus()<1) {
 					status = result.getStatus();
 					msgI18N = result.getMsg();
@@ -202,7 +206,7 @@ public class AuthorizationServerController {
 		public void send(String username) throws Exception;
 	}
 
-	protected Result validate(HttpServletRequest request, String _username) {
+	private Result validateUsername(String _username) {
 		Result result = new Result();
 		String username = CommonHelper.trim(_username);
 		if(username==null) {
@@ -216,6 +220,8 @@ public class AuthorizationServerController {
 			result.setMsg("auth.account.no");
 			return result;
 		}
+		if(shardingCount!=null)
+			ShardingUtil.setTbShard(SnowFlake.extractShardingKey(userId), shardingCount);
 		result.setStatus(1);
 		result.setData(userId);
 		return result;
@@ -332,9 +338,6 @@ public class AuthorizationServerController {
 		return result;
 	}
 
-	@Value("${spring.datasource.sharding.count}")
-	private int shardingCount;
-
 	@RequestMapping("/signup")
 	@ResponseBody
 	public Result signUp(HttpServletRequest request) throws Exception {
@@ -346,7 +349,7 @@ public class AuthorizationServerController {
 				result = new Result(-20, new RequestContext(request).getMessage("auth.mapping.new"));
 			} else {
 				result = this.login(request, userId, loginName);
-				result.setMsg(loginName+"注册成功，userId为"+userId+"，在第"+(loginName.hashCode()%shardingCount)+"个分片");
+				result.setMsg(loginName+"注册成功，userId为"+userId);
 			}
 		}
 		return result;
