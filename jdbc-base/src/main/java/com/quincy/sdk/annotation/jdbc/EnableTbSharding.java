@@ -8,11 +8,12 @@ import java.lang.annotation.Target;
 
 import org.springframework.context.annotation.Import;
 
+import com.quincy.core.ZKServerIdConfiguration;
 import com.quincy.core.aspect.TbShardingAop;
 
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-@Import(TbShardingAop.class)
+@Import({TbShardingAop.class, ZKServerIdConfiguration.class})
 public @interface EnableTbSharding {	
 }

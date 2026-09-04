@@ -46,7 +46,7 @@ public class SnowFlake {
     private static final long WORKER_ID_BITS = 5L;
     // workId占用5个比特位，最大值31
     // 0000000000000000000000000000000000000000000000000000000000011111
-    private static final long MAX_WORKER_ID = ~(-1L << WORKER_ID_BITS);
+    public static final long MAX_WORKER_ID = ~(-1L << WORKER_ID_BITS);
     // 最后12位，代表每毫秒内可产生最大序列号，即 2^12 - 1 = 4095
     private static long SEQUENCE_BITS = 12L;
     // 掩码（最低12位为1，高位都为0），主要用于与自增后的序列号进行位与，如果值为0，则代表自增后的序列号超过了4095
