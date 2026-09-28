@@ -26,10 +26,11 @@ public class ShardingUtil {
 			Annotation[] annotations = annotationss[i];
 			boolean stopLoop = false;
 			for(int j=0;j<annotations.length;j++) {
-				if(annotations[j] instanceof ShardingKey) {
+				Annotation annotation = annotations[j];
+				if(annotation instanceof ShardingKey) {
 					index = i;
-					ShardingKey annotation = (ShardingKey)annotations[j];
-					snowFlake = annotation.snowFlake();
+					ShardingKey shardingKey = (ShardingKey)annotation;
+					snowFlake = shardingKey.snowFlake();
 					stopLoop = true;
 	    			break;
 	    		}
