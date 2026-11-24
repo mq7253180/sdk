@@ -8,7 +8,8 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.quincy.core.db.SingleDataSourceHolder;
+import com.quincy.core.db.RoutingDataSource;
+import com.quincy.sdk.MasterOrSlave;
 import com.quincy.sdk.helper.AopHelper;
 
 @Order(6)
@@ -24,14 +25,14 @@ public class ReadOnlyAop {
 		if(transactionalAnnotation==null) {
 			boolean stackRoot = false;
 			try {
-				if(SingleDataSourceHolder.getDetermineCurrentLookupKey()==null) {
+				if(RoutingDataSource.getLookupKey()==null) {
 					stackRoot = true;
-					SingleDataSourceHolder.setSlave();
+					RoutingDataSource.setLookupKey(MasterOrSlave.SLAVE.value());
 				}
 				return joinPoint.proceed();
 			} finally {
 				if(stackRoot)
-					SingleDataSourceHolder.remove();
+					RoutingDataSource.removeLookupKey();
 			}
 		} else {
 			return joinPoint.proceed();

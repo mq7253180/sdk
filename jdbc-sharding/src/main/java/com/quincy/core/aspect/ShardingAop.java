@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import com.quincy.core.db.DataSourceHolder;
+import com.quincy.core.db.RoutingDataSource;
 import com.quincy.core.jdbc.ShardingUtil;
 import com.quincy.sdk.MasterOrSlave;
 import com.quincy.sdk.annotation.jdbc.ReadOnly;
@@ -36,16 +36,16 @@ public class ShardingAop {
     		Method method = clazz.getMethod(methodSignature.getName(), methodSignature.getParameterTypes());
     		ReadOnly readOnly = method.getDeclaredAnnotation(ReadOnly.class);
     		boolean reRoute = (readOnly!=null&&readOnly.reRoute());
-			if(reRoute||DataSourceHolder.getDetermineCurrentLookupKey()==null) {
+			if(reRoute||RoutingDataSource.getLookupKey()==null) {
 				stackRoot = true;
 				Long shardingKey = ShardingUtil.extractShardingKey(method.getParameterAnnotations(), joinPoint.getArgs());
 				Long shard = shardingKey!=null?ShardingUtil.shard(shardingKey, shardingCount):ShardingUtil.getDbShard();
-		    	DataSourceHolder.set(masterOrSlave+shard);
+				RoutingDataSource.setLookupKey(masterOrSlave+shard);
 			}
 			return joinPoint.proceed();
 		} finally {
 			if(stackRoot)
-				DataSourceHolder.remove();
+				RoutingDataSource.removeLookupKey();
 		}
 	}
 
